@@ -3,7 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bajaj Global Funds</title>
+    <title>Bajaj Global Funds - Community & Home</title>
+
+    <!-- Firebase SDKs for Blog Forum Live Data -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // पॉप-अप खोलना और बंद करना
+        window.openPublishPopup = () => { document.getElementById('publishPopup').style.display = 'flex'; };
+        window.closePublishPopup = () => { document.getElementById('publishPopup').style.display = 'none'; };
+
+        // इमेज प्रिव्यू दिखाना
+        window.previewImg = (event, previewId) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const box = document.getElementById(previewId);
+                    box.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">`;
+                }
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // असली यूजर द्वारा पोस्ट या समस्या पब्लिश करना
+        window.submitPost = async () => {
+            const content = document.getElementById('postTextContent').value.trim();
+            const img1Element = document.getElementById('imgInput1').files[0];
+            const img2Element = document.getElementById('imgInput2').files[0];
+
+            if (!content) {
+                alert("कृपया कुछ लिखें या अपनी समस्या दर्ज करें!");
+                return;
+            }
+
+            const toBase64 = file => new Promise((resolve) => {
+                if (!file) resolve("");
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+            });
+
+            const img1Base64 = await toBase64(img1Element);
+            const img2Base64 = await toBase64(img2Element);
+
+            let uid = localStorage.getItem('bgf_uid') || "9762331956";
+            let maskedUser = uid.slice(0, 2) + "****" + uid.slice(-2);
+            let randomAmounts = [300, 500, 1000, 1500, 2000, 3000];
+            let rAmt = randomAmounts[Math.floor(Math.random() * randomAmounts.length)];
+            
+            let randomSeed = Math.floor(Math.random() * 1000);
+            let aiAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${randomSeed}`;
+
+            try {
+                await addDoc(collection(db, "posts"), {
+                    username: maskedUser,
+                    content: content,
+                    amount: rAmt.toFixed(2),
+                    img1: img1Base64,
+                    img2: img2Base64,
+                    avatar: aiAvatar,
+                    timestamp: serverTimestamp()
+                });
+
+                closePublishPopup();
+                document.getElementById('postTextContent').value = "";
+                alert("Successfully Published!");
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                alert("Publish nahi ho paya, dobara try karein!");
+            }
+        };
+
+        // पेज लोड होने पर डेटा और टैब मैनेजमेंट
+        document.addEventListener("DOMContentLoaded", () => {
+            const feed = document.getElementById('forumFeed');
+            const amounts = [300, 500, 800, 1000, 1500, 2000, 2500, 3000];
+            const sampleTexts = [
+                "Successfully withdrawn to my bank account. Fast and secure!",
+                "Got my payment within 5 minutes. Thanks BGF!",
+                "Awesome platform, my withdrawal is done successfully.",
+                "Received money instantly! Best earning app."
+            ];
+
+            const genId = () => Math.floor(10000000 + Math.random() * 90000000);
+
+            // शुरुआती फेक/प्री-लोडेड पोस्ट्स ताकि ब्लॉग टैब खुलते ही भरा हुआ दिखे
+            let initialHtml = "";
+            for(let i = 0; i < 4; i++) {
+                let rAmt = amounts[Math.floor(Math.random() * amounts.length)];
+                let rText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+                let rUser = genId().toString().slice(0, 2) + "****" + genId().toString().slice(6, 8);
+                let autoAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.floor(Math.random() * 1000)}`;
+
+                initialHtml += `
+                    <div class="post-card">
+                        <div class="post-user-row">
+                            <div class="user-info-left">
+                                <img src="${autoAvatar}" class="ai-avatar-img">
+                                <span class="username-text">${rUser}</span>
+                            </div>
+                            <div class="amount-pill">₹ ${rAmt}.00 Success</div>
+                        </div>
+                        <p class="post-desc">${rText}</p>
+                        <div class="post-date-text">Time: A few minutes ago</div>
+                    </div>
+                `;
+            }
+            if(feed) feed.innerHTML = initialHtml;
+
+            // रियल-टाइम डेटाबेस पोस्ट्स
+            const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+            onSnapshot(q, (snapshot) => {
+                let realHtml = "";
+                snapshot.forEach((doc) => {
+                    const post = doc.data();
+                    let dateStr = "Just now";
+                    if(post.timestamp) {
+                        dateStr = new Date(post.timestamp.toDate()).toLocaleTimeString();
+                    }
+                    let postAvatar = post.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.username}`;
+
+                    let imagesHtml = "";
+                    if (post.img1 || post.img2) {
+                        imagesHtml = `
+                            <div class="post-images-grid">
+                                ${post.img1 ? `<img src="${post.img1}" class="uploaded-img-view">` : ''}
+                                ${post.img2 ? `<img src="${post.img2}" class="uploaded-img-view">` : ''}
+                            </div>
+                        `;
+                    }
+
+                    realHtml += `
+                        <div class="post-card real-post-card">
+                            <div class="post-user-row">
+                                <div class="user-info-left">
+                                    <img src="${postAvatar}" class="ai-avatar-img">
+                                    <span class="username-text">${post.username || "User"}</span>
+                                </div>
+                                <div class="amount-pill">₹ ${post.amount} Success</div>
+                            </div>
+                            <p class="post-desc">${post.content}</p>
+                            ${imagesHtml}
+                            <div class="post-date-text">Time: ${dateStr}</div>
+                        </div>
+                    `;
+                });
+                
+                if(realHtml && feed) {
+                    feed.innerHTML = realHtml + feed.innerHTML;
+                }
+            });
+
+            // आँखों के सामने लाइव विड्रॉ प्रूफ ऐड होना
+            setInterval(() => {
+                if(!feed) return;
+                let rAmt = amounts[Math.floor(Math.random() * amounts.length)];
+                let rText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+                let rUser = genId().toString().slice(0, 2) + "****" + genId().toString().slice(6, 8);
+                let autoAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.floor(Math.random() * 1000)}`;
+
+                const div = document.createElement('div');
+                div.className = 'post-card';
+                div.innerHTML = `
+                    <div class="post-user-row">
+                        <div class="user-info-left">
+                            <img src="${autoAvatar}" class="ai-avatar-img">
+                            <span class="username-text">${rUser}</span>
+                        </div>
+                        <div class="amount-pill">₹ ${rAmt}.00 Success</div>
+                    </div>
+                    <p class="post-desc">${rText}</p>
+                    <div class="post-date-text">Time: Just now</div>
+                `;
+                feed.prepend(div);
+            }, 4000);
+        });
+
+        // टैब स्विच करने का फंक्शन (होम और ब्लॉग के बीच)
+        window.switchTab = (tabName) => {
+            const homeSec = document.getElementById('homeSection');
+            const blogSec = document.getElementById('blogSection');
+            const navItems = document.querySelectorAll('.nav-item');
+
+            navItems.forEach(item => item.classList.remove('active'));
+
+            if(tabName === 'home') {
+                homeSec.style.display = 'block';
+                blogSec.style.display = 'none';
+                document.getElementById('navHome').classList.add('active');
+            } else if(tabName === 'blog') {
+                homeSec.style.display = 'none';
+                blogSec.style.display = 'block';
+                document.getElementById('navBlog').classList.add('active');
+            }
+        };
+    </script>
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -22,6 +230,8 @@
             display: flex;
             flex-direction: column;
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            position: relative;
+            padding-bottom: 55px;
         }
         /* Top Header */
         .header {
@@ -65,7 +275,7 @@
             font-size: 12px;
         }
 
-        /* Quick Action Grid (All SVG Icons & Direct Link Support) */
+        /* Quick Action Grid */
         .quick-actions {
             display: flex;
             justify-content: space-between;
@@ -173,7 +383,28 @@
             opacity: 0.95;
         }
 
-        /* Bottom Navigation Bar */
+        /* Blog Section Specific CSS Inside Home */
+        .hero-header-blog { background: #00b050; padding: 12px 15px; color: white; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; margin-bottom: 10px; }
+        .user-profile-box { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 12px; margin-top: 8px; }
+        .user-profile-left { display: flex; align-items: center; gap: 10px; }
+        .ai-avatar-big { background: white; width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid white; }
+        .ai-avatar-img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: #e0e0e0; border: 1px solid #ccc; }
+        .user-details h4 { font-size: 14px; font-weight: bold; }
+        .user-details p { font-size: 10px; opacity: 0.85; }
+        .publish-btn-main { background: white; color: #00b050; border: none; padding: 6px 14px; border-radius: 18px; font-weight: bold; font-size: 12px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15); }
+
+        .post-card { background: white; border-radius: 12px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .real-post-card { border: 1.5px solid #00b050; } 
+        .post-user-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .user-info-left { display: flex; align-items: center; gap: 8px; }
+        .username-text { font-weight: bold; font-size: 12px; color: #333; }
+        .amount-pill { background: #e8f5e9; color: #00b050; padding: 3px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; }
+        .post-desc { font-size: 11px; color: #444; margin-bottom: 6px; line-height: 1.4; }
+        .post-images-grid { display: flex; gap: 8px; margin-bottom: 6px; overflow-x: auto; }
+        .uploaded-img-view { flex: 1; height: 110px; object-fit: cover; border-radius: 8px; border: 1px solid #eee; }
+        .post-date-text { font-size: 9px; color: #888; }
+
+        /* Bottom Navigation Bar with Blue Indicator for Active Blog Tab */
         .bottom-nav {
             background: white;
             display: flex;
@@ -181,10 +412,12 @@
             align-items: center;
             padding: 8px 0;
             border-top: 1px solid #ddd;
-            position: sticky;
+            position: fixed;
             bottom: 0;
-            flex-shrink: 0;
+            width: 100%;
+            max-width: 480px;
             height: 55px;
+            z-index: 100;
         }
         .nav-item {
             text-align: center;
@@ -194,47 +427,75 @@
             font-weight: 600;
             flex: 1;
             text-decoration: none;
+            position: relative;
         }
         .nav-item.active { color: #00b050; }
+        
+        /* ब्लॉग टैब एक्टिव होने पर नीचे ब्लू कलर की लाइन */
+        .nav-item.active#navBlog::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 20%;
+            width: 60%;
+            height: 3px;
+            background-color: #007bff;
+            border-radius: 2px;
+        }
+
         .nav-item svg { width: 22px; height: 22px; fill: currentColor; margin: 0 auto 2px; display: block; }
         
         .notice-center-btn {
             position: absolute;
-            top: -24px;
+            top: -22px;
             left: 50%;
             transform: translateX(-50%);
-            background: #ffcc00;
-            width: 50px;
-            height: 50px;
+            background: linear-gradient(135deg, #FF416C, #FF4B2B);
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 4px 12px rgba(255,204,0,0.4);
+            box-shadow: 0 8px 16px rgba(255, 75, 43, 0.4);
             cursor: pointer;
             border: 3px solid white;
             text-decoration: none;
+            font-size: 26px;
         }
-        .notice-center-btn svg { width: 24px; height: 24px; fill: #333; }
+
+        /* Popup Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: flex-end; }
+        .modal-content { background: white; width: 100%; max-width: 480px; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .modal-header h3 { font-size: 16px; color: #333; }
+        .close-modal-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: #888; }
+        
+        .modal-textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 10px; font-size: 12px; outline: none; resize: none; margin-bottom: 12px; background: #fafafa; }
+        .upload-row-label { font-size: 11px; font-weight: bold; color: #555; margin-bottom: 6px; }
+        .upload-boxes-container { display: flex; gap: 10px; margin-bottom: 15px; }
+        .picker-box { flex: 1; height: 80px; border: 2px dashed #ccc; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: #fafafa; font-size: 20px; color: #888; overflow: hidden; }
+        .submit-post-btn { width: 100%; background: #00b050; color: white; border: none; padding: 12px; border-radius: 25px; font-size: 14px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <!-- Top Header with Dynamic Unique User ID -->
+        <!-- Top Header for Home -->
         <div class="header">
             <div class="user-info">
                 <h3 id="userNameDisplay">Hello, User</h3>
                 <p id="userIdDisplay">ID: Loading...</p>
             </div>
-            <!-- Customer Service Link -->
-            <a href="https://t.me/BajajGlobalCS" target="_blank" class="support-icon" title="Customer Service: @BajajGlobalCS">
+            <a href="https://t.me/BajajGlobalCS" target="_blank" class="support-icon" title="Customer Service">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h1v-8H5v-2a7 7 0 0 1 14 0v2h-2v8h1c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z"/></svg>
             </a>
         </div>
 
-        <!-- Scrollable Body Content -->
-        <div class="content-body">
+        <!-- ================= HOME SECTION ================= -->
+        <div id="homeSection" class="content-body">
             <!-- Notice Board Box -->
             <div class="notice-board-box">
                 <h4>📢 Official Notice Board</h4>
@@ -247,45 +508,26 @@
                 <button class="invite-btn" onclick="alert('Invite link copied!')">Invite Friends</button>
             </div>
 
-            <!-- Quick Action Options (All SVGs & Direct Page Redirects) -->
+            <!-- Quick Action Options -->
             <div class="quick-actions">
-                <!-- Recharge Button -> recharge.html -->
                 <a href="recharge.html" class="action-item">
-                    <div class="action-icon">
-                        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                    </div>
+                    <div class="action-icon"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
                     <span>Recharge</span>
                 </a>
-
-                <!-- Withdrawal Button -> withdrawal.html -->
-                <a href="withdrawal.html" class="action-item">
-                    <div class="action-icon">
-                        <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
-                    </div>
+                <a href="widraw.html" class="action-item">
+                    <div class="action-icon"><svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg></div>
                     <span>Withdrawal</span>
                 </a>
-
-                <!-- Lucky Draw Button -> luckydraw.html -->
                 <a href="luckydraw.html" class="action-item">
-                    <div class="action-icon">
-                        <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a3 3 0 0 0-3-3c-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2a3 3 0 0 0-3 3c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg>
-                    </div>
+                    <div class="action-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a3 3 0 0 0-3-3c-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2a3 3 0 0 0-3 3c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg></div>
                     <span>Lucky Draw</span>
                 </a>
-
-                <!-- Team Button -> team.html -->
                 <a href="team.html" class="action-item">
-                    <div class="action-icon">
-                        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3z"/></svg>
-                    </div>
+                    <div class="action-icon"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3z"/></svg></div>
                     <span>Team</span>
                 </a>
-
-                <!-- Telegram Support Link -->
                 <a href="https://t.me/BajajGlobalCS" target="_blank" class="action-item">
-                    <div class="action-icon">
-                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.02-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.05-.78 4.11-1.79 6.85-2.97 8.22-3.54 3.91-1.63 4.72-1.91 5.25-1.92.12 0 .38.03.55.17.14.12.18.28.2.45z"/></svg>
-                    </div>
+                    <div class="action-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.02-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.05-.78 4.11-1.79 6.85-2.97 8.22-3.54 3.91-1.63 4.72-1.91 5.25-1.92.12 0 .38.03.55.17.14.12.18.28.2.45z"/></svg></div>
                     <span>Telegram</span>
                 </a>
             </div>
@@ -306,34 +548,75 @@
             </div>
         </div>
 
-        <!-- Bottom Navigation Bar (All SVGs & Direct Page Links) -->
+        <!-- ================= BLOG SECTION (Hidden by default, shown on Blog Click) ================= -->
+        <div id="blogSection" class="content-body" style="display: none; padding: 0;">
+            <div class="hero-header-blog">
+                <div class="user-profile-box">
+                    <div class="user-profile-left">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=user_header" class="ai-avatar-big" id="headerUserAvatar">
+                        <div class="user-details">
+                            <h4 id="blogHeaderUserId">9762331956</h4>
+                            <p>ID <span id="headerIdMask">***</span></p>
+                        </div>
+                    </div>
+                    <button class="publish-btn-main" onclick="openPublishPopup()">
+                        ✏️ Publish
+                    </button>
+                </div>
+            </div>
+            <div style="padding: 12px;" id="forumFeed"></div>
+        </div>
+
+        <!-- Bottom Navigation Bar -->
         <div class="bottom-nav">
-            <a href="home.html" class="nav-item active">
+            <a onclick="switchTab('home')" class="nav-item active" id="navHome">
                 <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 Home
             </a>
-            <a href="invest.html" class="nav-item">
+            <a href="invest.html" class="nav-item" id="navInvest">
                 <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
                 Invest
             </a>
+            
             <div style="flex: 1; position: relative; height: 100%;">
-                <a href="notice.html" class="notice-center-btn">
-                    <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a3 3 0 0 0-3-3c-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2a3 3 0 0 0-3 3c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2z"/></svg>
-                </a>
+                <a href="notice.html" class="notice-center-btn" title="Notice Center">🎁</a>
             </div>
-            <a href="blog.html" class="nav-item">
+
+            <a onclick="switchTab('blog')" class="nav-item" id="navBlog">
                 <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
                 Blog
             </a>
-            <a href="account.html" class="nav-item">
+            <a href="account.html" class="nav-item" id="navAccount">
                 <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                 Account
             </a>
         </div>
     </div>
 
+    <!-- Popup Modal for Blog Publish -->
+    <div class="modal-overlay" id="publishPopup">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Post Problem / Withdrawal Proof</h3>
+                <button class="close-modal-btn" onclick="closePublishPopup()">✕</button>
+            </div>
+            
+            <textarea id="postTextContent" class="modal-textarea" placeholder="Apni problem ya withdrawal ka message yahan likhein..."></textarea>
+            
+            <div class="upload-row-label">Upload 2 Photos (Screenshots)</div>
+            <div class="upload-boxes-container">
+                <label for="imgInput1" class="picker-box" id="previewBox1">📷</label>
+                <input type="file" id="imgInput1" accept="image/*" style="display: none;" onchange="previewImg(event, 'previewBox1')">
+
+                <label for="imgInput2" class="picker-box" id="previewBox2">📷</label>
+                <input type="file" id="imgInput2" accept="image/*" style="display: none;" onchange="previewImg(event, 'previewBox2')">
+            </div>
+
+            <button class="submit-post-btn" onclick="submitPost()">Publish Now</button>
+        </div>
+    </div>
+
     <script>
-        // Unique UID aur User Generation
         let uniqueId = localStorage.getItem('bgf_uid');
         let userName = localStorage.getItem('bgf_uname');
 
@@ -347,6 +630,9 @@
         document.getElementById('userNameDisplay').innerText = "Hello, " + userName;
         document.getElementById('userIdDisplay').innerText = "ID: " + uniqueId;
         document.getElementById('inviteLinkText').innerText = `https://bajajglobalfunds.com/?invite=BGF${uniqueId}`;
+        
+        document.getElementById('blogHeaderUserId').innerText = uniqueId;
+        document.getElementById('headerUserAvatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${uniqueId}`;
     </script>
 </body>
 </html>
