@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTMPay - Secure Payment</title>
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDK (Compat v9.22.2) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <!-- QR Code Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background: #0f172a; display: flex; justify-content: center; min-height: 100vh; color: #f8fafc; }
+        .app-container { width: 100%; max-width: 480px; background: #131c31; min-height: 100vh; display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+        
+        /* Top Premium Header */
+        .top-header { background: linear-gradient(135deg, #059669, #0d9488); color: white; padding: 25px 20px 20px 20px; text-align: center; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; position: relative; }
+        .top-header h2 { font-size: 20px; margin-bottom: 5px; text-align: left; position: absolute; top: 20px; left: 20px; font-weight: 600; letter-spacing: 0.5px; }
+        .amount-title { font-size: 13px; opacity: 0.9; margin-top: 15px; font-weight: 400; }
+        .payment-amount { font-size: 38px; font-weight: 700; margin: 5px 0; letter-spacing: 1px; }
+        .timer { font-size: 14px; font-weight: 500; background: rgba(0, 0, 0, 0.25); display: inline-block; padding: 4px 14px; border-radius: 20px; margin-top: 5px; }
+
+        /* Tabs */
+        .tabs-container { display: flex; justify-content: space-around; background: #131c31; padding: 18px 20px 10px 20px; }
+        .tab-btn { font-size: 15px; font-weight: 600; color: #64748b; cursor: pointer; padding-bottom: 8px; border-bottom: 2px solid transparent; transition: all 0.3s ease; }
+        .tab-btn.active { color: #34d399; border-bottom-color: #34d399; }
+
+        .content-body { padding: 15px 20px 40px 20px; flex: 1; }
+
+        /* Payment Method Box */
+        .section-box { background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
+        .section-title { font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .methods-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .pay-method-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border: 1px solid #334155; border-radius: 10px; background: #131c31; cursor: pointer; font-weight: 600; font-size: 14px; text-decoration: none; color: #f1f5f9; transition: 0.2s; }
+        .pay-method-btn:hover { background: #273548; }
+
+        /* Warning Box */
+        .warning-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 12px; border-radius: 12px; font-size: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; line-height: 1.4; font-weight: 400; }
+
+        /* Transfer Details Box */
+        .transfer-box { background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 15px; margin-bottom: 20px; }
+        .transfer-step { font-size: 13px; font-weight: 600; color: #f1f5f9; margin-bottom: 8px; }
+        .copy-field { display: flex; justify-content: space-between; align-items: center; background: #131c31; border: 1px solid #334155; padding: 12px 14px; border-radius: 10px; margin-bottom: 12px; font-size: 15px; font-weight: 600; color: #34d399; }
+        .copy-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; }
+        .copy-btn svg { width: 20px; height: 20px; fill: #94a3b8; transition: 0.2s; }
+        .copy-btn:hover svg { fill: #34d399; }
+
+        /* UTR Input Row */
+        .utr-row { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
+        .utr-input { width: 100%; padding: 14px; border: 1px solid #334155; border-radius: 10px; font-size: 14px; outline: none; background: #131c31; color: white; }
+        .utr-input:focus { border-color: #059669; }
+        .submit-btn { width: 100%; background: #059669; color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; transition: 0.2s; margin-top: 5px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); }
+        .submit-btn:hover { background: #047857; }
+
+        /* QR Code Tab Design */
+        #qrSection { display: none; }
+        .qr-card { background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 20px; text-align: center; margin-bottom: 20px; }
+        .qr-amount-display { font-size: 26px; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
+        .qr-subtext { font-size: 12px; color: #94a3b8; margin-bottom: 15px; }
+        .qr-wrapper { display: inline-block; padding: 12px; background: white; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        #qrcode img { display: block; margin: 0 auto; }
+
+        /* Custom Modal Popup Overlay */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center; align-items: center; z-index: 9999; visibility: hidden; opacity: 0; transition: 0.3s ease; }
+        .modal-overlay.active { visibility: visible; opacity: 1; }
+        .modal-box { background: #1e293b; border: 1px solid #334155; padding: 25px; border-radius: 16px; width: 90%; max-width: 340px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transform: scale(0.9); transition: 0.3s ease; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-icon { font-size: 45px; margin-bottom: 12px; }
+        .modal-title { font-size: 18px; font-weight: 600; color: #f8fafc; margin-bottom: 8px; }
+        .modal-desc { font-size: 13px; color: #94a3b8; margin-bottom: 20px; line-height: 1.5; }
+        .modal-btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .btn-error { background: #ef4444; color: white; }
+        .btn-error:hover { background: #dc2626; }
+        .btn-success { background: #059669; color: white; }
+        .btn-success:hover { background: #047857; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Top Header -->
+    <div class="top-header">
+        <h2>PTMPay</h2>
+        <div class="amount-title">Payment Amount</div>
+        <div class="payment-amount" id="headerAmount">₹0</div>
+        <div class="timer" id="timer">00:09:41</div>
+    </div>
+
+    <!-- Tabs Header -->
+    <div class="tabs-container">
+        <div id="tabDirect" class="tab-btn active" onclick="switchTab('direct')">Direct Transfer</div>
+        <div id="tabQr" class="tab-btn" onclick="switchTab('qr')">Scan QRCode</div>
+    </div>
+
+    <div class="content-body">
+        
+        <!-- DIRECT TRANSFER TAB -->
+        <div id="directContent">
+            <div class="section-box">
+                <div class="section-title">Select Payment App</div>
+                <div class="methods-grid">
+                    <a href="#" id="paytmAppBtn1" class="pay-method-btn"><span style="color:#38bdf8;">Paytm</span></a>
+                    <a href="#" id="phonepeAppBtn1" class="pay-method-btn"><span style="color:#c084fc;">PhonePe</span></a>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <span>⚠️</span>
+                <span>Payment can only be made once. Multiple payments are not valid!</span>
+            </div>
+
+            <div class="transfer-box">
+                <div class="transfer-step" id="stepText">1. Transfer amount to the following UPI</div>
+                <div class="copy-field">
+                    <span id="upiText">paytm.s2sqr95@pty</span>
+                    <button class="copy-btn" onclick="copyText('upiText', 'UPI ID')">
+                        <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    </button>
+                </div>
+                <div class="copy-field">
+                    <span id="amountText">0 RS</span>
+                    <button class="copy-btn" onclick="copyText('amountText', 'Amount')">
+                        <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    </button>
+                </div>
+
+                <div class="transfer-step" style="margin-top: 15px;">2. Submit UTR / Reference ID</div>
+                <div class="utr-row">
+                    <input type="text" id="utrInputDirect" class="utr-input" placeholder="Enter 12-digit UTR">
+                    <button id="submitBtnDirect" class="submit-btn" onclick="submitUTR('utrInputDirect')">Submit UTR</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCAN QR CODE TAB -->
+        <div id="qrSection">
+            <div class="section-box">
+                <div class="section-title">Select Payment App</div>
+                <div class="methods-grid">
+                    <a href="#" id="paytmAppBtn2" class="pay-method-btn"><span style="color:#38bdf8;">Paytm</span></a>
+                    <a href="#" id="phonepeAppBtn2" class="pay-method-btn"><span style="color:#c084fc;">PhonePe</span></a>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <span>⚠️</span>
+                <span>Do not use the same QR code to pay multiple times!</span>
+            </div>
+
+            <!-- QR Display Card -->
+            <div class="qr-card">
+                <div class="qr-amount-display" id="qrDisplayAmount">₹0</div>
+                <div class="qr-subtext">Scan QR code using any UPI App</div>
+                <div class="qr-wrapper">
+                    <div id="qrcode"></div>
+                </div>
+                
+                <!-- UTR Input Box below QR -->
+                <div class="utr-row" style="margin-top: 5px;">
+                    <input type="text" id="utrInputQr" class="utr-input" placeholder="Enter UTR after payment">
+                    <button id="submitBtnQr" class="submit-btn" onclick="submitUTR('utrInputQr')">Submit UTR</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Custom Popup Modal Overlay -->
+<div id="customModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-icon" id="modalIcon">⚠️</div>
+        <h3 class="modal-title" id="modalTitle">Notice</h3>
+        <p class="modal-desc" id="modalDesc">Message goes here...</p>
+        <button class="modal-btn" id="modalActionBtn">OK</button>
+    </div>
+</div>
+
+<script>
+    // Firebase Setup
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // URL se live amount aur order id uthana
+    const urlParams = new URLSearchParams(window.location.search);
+    const amount = urlParams.get('amount') || '290';
+    const orderId = urlParams.get('order') || ('BGF' + Math.floor(100000 + Math.random() * 900000));
+    
+    const upiID = "paytm.s2sqr95@pty";
+
+    // UI mein dynamic amount set karna
+    document.getElementById('headerAmount').innerText = "₹" + amount;
+    document.getElementById('qrDisplayAmount').innerText = "₹" + amount;
+    document.getElementById('stepText').innerText = `1. Transfer ${amount} RS to the following UPI`;
+    document.getElementById('upiText').innerText = upiID;
+    document.getElementById('amountText').innerText = amount + " RS";
+
+    // Standard UPI Deep Link Format
+    const upiDeepLink = `upi://pay?pa=${upiID}&pn=Merchant&am=${amount}&cu=INR`;
+    document.getElementById('paytmAppBtn1').href = upiDeepLink;
+    document.getElementById('phonepeAppBtn1').href = upiDeepLink;
+    document.getElementById('paytmAppBtn2').href = upiDeepLink;
+    document.getElementById('phonepeAppBtn2').href = upiDeepLink;
+
+    // Generate Scannable High Quality QR Code
+    document.getElementById("qrcode").innerHTML = "";
+    new QRCode(document.getElementById("qrcode"), {
+        text: upiDeepLink,
+        width: 170,
+        height: 170,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+    });
+
+    // Tab Switching
+    function switchTab(tab) {
+        if(tab === 'direct') {
+            document.getElementById('tabDirect').classList.add('active');
+            document.getElementById('tabQr').classList.remove('active');
+            document.getElementById('directContent').style.display = 'block';
+            document.getElementById('qrSection').style.display = 'none';
+        } else {
+            document.getElementById('tabQr').classList.add('active');
+            document.getElementById('tabDirect').classList.remove('active');
+            document.getElementById('directContent').style.display = 'none';
+            document.getElementById('qrSection').style.display = 'block';
+        }
+    }
+
+    // Copy function & open apps chooser
+    function copyText(elementId, label) {
+        const textToCopy = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            window.location.href = upiDeepLink;
+        }).catch(() => {
+            showModal('error', 'Error', label + ' copied to clipboard!', 'OK', null);
+        });
+    }
+
+    // Modal Popup Control Variable
+    let modalCallback = null;
+
+    function showModal(type, title, desc, btnText, callback) {
+        const overlay = document.getElementById('customModal');
+        const icon = document.getElementById('modalIcon');
+        const titleEl = document.getElementById('modalTitle');
+        const descEl = document.getElementById('modalDesc');
+        const btn = document.getElementById('modalActionBtn');
+
+        titleEl.innerText = title;
+        descEl.innerText = desc;
+        btn.innerText = btnText;
+        modalCallback = callback;
+
+        if(type === 'error') {
+            icon.innerText = "❌";
+            btn.className = "modal-btn btn-error";
+        } else {
+            icon.innerText = "✅";
+            btn.className = "modal-btn btn-success";
+        }
+
+        overlay.classList.add('active');
+    }
+
+    // Button Click Handler for Modal
+    document.getElementById('modalActionBtn').onclick = function() {
+        const overlay = document.getElementById('customModal');
+        overlay.classList.remove('active');
+        if(typeof modalCallback === 'function') {
+            modalCallback();
+        }
+    };
+
+    // UTR Validation & Immediate Dual Firebase Saving (Admin Panel & History Page)
+    function submitUTR(inputId) {
+        const utr = document.getElementById(inputId).value.trim();
+
+        // 1. Wrong UTR Validation Check
+        if(!utr || utr.length < 10) {
+            showModal(
+                'error', 
+                'Wrong UTR', 
+                'Please enter a valid 12-digit UTR/Reference ID.', 
+                'Submit Again', 
+                null
+            );
+            return;
+        }
+
+        const userId = localStorage.getItem('bgf_uid') || 'user_guest';
+        const paymentData = {
+            orderId: orderId,
+            userId: userId,
+            amount: Number(amount),
+            upiIdUsed: upiID,
+            utrNumber: utr,
+            status: 'pending',
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        // 2. Dual Write: Ek sath 'recharges' aur 'history' dono collection mein save karega
+        Promise.all([
+            db.collection("recharges").doc(orderId).set(paymentData, { merge: true }),
+            db.collection("history").doc(orderId).set(paymentData, { merge: true })
+        ])
+        .then(() => {
+            // 3. Success Popup & Guaranteed Redirect
+            showModal(
+                'success', 
+                'Payment Successful', 
+                'Payment successfully submitted! Please check merchant account.', 
+                'Back to business', 
+                function() {
+                    window.location.href = 'recharge.html'; // Agar home page ka naam kuch aur hai toh yahan change kar lena
+                }
+            );
+        })
+        .catch((error) => {
+            console.error("Firebase Error: ", error);
+            showModal(
+                'error', 
+                'Submission Failed', 
+                'Something went wrong. Please submit again.', 
+                'Submit Again', 
+                null
+            );
+        });
+    }
+
+    // 10 Min Timer
+    let time = 600;
+    setInterval(() => {
+        let minutes = Math.floor(time / 60);
+        let seconds = time % 60;
+        document.getElementById('timer').innerText = 
+            (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+        if(time > 0) time--;
+    }, 1000);
+</script>
+</body>
+</html>

