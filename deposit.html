@@ -4,54 +4,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deposit - PTMPay</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- नया स्टाइलिश फोंट -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-        body { background: #0f172a; display: flex; justify-content: center; min-height: 100vh; color: #f8fafc; }
-        .app-container { width: 100%; max-width: 480px; background: #131c31; min-height: 100vh; display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
-        .top-header { background: linear-gradient(135deg, #059669, #0d9488); color: white; padding: 25px 20px 20px 20px; text-align: center; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; position: relative; }
-        .top-header h2 { font-size: 20px; margin-bottom: 5px; text-align: left; position: absolute; top: 20px; left: 20px; font-weight: 600; }
-        .amount-title { font-size: 13px; opacity: 0.9; margin-top: 15px; }
-        .payment-amount { font-size: 38px; font-weight: 700; margin: 5px 0; }
-        .timer { font-size: 14px; background: rgba(0, 0, 0, 0.25); display: inline-block; padding: 4px 14px; border-radius: 20px; margin-top: 5px; }
-        .tabs-container { display: flex; justify-content: space-around; background: #131c31; padding: 18px 20px 10px 20px; }
-        .tab-btn { font-size: 15px; font-weight: 600; color: #64748b; cursor: pointer; padding-bottom: 8px; border-bottom: 2px solid transparent; }
-        .tab-btn.active { color: #34d399; border-bottom-color: #34d399; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: #07090e; display: flex; justify-content: center; min-height: 100vh; color: #f1f5f9; }
+        
+        .app-container { width: 100%; max-width: 480px; background: #10151f; min-height: 100vh; display: flex; flex-direction: column; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.7); }
+        
+        /* नया मॉडर्न ग्रेडिएंट हेडर */
+        .top-header { background: linear-gradient(135deg, #2563eb, #4f46e5); color: white; padding: 28px 20px 22px 20px; text-align: center; border-bottom-left-radius: 28px; border-bottom-right-radius: 28px; position: relative; }
+        .top-header h2 { font-size: 19px; margin-bottom: 5px; text-align: left; position: absolute; top: 20px; left: 20px; font-weight: 700; letter-spacing: 0.5px; }
+        .amount-title { font-size: 12px; opacity: 0.85; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        .payment-amount { font-size: 36px; font-weight: 700; margin: 4px 0; }
+        .timer { font-size: 13px; background: rgba(0, 0, 0, 0.2); display: inline-block; padding: 5px 16px; border-radius: 30px; margin-top: 6px; font-weight: 500; }
+        
+        /* टैब स्टાઇલ */
+        .tabs-container { display: flex; justify-content: space-around; background: #10151f; padding: 20px 20px 10px 20px; }
+        .tab-btn { font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; padding-bottom: 8px; border-bottom: 2px solid transparent; transition: all 0.3s ease; }
+        .tab-btn.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+        
         .content-body { padding: 15px 20px 40px 20px; flex: 1; }
-        .section-box { background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 15px; margin-bottom: 15px; }
-        .section-title { font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 10px; text-transform: uppercase; }
+        .section-box { background: #182030; border: 1px solid #222d42; border-radius: 16px; padding: 16px; margin-bottom: 15px; }
+        .section-title { font-size: 12px; font-weight: 700; color: #94a3b8; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
         .methods-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .pay-method-btn { display: flex; align-items: center; justify-content: center; padding: 12px; border: 1px solid #334155; border-radius: 10px; background: #131c31; color: #f1f5f9; text-decoration: none; font-weight: 600; font-size: 14px; }
-        .warning-box { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 12px; border-radius: 12px; font-size: 12px; margin-bottom: 15px; }
-        .transfer-box { background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 15px; margin-bottom: 20px; }
-        .copy-field { display: flex; justify-content: space-between; align-items: center; background: #131c31; border: 1px solid #334155; padding: 12px 14px; border-radius: 10px; margin-bottom: 12px; color: #34d399; font-weight: 600; cursor: pointer; }
-        .utr-input { width: 100%; padding: 14px; border: 1px solid #334155; border-radius: 10px; background: #131c31; color: white; margin-bottom: 10px; }
-        .submit-btn { width: 100%; background: #059669; color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        .pay-method-btn { display: flex; align-items: center; justify-content: center; padding: 13px; border: 1px solid #222d42; border-radius: 12px; background: #10151f; color: #f8fafc; text-decoration: none; font-weight: 600; font-size: 14px; transition: 0.2s; }
+        .pay-method-btn:hover { border-color: #2563eb; }
+        
+        .warning-box { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 12px 14px; border-radius: 12px; font-size: 12px; margin-bottom: 15px; font-weight: 500; }
+        
+        .transfer-box { background: #182030; border: 1px solid #222d42; border-radius: 16px; padding: 16px; margin-bottom: 20px; }
+        .copy-field { display: flex; justify-content: space-between; align-items: center; background: #10151f; border: 1px solid #222d42; padding: 13px 15px; border-radius: 12px; margin-bottom: 12px; color: #60a5fa; font-weight: 600; font-size: 14px; cursor: pointer; }
+        
+        .utr-input { width: 100%; padding: 14px 16px; border: 1px solid #222d42; border-radius: 12px; background: #10151f; color: white; margin-bottom: 12px; font-size: 14px; outline: none; transition: 0.2s; }
+        .utr-input:focus { border-color: #2563eb; }
+        
+        .submit-btn { width: 100%; background: #2563eb; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 15px; transition: 0.2s; }
+        .submit-btn:hover { background: #1d4ed8; }
+        
         #qrSection { display: none; }
-        .qr-card { background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 20px; text-align: center; }
-        .qr-wrapper { display: inline-block; padding: 12px; background: white; border-radius: 12px; margin: 15px 0; }
+        .qr-card { background: #182030; border: 1px solid #222d42; border-radius: 16px; padding: 22px; text-align: center; }
+        .qr-wrapper { display: inline-block; padding: 14px; background: white; border-radius: 14px; margin: 15px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
 
-        #merchantLoader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #131c31; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        .spinner { border: 4px solid #1e293b; border-top: 4px solid #059669; border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; }
+        #merchantLoader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #10151f; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { border: 4px solid #182030; border-top: 4px solid #2563eb; border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: flex; justify-content: center; align-items: center; z-index: 9999; visibility: hidden; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); display: flex; justify-content: center; align-items: center; z-index: 9999; visibility: hidden; backdrop-filter: blur(5px); }
         .modal-overlay.active { visibility: visible; }
-        .modal-box { background: #ffffff; padding: 30px; border-radius: 20px; width: 90%; max-width: 320px; text-align: center; color: #000; }
-        .modal-title { font-size: 20px; margin-bottom: 10px; font-weight: 700; }
-        .modal-desc { color: #334155; font-size: 15px; margin-bottom: 25px; line-height: 1.5; }
-        .modal-btn { background: #059669; color: #fff; width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        .modal-box { background: #182030; border: 1px solid #222d42; padding: 30px; border-radius: 24px; width: 90%; max-width: 320px; text-align: center; color: #f8fafc; }
+        .modal-title { font-size: 20px; margin-bottom: 8px; font-weight: 700; }
+        .modal-desc { color: #94a3b8; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+        .modal-btn { background: #2563eb; color: #fff; width: 100%; padding: 13px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div id="merchantLoader">
     <div class="spinner"></div>
-    <p style="margin-top:20px; color:#34d399; font-weight:500;">Payment Processing, Please Wait...</p>
+    <p style="margin-top:20px; color:#60a5fa; font-weight:500; font-size: 14px;">Payment Processing, Please Wait...</p>
 </div>
 
 <div class="app-container">
@@ -78,7 +94,7 @@
             </div>
             <div class="warning-box">⚠️ Payment can only be made once.</div>
             <div class="transfer-box">
-                <div class="copy-field" id="upiText" onclick="copyUpiText()">paytm.s2sqr95@pty <span style="font-size:12px; background:#059669; color:white; padding:3px 8px; border-radius:5px;">COPY</span></div>
+                <div class="copy-field" id="upiText" onclick="copyUpiText()">paytm.s2sqr95@pty <span style="font-size:11px; background:#2563eb; color:white; padding:4px 10px; border-radius:6px;">COPY</span></div>
                 <div class="copy-field" id="amountText">0 RS</div>
                 <input type="text" id="utrInputDirect" class="utr-input" placeholder="Enter 12-digit UTR">
                 <button class="submit-btn" onclick="submitUTR('utrInputDirect')">Submit UTR</button>
@@ -88,7 +104,7 @@
         <div id="qrSection">
             <div class="qr-card">
                 <div class="qr-wrapper"><div id="qrcode"></div></div>
-                <input type="text" id="utrInputQr" class="utr-input" placeholder="Enter 12-digit UTR">
+                <input type="text" id="utrInputQr" class="utr-input" placeholder="Enter 12-digit UTR" style="margin-top: 10px;">
                 <button class="submit-btn" onclick="submitUTR('utrInputQr')">Submit UTR</button>
             </div>
         </div>
@@ -128,7 +144,14 @@
     document.getElementById('paytmAppBtn1').href = upiDeepLink;
     document.getElementById('phonepeAppBtn1').href = upiDeepLink;
 
-    new QRCode(document.getElementById("qrcode"), { text: upiDeepLink, width: 170, height: 170 });
+    new QRCode(document.getElementById("qrcode"), { 
+        text: upiDeepLink, 
+        width: 170, 
+        height: 170,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
 
     function switchTab(tab) {
         document.getElementById('directContent').style.display = (tab === 'direct') ? 'block' : 'none';
@@ -168,7 +191,7 @@
         const utr = document.getElementById(inputId).value.trim();
         
         if(!utr || utr.length < 12) {
-            showModal('Invalid UTR', 'Please enter a valid 12-digit UTR number.', '#dc2626', false);
+            showModal('Invalid UTR', 'Please enter a valid 12-digit UTR number.', '#ef4444', false);
             return;
         }
 
@@ -188,11 +211,11 @@
             db.collection("recharges").doc(orderId).set(paymentData)
             .then(() => {
                 document.getElementById('merchantLoader').style.display = 'none';
-                showModal('Success', 'Payment Submitted Successfully! Please wait 5 minutes.', '#059669', true);
+                showModal('Success', 'Payment Submitted Successfully! Please wait 5 minutes.', '#60a5fa', true);
             })
             .catch(error => {
                 document.getElementById('merchantLoader').style.display = 'none';
-                showModal('Error', 'Failed: ' + error.message, '#dc2626', false);
+                showModal('Error', 'Failed: ' + error.message, '#ef4444', false);
             });
         }, 2000);
     }
