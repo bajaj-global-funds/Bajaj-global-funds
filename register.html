@@ -70,7 +70,23 @@
             margin-top: 15px; box-shadow: 0 4px 12px rgba(0,86,179,0.3);
         }
 
-        /* --- VIP PREMIUM SUCCESS MODAL --- */
+        /* --- OTP LOADING POPUP MODAL --- */
+        #otpLoaderModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+            display: none; justify-content: center; align-items: center; z-index: 3000;
+        }
+        .otp-loader-box {
+            background: #ffffff; padding: 25px; border-radius: 20px; text-align: center; width: 85%; max-width: 280px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .spinner-circle {
+            border: 4px solid #f3f3f3; border-top: 4px solid #0056b3; border-radius: 50%;
+            width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- SUCCESS MODAL --- */
         #success-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
@@ -83,48 +99,30 @@
             padding: 30px 24px; border-radius: 24px; text-align: center;
             box-shadow: 0 15px 35px rgba(0,0,0,0.3);
             border: 1px solid rgba(255,255,255,0.8);
-            animation: vipScaleUp 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes vipScaleUp {
-            from { transform: scale(0.7); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
         }
         .vip-icon-box {
             width: 60px; height: 60px; background: #e6f0fa; border-radius: 50%;
             display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;
             color: #0056b3; font-size: 28px; box-shadow: 0 5px 15px rgba(0,86,179,0.15);
         }
-        .modal-content h3 {
-            color: #111; font-size: 22px; font-weight: 800; margin-bottom: 6px;
-        }
-        .modal-subtitle {
-            font-size: 13px; color: #666; margin-bottom: 20px;
-        }
+        .modal-content h3 { color: #111; font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+        .modal-subtitle { font-size: 13px; color: #666; margin-bottom: 20px; }
         
-        /* VIP Credential Display Boxes */
-        .vip-cred-container {
-            display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;
-        }
+        .vip-cred-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         .vip-box {
             background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px;
             padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
             text-align: left;
         }
-        .vip-label {
-            font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .vip-value {
-            font-size: 15px; font-weight: 700; color: #0f172a; font-family: monospace;
-        }
+        .vip-label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; }
+        .vip-value { font-size: 15px; font-weight: 700; color: #0f172a; font-family: monospace; }
 
         .home-redirect-btn {
             background: linear-gradient(135deg, #0056b3, #004085);
             color: white; border: none; width: 100%; padding: 14px;
             font-weight: 700; border-radius: 14px; cursor: pointer; font-size: 15px;
             box-shadow: 0 6px 15px rgba(0,86,179,0.3);
-            transition: transform 0.2s;
         }
-        .home-redirect-btn:active { transform: scale(0.98); }
 
         #custom-toast {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
@@ -133,7 +131,6 @@
         }
     </style>
 
-    <!-- Firebase SDKs (Acode Compatible CDN) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
@@ -216,16 +213,23 @@
             </div>
         </div>
 
-        <!-- VIP Success Modal Popup -->
+        <!-- OTP Loader Popup Modal -->
+        <div id="otpLoaderModal">
+            <div class="otp-loader-box">
+                <div class="spinner-circle"></div>
+                <p style="font-weight: 600; color: #333; font-size: 14px;">Sending Verification Code...</p>
+                <p style="font-size: 12px; color: #666; margin-top: 5px;">Please wait a moment</p>
+            </div>
+        </div>
+
+        <!-- Success Modal Popup -->
         <div id="success-modal">
             <div class="modal-content">
                 <div class="vip-icon-box">✓</div>
                 <h3 id="modalTitle">Registration Successful</h3>
                 <div class="modal-subtitle" id="modalSubText">Save your login details securely</div>
                 
-                <div class="vip-cred-container" id="modalBody">
-                    <!-- Dynamic boxes will render here -->
-                </div>
+                <div class="vip-cred-container" id="modalBody"></div>
 
                 <button class="home-redirect-btn" id="goToHomeBtn">Continue to Home</button>
             </div>
@@ -244,11 +248,10 @@
             appId: "1:299058832737:web:fe1c1df553e209715c1120"
         };
 
-        firebase.initializeApp(firebaseConfig);
+        if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
         let generatedOtp = "";
-        let registeredPhoneNo = "";
 
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -284,15 +287,26 @@
             }
         };
 
+        // Send OTP with Popup Loader and Auto-fetch feature
         window.sendOTP = function() {
             const phone = document.getElementById('regPhone').value.trim();
             if(!phone || phone.length < 10) {
                 showToast("Please enter a valid 10-digit phone number!");
                 return;
             }
-            generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-            document.getElementById('regOtp').value = generatedOtp;
-            showToast("Your OTP is: " + generatedOtp);
+
+            // Show OTP Loader Modal
+            document.getElementById('otpLoaderModal').style.display = 'flex';
+
+            // Simulate 2.5 seconds network delay for realistic OTP fetching
+            setTimeout(() => {
+                generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+                document.getElementById('regOtp').value = generatedOtp;
+                
+                // Hide Loader Modal
+                document.getElementById('otpLoaderModal').style.display = 'none';
+                showToast("OTP sent & fetched successfully!");
+            }, 2500);
         };
 
         // Register Button Click Handler
@@ -318,7 +332,6 @@
                 const userSnap = await userRef.get();
 
                 if(userSnap.exists) {
-                    // Already Registered VIP Notice Box
                     document.getElementById('modalTitle').innerText = "Notice";
                     document.getElementById('modalSubText').innerText = "Account Status Alert";
                     document.getElementById('modalBody').innerHTML = `
@@ -346,9 +359,10 @@
                     createdAt: new Date()
                 });
 
-                registeredPhoneNo = phone;
+                // Save UID in LocalStorage to fix mix history problem
+                localStorage.setItem('userUID', phone);
+                localStorage.setItem('uid', phone);
 
-                // VIP Success Modal Box Design
                 document.getElementById('modalTitle').innerText = "Registration Successful";
                 document.getElementById('modalSubText').innerText = "Your account has been created successfully";
                 document.getElementById('modalBody').innerHTML = `
@@ -365,7 +379,7 @@
                 const homeBtn = document.getElementById('goToHomeBtn');
                 homeBtn.innerText = "Continue to Home";
                 homeBtn.onclick = () => {
-                    window.location.href = `home.html?phone=${registeredPhoneNo}`;
+                    window.location.href = `home.html?phone=${phone}`;
                 };
 
                 document.getElementById('success-modal').style.display = 'flex';
@@ -376,7 +390,7 @@
             }
         });
 
-        // Login Button Handler
+        // Login Button Handler (With Admin Redirect Support)
         document.getElementById('loginBtn').addEventListener('click', async () => {
             const phone = document.getElementById('loginPhone').value.trim();
             const pass = document.getElementById('loginPass').value.trim();
@@ -386,6 +400,18 @@
                 return;
             }
 
+            // --- ADMIN LOGIN CHECK ---
+            if(phone === "9762331956" && pass === "minakshi@admim") {
+                localStorage.setItem('userUID', 'ADMIN');
+                localStorage.setItem('uid', 'ADMIN');
+                showToast("Admin Login Successful!");
+                setTimeout(() => {
+                    window.location.href = `admin.html`;
+                }, 1000);
+                return;
+            }
+            // -------------------------
+
             try {
                 const userRef = db.collection("users").doc(phone);
                 const userSnap = await userRef.get();
@@ -393,6 +419,10 @@
                 if(userSnap.exists) {
                     const data = userSnap.data();
                     if(data.password === pass) {
+                        // Save UID on Login
+                        localStorage.setItem('userUID', phone);
+                        localStorage.setItem('uid', phone);
+
                         showToast("Login Successful!");
                         setTimeout(() => {
                             window.location.href = `home.html?phone=${phone}`;

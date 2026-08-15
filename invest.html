@@ -1,199 +1,473 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Investment App</title>
+    <title>Flix Skincare Investment</title>
+    <!-- Google Fonts for Stylish Numbers -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: #f0f2f5; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; }
         
-        body { 
-            background: #f7f8fa; 
-            display: flex; 
-            justify-content: center; 
-            width: 100vw; 
-            min-height: 100vh; 
-        }
+        .container { width: 100%; max-width: 420px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         
-        .mobile-screen {
-            width: 100%; 
-            max-width: 480px; 
-            background: #f7f8fa; 
-            display: flex; 
-            flex-direction: column; 
-            min-height: 100vh;
-            position: relative;
-        }
+        /* Top Green Header Bar */
+        .header { background: #00b050; color: white; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; font-size: 18px; font-weight: bold; position: sticky; top: 0; z-index: 100; }
+        .header-left { display: flex; align-items: center; }
+        .back-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; margin-right: 15px; text-decoration: none; }
+        .history-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
 
-        .header { 
-            background: #00b050; 
-            color: white; 
-            padding: 16px 20px; 
-            font-weight: bold; 
-            font-size: 18px; 
-            position: sticky; 
-            top: 0; 
-            z-index: 100;
-        }
-        
-        .content { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 15px; 
-        }
+        .content { padding: 15px; }
 
-        .plan-card { 
-            background: white; 
-            border-radius: 16px; 
-            padding: 16px; 
-            margin-bottom: 15px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06); 
-            border: 1px solid #eee;
-        }
+        /* Live Balance Box */
+        .live-balance-box { background: linear-gradient(135deg, #00b050, #047835); color: white; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0, 176, 80, 0.25); }
+        .lb-left .lb-title { font-size: 12px; opacity: 0.9; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .lb-left .lb-amount { font-size: 26px; font-weight: bold; font-family: 'Outfit', sans-serif; }
         
-        .card-inner { 
-            display: flex; 
-            gap: 15px; 
-            margin-bottom: 15px; 
-            align-items: center; 
-        }
+        .refresh-btn { background: rgba(255, 255, 255, 0.2); border: none; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; cursor: pointer; transition: background 0.2s; }
+        .refresh-btn:hover { background: rgba(255, 255, 255, 0.3); }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinning { animation: spin 0.8s linear infinite; }
+
+        /* Investment Plan Cards */
+        .plan-card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #eee; position: relative; }
+        .card-inner { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; }
         
-        .img-box { 
-            width: 85px; 
-            height: 85px; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            background: #f0f0f0; 
-            flex-shrink: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            border: 1px solid #ddd;
-        }
-        
-        .img-box img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-        }
+        .img-box { width: 85px; height: 85px; border-radius: 12px; overflow: hidden; background: #fdfdfd; flex-shrink: 0; display: flex; justify-content: center; align-items: center; border: 1px solid #eee; }
+        .img-box img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
         
         .info { flex: 1; }
         .title { font-weight: 800; font-size: 16px; margin-bottom: 10px; color: #2d3436; }
         
-        .grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 8px; 
-            font-size: 13px; 
-        }
-        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; }
         .label { color: #636e72; font-size: 11px; }
-        .val { font-weight: bold; color: #d35400; font-size: 14px; }
-        .val-black { color: #2d3436; }
+        .val { font-weight: bold; color: #d35400; font-size: 14px; font-family: 'Outfit', sans-serif; }
+        .val-black { color: #2d3436; font-family: 'Outfit', sans-serif; }
 
-        .btn { 
-            background: #00b050; 
-            color: white; 
-            width: 100%; 
-            padding: 12px; 
-            border-radius: 25px; 
-            text-align: center; 
-            font-weight: bold; 
-            font-size: 15px; 
-            cursor: pointer; 
-            border: none;
-        }
+        .btn { background: #00b050; color: white; width: 100%; padding: 12px; border-radius: 25px; text-align: center; font-weight: bold; font-size: 15px; cursor: pointer; border: none; box-shadow: 0 4px 10px rgba(0, 176, 80, 0.2); }
+        .btn:active { transform: scale(0.98); }
 
-        /* Popup Modal CSS */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); display: none;
-            justify-content: center; align-items: center; z-index: 1000;
-        }
-        .modal-box {
-            background: white; width: 85%; max-width: 320px; border-radius: 20px;
-            padding: 20px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            animation: popupScale 0.3s ease-in-out;
-        }
-        @keyframes popupScale {
-            from { transform: scale(0.7); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        .modal-box h3 { color: #e74c3c; margin-bottom: 10px; font-size: 18px; }
-        .modal-box p { font-size: 14px; color: #444; margin-bottom: 20px; line-height: 1.5; }
+        /* History Item Styles */
+        .history-list { display: flex; flex-direction: column; gap: 15px; max-height: 550px; overflow-y: auto; }
+        .h-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 10px; font-size: 12px; color: #64748b; }
+        .status-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: #d1fae5; color: #059669; }
+
+        /* Modern Popup Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .modal-box { background: white; width: 92%; max-width: 360px; border-radius: 20px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); animation: popupScale 0.2s ease-in-out; }
+        @keyframes popupScale { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .modal-title { font-size: 17px; font-weight: bold; color: #1e293b; margin-bottom: 12px; text-align: center; }
+        
+        /* Quantity Counter UI inside Modal */
+        .qty-box { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px 14px; border-radius: 10px; margin: 12px 0; border: 1px solid #e2e8f0; }
+        .qty-label { font-size: 14px; font-weight: 600; color: #475569; }
+        .qty-controls { display: flex; align-items: center; gap: 12px; }
+        .qty-btn { width: 30px; height: 30px; background: #00b050; color: white; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .qty-value { font-size: 16px; font-weight: bold; font-family: 'Outfit', sans-serif; min-width: 20px; text-align: center; }
+
+        /* Calculation Summary Box */
+        .calc-summary { background: #f1f5f9; border-radius: 10px; padding: 12px; margin-bottom: 15px; font-size: 13px; display: flex; flex-direction: column; gap: 6px; }
+        .calc-row { display: flex; justify-content: space-between; color: #334155; }
+        .calc-row span:last-child { font-weight: bold; font-family: 'Outfit', sans-serif; color: #0f172a; }
+        .calc-total { border-top: 1px dashed #cbd5e1; padding-top: 6px; margin-top: 2px; font-weight: bold; color: #00b050 !important; }
+
         .modal-btn-group { display: flex; gap: 10px; }
-        .modal-btn {
-            background: #00b050; color: white; border: none; padding: 10px;
-            border-radius: 20px; font-weight: bold; font-size: 14px; cursor: pointer; flex: 1;
-        }
-        .modal-btn-cancel {
-            background: #ccc; color: #333;
-        }
+        .modal-btn { background: #00b050; color: white; border: none; padding: 12px; border-radius: 20px; font-weight: bold; font-size: 14px; cursor: pointer; flex: 1; text-align: center; }
+        .modal-btn-cancel { background: #e2e8f0; color: #475569; }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div class="mobile-screen">
-    <div class="header">&lt; Investment List</div>
-    <div class="content" id="list"></div>
+<div class="container mobile-screen">
+    
+    <!-- 1. INVESTMENT PLANS PAGE -->
+    <div id="investSection">
+        <div class="header">
+            <div class="header-left">
+                <a href="home.html" class="back-btn">&#8592;</a>
+                Investment List
+            </div>
+            <button class="history-btn" onclick="openHistoryPage()">History</button>
+        </div>
+        
+        <div class="content">
+            <!-- Live Balance Box -->
+            <div class="live-balance-box">
+                <div class="lb-left">
+                    <div class="lb-title">Live Balance</div>
+                    <div class="lb-amount">₹<span id="userBal">0.00</span></div>
+                </div>
+                <button class="refresh-btn" id="refreshBtn" onclick="refreshBalance()" title="Refresh Balance">
+                    &#x21bb;
+                </button>
+            </div>
+
+            <!-- List Container for Skincare Products -->
+            <div id="list" class="plans-list"></div>
+        </div>
+    </div>
+
+    <!-- 2. PURCHASED HISTORY PAGE -->
+    <div id="historySection" class="hidden">
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn" onclick="goBackToInvest()">&#8592;</button>
+                Investment History
+            </div>
+        </div>
+        <div class="content">
+            <div class="history-list" id="historyListContainer">
+                <p style="text-align:center; color:#64748b; font-size:14px; margin-top:20px;">Loading history...</p>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<!-- Insufficient Balance Popup Modal -->
-<div class="modal-overlay" id="popupModal">
+<!-- Purchase & Quantity Popup Modal -->
+<div class="modal-overlay" id="purchaseModal">
     <div class="modal-box">
-        <h3 id="modalTitle">Insufficient Balance</h3>
-        <p id="popupText">Your account balance is not enough to purchase this plan. Please recharge first.</p>
+        <div class="modal-title" id="modalPlanTitle">Purchase Plan</div>
+        
+        <!-- Plan Card Inside Modal -->
+        <div class="plan-card" style="margin-bottom: 10px; padding: 12px; box-shadow: none; border: 1px solid #e2e8f0;">
+            <div class="card-inner" style="margin-bottom: 0;">
+                <div class="img-box" style="width: 70px; height: 70px;"><img id="modalImg" src="" alt="Skincare Product"></div>
+                <div class="info">
+                    <div class="title" id="modalSubTitle" style="font-size: 14px; margin-bottom: 6px;">Plan Name</div>
+                    <div class="grid">
+                        <div><div class="label">Price</div><div class="val" id="modalPrice">₹0</div></div>
+                        <div><div class="label">Daily</div><div class="val" id="modalDaily">₹0</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quantity Adjuster -->
+        <div class="qty-box">
+            <span class="qty-label">Quantity (Units):</span>
+            <div class="qty-controls">
+                <button class="qty-btn" onclick="changeQty(-1)">-</button>
+                <span class="qty-value" id="qtyVal">1</span>
+                <button class="qty-btn" onclick="changeQty(1)">+</button>
+            </div>
+        </div>
+
+        <!-- Calculation Summary -->
+        <div class="calc-summary">
+            <div class="calc-row"><span>Total Investment:</span> <span id="calcTotalInvest">₹0</span></div>
+            <div class="calc-row"><span>Daily Earnings:</span> <span id="calcDailyEarn">₹0</span></div>
+            <div class="calc-row calc-total"><span>Total Net Return:</span> <span id="calcTotalReturn">₹0</span></div>
+        </div>
+
         <div class="modal-btn-group">
             <button class="modal-btn modal-btn-cancel" onclick="closePopup()">Cancel</button>
-            <button class="modal-btn" onclick="rechargeAction()">Recharge</button>
+            <button class="modal-btn" onclick="confirmInvestment()">Confirm Invest</button>
         </div>
     </div>
 </div>
 
-<script>
+<!-- Notification Modal -->
+<div class="modal-overlay" id="infoModal">
+    <div class="modal-box" style="text-align: center;">
+        <h3 id="infoTitle" style="margin-bottom: 10px; font-size: 18px;">Notice</h3>
+        <p id="infoText" style="font-size: 14px; color: #444; margin-bottom: 20px; line-height: 1.5;"></p>
+        <button class="modal-btn" id="infoOkBtn" onclick="closeInfoPopup()">OK</button>
+    </div>
+</div>
+
+<!-- Firebase Modular SDK Integration -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAyFldowBw6ChbopLGCCQ8U7_RH4kmyFpM",
+      authDomain: "creditinvestapp.firebaseapp.com",
+      projectId: "creditinvestapp",
+      storageBucket: "creditinvestapp.firebasestorage.app",
+      messagingSenderId: "299058832737",
+      appId: "1:299058832737:web:fe1c1df553e209715c1120"
+    };
+
+    const db = getFirestore(initializeApp(firebaseConfig));
+    
+    let currentUserId = localStorage.getItem('bgf_uid');
+    if(!currentUserId) {
+        currentUserId = "USER_" + Math.floor(100000 + Math.random() * 900000);
+        localStorage.setItem('bgf_uid', currentUserId);
+    }
+
+    let userCurrentBalance = 0;
+    let selectedPlan = null;
+    let currentQty = 1;
+
+    // Pure Skincare Products Datasets (With Updated Working VIP2 Image)
     const data = [
-        { vip: "VIP1", price: "290.00", daily: "70.0", total: "3430.0", img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&auto=format&fit=crop&q=60" },
-        { vip: "VIP2", price: "380.00", daily: "95.0", total: "4655.0", img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&auto=format&fit=crop&q=60" },
-        { vip: "VIP3", price: "560.00", daily: "150.0", total: "7350.0", img: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=300&auto=format&fit=crop&q=60" },
-        { vip: "VIP4", price: "1080.00", daily: "300.0", total: "14700.0", img: "https://images.unsplash.com/photo-1503602642458-232111445657?w=300&auto=format&fit=crop&q=60" },
-        { vip: "VIP5", price: "2260.00", daily: "650.0", total: "31850.0", img: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=300&auto=format&fit=crop&q=60" },
-        { vip: "VIP6", price: "3250.00", daily: "980.0", total: "48020.0", img: "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=300&auto=format&fit=crop&q=60" }
+        { vip: "VIP1", price: 290.00, daily: 70.0, total: 3430.0, cycle: 30, img: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=300&auto=format&fit=crop&q=80" }, // Face Serum Bottle
+        { vip: "VIP2", price: 380.00, daily: 95.0, total: 4655.0, cycle: 30, img: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=300&auto=format&fit=crop&q=80" }, // Updated Cream Jar Image
+        { vip: "VIP3", price: 560.00, daily: 150.0, total: 7350.0, cycle: 30, img: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&auto=format&fit=crop&q=80" }, // Dual Cleanser Set
+        { vip: "VIP4", price: 1080.00, daily: 300.0, total: 14700.0, cycle: 30, img: "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=300&auto=format&fit=crop&q=80" }, // Professional Skincare Kit
+        { vip: "VIP5", price: 2260.00, daily: 650.0, total: 31850.0, cycle: 30, img: "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=300&auto=format&fit=crop&q=80" }, // Luxury Treatment Box Set
+        { vip: "VIP6", price: 3250.00, daily: 980.0, total: 48020.0, cycle: 30, img: "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=300&auto=format&fit=crop&q=80" }  // Premium Skincare Gift Set
     ];
 
+    // Render List Items
     const list = document.getElementById('list');
     data.forEach((item) => {
         list.innerHTML += `
             <div class="plan-card">
                 <div class="card-inner">
-                    <div class="img-box"><img src="${item.img}" alt="Product"></div>
+                    <div class="img-box"><img src="${item.img}" alt="Skincare Product"></div>
                     <div class="info">
                         <div class="title">Purchase upgrade to ${item.vip}</div>
                         <div class="grid">
-                            <div><div class="label">Each Price</div><div class="val">₹${item.price}</div></div>
-                            <div><div class="label">Daily Earnings</div><div class="val">₹${item.daily}</div></div>
-                            <div><div class="label">Maximum</div><div class="val val-black">1 Copies</div></div>
-                            <div><div class="label">Total revenue</div><div class="val val-black">₹${item.total}</div></div>
+                            <div><div class="label">Each Price</div><div class="val">₹${item.price.toFixed(2)}</div></div>
+                            <div><div class="label">Daily Earnings</div><div class="val">₹${item.daily.toFixed(1)}</div></div>
+                            <div><div class="label">Maximum</div><div class="val val-black">10 Copies</div></div>
+                            <div><div class="label">Total revenue</div><div class="val val-black">₹${item.total.toFixed(1)}</div></div>
                         </div>
                     </div>
                 </div>
-                <button class="btn" onclick="openPopup('${item.vip}', '${item.price}')">Invest Now</button>
+                <button class="btn" onclick='openInvestPopup(${JSON.stringify(item)})'>Invest Now</button>
             </div>
         `;
     });
 
-    function openPopup(vipName, price) {
-        document.getElementById('popupText').innerText = `Insufficient balance to buy ${vipName} (₹${price}). Please recharge your account to proceed.`;
-        document.getElementById('popupModal').style.display = 'flex';
+    // Open Popup with Plan Details
+    window.openInvestPopup = (item) => {
+        selectedPlan = item;
+        currentQty = 1;
+        
+        document.getElementById('modalPlanTitle').innerText = `Upgrade to ${item.vip}`;
+        document.getElementById('modalImg').src = item.img;
+        document.getElementById('modalSubTitle').innerText = `Purchase upgrade to ${item.vip}`;
+        document.getElementById('modalPrice').innerText = `₹${item.price.toFixed(2)}`;
+        document.getElementById('modalDaily').innerText = `₹${item.daily.toFixed(1)}`;
+
+        updateCalculations();
+        document.getElementById('purchaseModal').style.display = 'flex';
+    };
+
+    // Change Quantity (+ / -)
+    window.changeQty = (val) => {
+        currentQty += val;
+        if(currentQty < 1) currentQty = 1;
+        if(currentQty > 10) currentQty = 10;
+        updateCalculations();
+    };
+
+    function updateCalculations() {
+        if(!selectedPlan) return;
+        document.getElementById('qtyVal').innerText = currentQty;
+        
+        let totalInvest = selectedPlan.price * currentQty;
+        let totalDaily = selectedPlan.daily * currentQty;
+        let totalReturn = selectedPlan.total * currentQty;
+
+        document.getElementById('calcTotalInvest').innerText = `₹${totalInvest.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('calcDailyEarn').innerText = `₹${totalDaily.toLocaleString('en-IN', {minimumFractionDigits: 1, maximumFractionDigits: 1})}`;
+        document.getElementById('calcTotalReturn').innerText = `₹${totalReturn.toLocaleString('en-IN', {minimumFractionDigits: 1, maximumFractionDigits: 1})}`;
     }
 
-    function closePopup() {
-        document.getElementById('popupModal').style.display = 'none';
+    window.closePopup = () => {
+        document.getElementById('purchaseModal').style.display = 'none';
+    };
+
+    window.closeInfoPopup = () => {
+        document.getElementById('infoModal').style.display = 'none';
+    };
+
+    // Confirm Investment with Balance Validation
+    window.confirmInvestment = async () => {
+        if(!selectedPlan) return;
+        let totalCost = selectedPlan.price * currentQty;
+
+        if(userCurrentBalance < totalCost) {
+            closePopup();
+            document.getElementById('infoTitle').innerText = "Insufficient Balance";
+            document.getElementById('infoTitle').style.color = "#e74c3c";
+            document.getElementById('infoText').innerText = `Your account balance is ₹${userCurrentBalance.toLocaleString('en-IN')}, but required amount is ₹${totalCost.toLocaleString('en-IN')}. Please recharge first.`;
+            document.getElementById('infoModal').style.display = 'flex';
+            return;
+        }
+
+        try {
+            const userRef = doc(db, "users", currentUserId);
+            let newBalance = userCurrentBalance - totalCost;
+            await setDoc(userRef, { balance: newBalance }, { merge: true });
+            userCurrentBalance = newBalance;
+            document.getElementById('userBal').innerText = userCurrentBalance.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            await addDoc(collection(db, "investments"), {
+                uid: currentUserId,
+                vipCode: selectedPlan.vip,
+                planName: `Purchase upgrade to ${selectedPlan.vip}`,
+                price: selectedPlan.price,
+                dailyIncome: selectedPlan.daily,
+                totalRevenue: selectedPlan.total,
+                cycle: selectedPlan.cycle,
+                quantity: currentQty,
+                totalPaid: totalCost,
+                img: selectedPlan.img,
+                creditedDays: 0,
+                timestamp: serverTimestamp(),
+                lastCreditedTime: serverTimestamp()
+            });
+
+            closePopup();
+            document.getElementById('infoTitle').innerText = "Success";
+            document.getElementById('infoTitle').style.color = "#00b050";
+            document.getElementById('infoText').innerText = `You have successfully purchased ${currentQty}x ${selectedPlan.vip} plan(s)!`;
+            document.getElementById('infoModal').style.display = 'flex';
+            
+            fetchUserDataAndProcessIncome();
+        } catch(e) {
+            alert("Error: " + e.message);
+        }
+    };
+
+    // Fetch User Data & Process Automatic Daily Earnings
+    async function fetchUserDataAndProcessIncome() {
+        try {
+            const userRef = doc(db, "users", currentUserId);
+            const snap = await getDoc(userRef);
+            
+            if(snap.exists()) {
+                const userData = snap.data();
+                userCurrentBalance = Number(userData.balance || userData.amount || userData.wallet || 0);
+                document.getElementById('userBal').innerText = userCurrentBalance.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+                await processDailyEarnings(currentUserId, userCurrentBalance);
+            } else {
+                await setDoc(userRef, { balance: 0 }, { merge: true });
+                document.getElementById('userBal').innerText = "0.00";
+            }
+        } catch(e) {
+            console.error("Error loading user data:", e);
+        }
+    }
+    fetchUserDataAndProcessIncome();
+
+    // Daily Auto-Credit Engine
+    async function processDailyEarnings(uid, currentBal) {
+        try {
+            const q = query(collection(db, "investments"), where("uid", "==", uid));
+            const querySnapshot = await getDocs(q);
+            
+            let totalUncreditedAmount = 0;
+            const nowTime = new Date().getTime();
+            
+            for (const docSnap of querySnapshot.docs) {
+                const investData = docSnap.data();
+                let dailyPerUnit = Number(investData.dailyIncome || 0);
+                let qty = Number(investData.quantity || 1);
+                let totalDailyIncome = dailyPerUnit * qty;
+                let cycleDays = Number(investData.cycle || 30);
+                
+                let lastCredited = investData.lastCreditedTime ? investData.lastCreditedTime.toMillis() : investData.timestamp.toMillis();
+                let daysPassed = Math.floor((nowTime - lastCredited) / (1000 * 60 * 60 * 24));
+                
+                if (daysPassed > 0) {
+                    let totalCreditedDays = investData.creditedDays || 0;
+                    let remainingDays = cycleDays - totalCreditedDays;
+                    
+                    if (remainingDays > 0) {
+                        let addDays = Math.min(daysPassed, remainingDays);
+                        let creditForThisPlan = addDays * totalDailyIncome;
+                        totalUncreditedAmount += creditForThisPlan;
+
+                        await setDoc(doc(db, "investments", docSnap.id), {
+                            creditedDays: totalCreditedDays + addDays,
+                            lastCreditedTime: Timestamp.fromMillis(lastCredited + (addDays * 24 * 60 * 60 * 1000))
+                        }, { merge: true });
+                    }
+                }
+            }
+
+            if (totalUncreditedAmount > 0) {
+                let updatedBal = currentBal + totalUncreditedAmount;
+                await setDoc(doc(db, "users", uid), { balance: updatedBal }, { merge: true });
+                userCurrentBalance = updatedBal;
+                document.getElementById('userBal').innerText = updatedBal.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
+        } catch (err) {
+            console.error("Daily income calculation error:", err);
+        }
     }
 
-    function rechargeAction() {
-        alert("Redirecting to Recharge Page...");
-        closePopup();
-    }
+    window.refreshBalance = async () => {
+        const btn = document.getElementById('refreshBtn');
+        btn.classList.add('spinning');
+        await fetchUserDataAndProcessIncome();
+        setTimeout(() => { btn.classList.remove('spinning'); }, 600);
+    };
+
+    // Open History Page
+    window.openHistoryPage = async () => {
+        document.getElementById('investSection').classList.add('hidden');
+        document.getElementById('historySection').classList.remove('hidden');
+        
+        const container = document.getElementById('historyListContainer');
+        container.innerHTML = `<p style="text-align:center; color:#64748b; font-size:14px; margin-top:20px;">Loading history...</p>`;
+
+        try {
+            const q = query(collection(db, "investments"), where("uid", "==", currentUserId));
+            const querySnapshot = await getDocs(q);
+
+            if(querySnapshot.empty) {
+                container.innerHTML = `<p style="text-align:center; color:#64748b; font-size:14px; margin-top:20px;">No investment history found!</p>`;
+                return;
+            }
+
+            let html = "";
+            querySnapshot.forEach((docSnap) => {
+                let item = docSnap.data();
+                let qty = item.quantity || 1;
+                let totalPaid = item.totalPaid || (item.price * qty);
+                let dailyEarn = (item.dailyIncome || 0) * qty;
+                let totalRev = (item.totalRevenue || 0) * qty;
+                let dateStr = item.timestamp ? new Date(item.timestamp.toDate()).toLocaleString('en-IN') : "Recent";
+                let imgUrl = item.img || "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=300&auto=format&fit=crop&q=80";
+
+                html += `
+                    <div class="plan-card">
+                        <div class="card-inner">
+                            <div class="img-box"><img src="${imgUrl}" alt="Skincare Product"></div>
+                            <div class="info">
+                                <div class="title">${item.planName || "Purchase upgrade"} <span style="font-size: 12px; color: #00b050; float: right;">(Qty: ${qty})</span></div>
+                                <div class="grid">
+                                    <div><div class="label">Total Paid</div><div class="val">₹${totalPaid.toLocaleString('en-IN')}</div></div>
+                                    <div><div class="label">Daily Earnings</div><div class="val">₹${dailyEarn.toLocaleString('en-IN')}</div></div>
+                                    <div><div class="label">Cycle</div><div class="val val-black">${item.cycle || 30} Days</div></div>
+                                    <div><div class="label">Total revenue</div><div class="val val-black">₹${totalRev.toLocaleString('en-IN')}</div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-footer">
+                            <span>Purchased: ${dateStr}</span>
+                            <span class="status-badge">Active (${item.creditedDays || 0}/${item.cycle || 30} Days)</span>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        } catch(e) {
+            container.innerHTML = `<p style="text-align:center; color:#dc2626; font-size:14px; margin-top:20px;">Error loading history.</p>`;
+        }
+    };
+
+    window.goBackToInvest = () => {
+        document.getElementById('historySection').classList.add('hidden');
+        document.getElementById('investSection').classList.remove('hidden');
+        fetchUserDataAndProcessIncome();
+    };
 </script>
+
 </body>
 </html>

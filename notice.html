@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Notice - Bajaj Global Funds</title>
+    <style>
+        /* Basic Reset and Layout */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 0; overflow-x: hidden; }
+        
+        /* Main Container - Mimics App Screen */
+        .main-container { width: 100%; max-width: 480px; height: 100vh; max-height: 850px; background-color: #f0f2f5; display: flex; flex-direction: column; overflow: hidden; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+
+        /* Header (Back Button + Title) */
+        .header { background-color: #00b151; color: white; height: 60px; display: flex; align-items: center; padding: 0 18px; position: sticky; top: 0; z-index: 100; }
+        
+        .back-btn { text-decoration: none; color: white; font-size: 30px; line-height: 1; padding: 5px; margin-right: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        
+        .header-title { font-size: 20px; font-weight: 700; flex-grow: 1; text-align: center; margin-right: 42px; }
+
+        /* Notice List Area */
+        .notice-list { flex: 1; overflow-y: auto; padding: 18px; -webkit-overflow-scrolling: touch; }
+
+        /* Notice Item Card - Bade Size ke sath */
+        .notice-card { background-color: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; display: flex; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; transition: background-color 0.2s; }
+        .notice-card:active { background-color: #f8fafc; }
+
+        /* Notice Icon/Image - Bada Size */
+        .notice-icon-box { width: 64px; height: 64px; border-radius: 14px; overflow: hidden; margin-right: 18px; flex-shrink: 0; border: 1px solid #eee; }
+        .notice-icon { width: 100%; height: 100%; object-fit: cover; display: block; }
+        
+        /* Specific Icon Styles for Placeholders */
+        .icon-referral { background-color: #fff; }
+        .icon-vip { background-color: #000; }
+        .icon-lottery { background-color: #e8f5e9; padding: 4px; }
+        .icon-telegram { background-color: #fff; padding: 2px; }
+        .icon-recharge { background-color: #fff; }
+
+        /* Notice Text Content - Bada Font Size */
+        .notice-content { flex-grow: 1; }
+        .notice-title { font-size: 18px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; line-height: 1.4; }
+        .notice-time { font-size: 14px; color: #8e9cb2; display: flex; align-items: center; }
+        .notice-time::before { content: "📅"; font-size: 13px; margin-right: 6px; }
+
+        /* Detailed Content (Pop-up style) */
+        .detail-container { padding: 22px; flex: 1; overflow-y: auto; background-color: #ffffff; }
+        .detail-title { font-size: 22px; font-weight: 800; color: #1a1a1a; margin-bottom: 12px; line-height: 1.4; }
+        .detail-meta { font-size: 14px; color: #00b151; font-weight: 600; margin-bottom: 22px; border-bottom: 1px solid #eee; padding-bottom: 12px; }
+        .detail-body { font-size: 16px; color: #444; line-height: 1.8; }
+        .detail-body p { margin-bottom: 16px; }
+        .highlight { color: #d32f2f; font-weight: 700; }
+        .sub-highlight { color: #e65100; font-weight: 700; }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <a href="#" class="back-btn" onclick="goBack()">&lsaquo;</a>
+            <h1 class="header-title">Notice</h1>
+        </div>
+
+        <!-- Main List View -->
+        <div class="notice-list" id="listView">
+            <!-- Notice Item 1 -->
+            <div class="notice-card" onclick="showDetail('referral')">
+                <div class="notice-icon-box icon-referral">
+                    <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=120&auto=format&fit=crop" alt="Referral" class="notice-icon">
+                </div>
+                <div class="notice-content">
+                    <div class="notice-title">Referral Rewards</div>
+                    <div class="notice-time">2026-07-23 11:27:28</div>
+                </div>
+            </div>
+
+            <!-- Notice Item 2 -->
+            <div class="notice-card" onclick="showDetail('checkin')">
+                <div class="notice-icon-box icon-vip">
+                    <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=120&auto=format&fit=crop" alt="VIP" class="notice-icon">
+                </div>
+                <div class="notice-content">
+                    <div class="notice-title">Daily Check-in Bonus</div>
+                    <div class="notice-time">2026-07-23 11:26:37</div>
+                </div>
+            </div>
+
+            <!-- Notice Item 3 -->
+            <div class="notice-card" onclick="showDetail('lottery')">
+                <div class="notice-icon-box icon-lottery">
+                    <img src="https://images.unsplash.com/photo-1518609878373-06d740f60d8b?q=80&w=120&auto=format&fit=crop" alt="Lottery" class="notice-icon">
+                </div>
+                <div class="notice-content">
+                    <div class="notice-title">Lottery Draw</div>
+                    <div class="notice-time">2026-07-23 11:25:21</div>
+                </div>
+            </div>
+
+            <!-- Notice Item 4 -->
+            <div class="notice-card" onclick="showDetail('telegram')">
+                <div class="notice-icon-box icon-telegram">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram" class="notice-icon" style="object-fit: contain;">
+                </div>
+                <div class="notice-content">
+                    <div class="notice-title">Telegram Channel</div>
+                    <div class="notice-time">2026-07-23 11:24:05</div>
+                </div>
+            </div>
+
+            <!-- Notice Item 5 -->
+            <div class="notice-card" onclick="showDetail('recharge')">
+                <div class="notice-icon-box icon-recharge">
+                    <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=120&auto=format&fit=crop" alt="Recharge" class="notice-icon">
+                </div>
+                <div class="notice-content">
+                    <div class="notice-title">Daily recharge rewards</div>
+                    <div class="notice-time">2026-07-23 11:23:31</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed View -->
+        <div class="detail-container" id="detailView" style="display: none;">
+            <h2 class="detail-title" id="detailTitle">Title</h2>
+            <div class="detail-meta">
+                <span>Administration Department</span>
+                <span style="float: right;" id="detailDate">Date</span>
+            </div>
+            <div class="detail-body" id="detailBody"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const noticeData = {
+            referral: {
+                title: "Referral Rewards Program",
+                date: "2026-07-23 11:27:28",
+                body: `
+                    <p>Invite your friends and family to join Bajaj Global Funds and unlock amazing rewards!</p>
+                    <p>You will receive a direct commission on all investments made by your level 1 referrals, plus additional passive income from their network.</p>
+                    <p>Your rewards are credited instantly to your account balance as soon as your referrals complete their investments.</p>
+                    <p class="sub-highlight">Start sharing your unique referral link today and build your wealth together!</p>
+                `
+            },
+            checkin: {
+                title: "Daily Check-in Bonus is Here!",
+                date: "2026-07-23 11:26:37",
+                body: `
+                    <p>Consistency pays off! Log in to your account every single day and claim your free daily check-in bonus.</p>
+                    <p>Visit the 'Activity' section and tap the 'Check-in' button. Your bonus will be added directly to your wallet.</p>
+                    <p class="highlight">Don't break your streak! Claiming consecutively for 7 days unlocks a massive surprise reward.</p>
+                    <p>This bonus is our way of thanking you for your daily engagement with the platform.</p>
+                `
+            },
+            lottery: {
+                title: "Mega Lottery Draw: Spin to Win!",
+                date: "2026-07-23 11:25:21",
+                body: `
+                    <p>Get ready for our exclusive daily Lottery Draw! Participate now for your chance to win unbelievable prizes and cash bonuses.</p>
+                    <p>Each user gets 3 free spins daily. Additional spins can be earned by completing simple daily tasks or by reaching higher VIP levels.</p>
+                    <p>Prizes range from small cashbacks to a grand prize of ₹5,000!</p>
+                    <p>All winnings are instantly credited to your account. Good luck, and spin wisely!</p>
+                `
+            },
+            telegram: {
+                title: "Join Our Official Telegram Channel",
+                date: "2026-07-23 11:24:05",
+                body: `
+                    <p>Stay connected with the official Bajaj Global Funds Telegram Channel. This is your primary source for the latest platform news, announcements, and exclusive promotions.</p>
+                    <p>By joining, you will get:</p>
+                    <p>&#9679; Real-time updates on new investment products<br>
+                    &#9679; Exclusive gift codes and bonuses<br>
+                    &#9679; Direct access to community discussions and support<br>
+                    &#9679; Payment proofs and success stories</p>
+                    <p class="highlight">Click the link below to join and never miss out on an important update!</p>
+                `
+            },
+            recharge: {
+                title: "🔥 Daily Recharge & Investment Rewards 🔥",
+                date: "2026-07-23 11:23:31",
+                body: `
+                    <p>Boost your earning potential with our incredible daily recharge and investment rewards program. The more you recharge and invest, the more you earn!</p>
+                    <p>Here is the incredible "lalach bhari" deal:</p>
+                    <p>&#9679; Recharge ₹1,000, get <span class="highlight">₹100 Extra Bonus</span> (10%)<br>
+                    &#9679; Recharge ₹10,000, get <span class="highlight">₹1,500 Extra Bonus</span> (15%)<br>
+                    &#9679; Recharge ₹50,000, get <span class="highlight">₹10,000 Extra Bonus</span> (20%)</p>
+                    <p class="sub-highlight">PLUS, activate any VIP plan with your recharge and get an additional 5% cashback on the plan price!</p>
+                    <p>This is a limited-time offer. Maximize your rewards and secure your financial future with Bajaj Global Funds today!</p>
+                `
+            }
+        };
+
+        const listView = document.getElementById('listView');
+        const detailView = document.getElementById('detailView');
+        const detailTitle = document.getElementById('detailTitle');
+        const detailDate = document.getElementById('detailDate');
+        const detailBody = document.getElementById('detailBody');
+
+        function showDetail(id) {
+            const data = noticeData[id];
+            if (data) {
+                detailTitle.innerText = data.title;
+                detailDate.innerText = data.date;
+                detailBody.innerHTML = data.body;
+                
+                listView.style.display = 'none';
+                detailView.style.display = 'block';
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function goBack() {
+            if (detailView.style.display === 'block') {
+                detailView.style.display = 'none';
+                listView.style.display = 'block';
+            } else {
+                window.location.href = 'home.html';
+            }
+        }
+    </script>
+</body>
+</html>

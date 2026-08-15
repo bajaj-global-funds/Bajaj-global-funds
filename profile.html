@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Profile - Bajaj Global Funds</title>
+    
+    <!-- Firebase CDNs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            background-color: #f4f6f9; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            background: #f4f6f9;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            position: relative;
+            padding-bottom: 75px;
+        }
+
+        .page-view { display: none; }
+        .page-view.active-page { display: block; }
+        .content-body { flex: 1; overflow-y: auto; }
+
+        /* टॉप ग्रीन हेडर एरिया */
+        .header-section {
+            background-color: #00b050;
+            padding: 20px 15px 40px 15px;
+            color: #ffffff;
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+        }
+
+        .user-info-box {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .avatar-box {
+            position: relative;
+            width: 65px;
+            height: 65px;
+            background: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-right: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        .avatar-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-overlay svg {
+            width: 14px;
+            height: 14px;
+            fill: #ffffff;
+        }
+
+        .user-details h2 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .user-id-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .balance-row {
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .balance-item h3 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .balance-item p {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+
+        .container {
+            padding: 0 15px;
+            margin-top: -20px;
+        }
+
+        .vip-card {
+            background: #fff8eb;
+            border: 1px solid #fde6c5;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }
+
+        .vip-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .vip-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .vip-info h4 {
+            font-size: 15px;
+            color: #b45309;
+            font-weight: bold;
+        }
+
+        .vip-info p {
+            font-size: 11px;
+            color: #78350f;
+            margin-top: 2px;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Recharge और Withdraw ग्रिड */
+        .menu-grid {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 10px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            margin-bottom: 15px;
+        }
+
+        .menu-item {
+            text-decoration: none;
+            color: #374151;
+            font-size: 12px;
+            flex: 1;
+            cursor: pointer;
+            background: none;
+            border: none;
+            display: block;
+        }
+
+        .menu-icon-box {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 6px auto;
+        }
+
+        .bg-yellow { background-color: #fef3c7; color: #d97706; }
+        .bg-green { background-color: #d1fae5; color: #059669; }
+
+        .menu-icon-box svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        /* Application Service लिस्ट */
+        .app-service-box {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .app-service-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 12px;
+        }
+
+        .service-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+        }
+
+        .service-item:last-child {
+            border-bottom: none;
+        }
+
+        .service-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .service-icon-bg {
+            width: 36px;
+            height: 36px;
+            background-color: #d1fae5;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .service-icon-bg svg {
+            width: 20px;
+            height: 20px;
+            fill: #00b050;
+        }
+
+        .service-item span:nth-child(2) {
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .arrow-icon {
+            color: #9ca3af;
+            font-size: 16px;
+        }
+
+        /* फुल-पेज सब-व्यूज़ */
+        .sub-view {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f4f6f9;
+            z-index: 10000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .sub-view.active {
+            display: block;
+        }
+
+        .sub-header {
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #00b050;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sub-title {
+            font-size: 17px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-left: 15px;
+        }
+
+        .sub-content-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .action-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn-action {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-settings { background-color: #e5e7eb; color: #374151; }
+        .btn-logout { background-color: #fee2e2; color: #dc2626; }
+
+        /* होम पेज जैसी सटीक फ्लोटिंग नेविगेशन बार */
+        .bottom-nav {
+            background: #ffffff;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 65px;
+            border-top: 1px solid #eee;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 480px;
+            z-index: 100;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+        }
+        .nav-item {
+            text-align: center;
+            cursor: pointer;
+            color: #999;
+            font-size: 11px;
+            font-weight: 600;
+            flex: 1;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            position: relative;
+        }
+        .nav-item.active { color: #00b050; }
+        .nav-item svg { width: 24px; height: 24px; fill: currentColor; margin-bottom: 3px; display: block; }
+        
+        /* बीच वाला गिफ्ट बॉक्स (Notice) बटन */
+        .notice-center-wrapper {
+            flex: 1;
+            position: relative;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .notice-center-btn {
+            position: absolute;
+            top: -22px;
+            background: linear-gradient(135deg, #ff9900, #ff5500);
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 6px 15px rgba(255, 119, 0, 0.4);
+            cursor: pointer;
+            border: 4px solid #f4f6f9;
+            text-decoration: none;
+            font-size: 28px;
+            transition: transform 0.2s;
+        }
+        .notice-center-btn:active { transform: scale(0.95); }
+        .notice-label {
+            position: absolute;
+            bottom: 6px;
+            font-size: 11px;
+            color: #999;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="content-body">
+            <!-- Account / Profile Page Main View -->
+            <div id="page-account" class="page-view active-page">
+                <!-- टॉप ग्रीन हेडर -->
+                <div class="header-section">
+                    <div class="user-info-box">
+                        <div class="avatar-box" onclick="document.getElementById('file-input').click()">
+                            <img id="profile-img" src="" alt="Avatar" style="display: none;">
+                            <div id="default-avatar-icon">
+                                <svg viewBox="0 0 24 24" width="36" height="36" fill="#00b050"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.83 5.37c.56-.68.94-1.63.84-2.58-.81.03-1.8.54-2.38 1.22-.52.6-.98 1.57-.85 2.51.91.07 1.83-.46 2.39-1.15z"/></svg>
+                            </div>
+                            <div class="camera-overlay">
+                                <svg viewBox="0 0 24 24"><path d="M12 9c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3m0-2c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5m0-2c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z"/></svg>
+                            </div>
+                        </div>
+                        <input type="file" id="file-input" style="display: none;" accept="image/*" onchange="uploadProfileImage(event)">
+
+                        <div class="user-details">
+                            <h2 id="username">My_User</h2>
+                            <div class="user-id-badge">
+                               <span>ID: <span id="user-id">Loading...</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="balance-row">
+                        <div class="balance-item">
+                            <h3 id="amount-received">0.00</h3>
+                            <p>Amount to be received</p>
+                        </div>
+                        <div class="balance-item">
+                            <h3 id="recharge-balance">0.00</h3>
+                            <p>Recharge Balance</p>
+                        </div>
+                        <div class="balance-item">
+                            <h3 id="withdraw-balance">0.00</h3>
+                            <p>Withdraw Balance</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container">
+                    
+                    <!-- VIP Card -->
+                    <div class="vip-card">
+                        <div class="vip-left">
+                            <div class="vip-icon">👑</div>
+                            <div class="vip-info">
+                                <h4>VIP LEVEL 0</h4>
+                                <p>Upgrade to VIP1 needs ₹270.00 more</p>
+                            </div>
+                        </div>
+                        <button class="upgrade-btn" onclick="openSubView('sub-vip')">Upgrade ></button>
+                    </div>
+
+                    <!-- Deposit और Withdraw (widraw.html) डायरेक्ट फाइलों से कनेक्टेड -->
+                    <div class="menu-grid">
+                        <a href="recharge.html" class="menu-item">
+                            <div class="menu-icon-box bg-yellow">
+                                <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                            </div>
+                            <span>Deposit</span>
+                        </a>
+                        <a href="widraw.html" class="menu-item">
+                            <div class="menu-icon-box bg-green">
+                                <svg viewBox="0 0 24 24"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-2H2v2zm2-1h2v-1H4v1z"/></svg>
+                            </div>
+                            <span>Withdraw</span>
+                        </a>
+                    </div>
+
+                    <!-- Application Service List -->
+                    <div class="app-service-box">
+                        <div class="app-service-title">Application Service</div>
+                        
+                        <div class="service-item" onclick="openSubView('sub-balance')">
+                            <div class="service-left">
+                                <div class="service-icon-bg"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8z"/></svg></div>
+                                <span>My Balance</span>
+                            </div>
+                            <span class="arrow-icon">></span>
+                        </div>
+
+                        <div class="service-item" onclick="openSubView('sub-rewards')">
+                            <div class="service-left">
+                                <div class="service-icon-bg"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.02-.42 1.95-1.07 2.75z"/></svg></div>
+                                <span>My Rewards</span>
+                            </div>
+                            <span class="arrow-icon">></span>
+                        </div>
+
+                        <div class="service-item" onclick="openSubView('sub-vip')">
+                            <div class="service-left">
+                                <div class="service-icon-bg"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+                                <span>Vip Level</span>
+                            </div>
+                            <span class="arrow-icon">></span>
+                        </div>
+
+                        <div class="service-item" onclick="openSubView('sub-about')">
+                            <div class="service-left">
+                                <div class="service-icon-bg"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></div>
+                                <span>About Us</span>
+                            </div>
+                            <span class="arrow-icon">></span>
+                        </div>
+
+                        <div class="service-item" onclick="openSubView('sub-help')">
+                            <div class="service-left">
+                                <div class="service-icon-bg"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm1.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.02-.42 1.95-1.07 2.75z"/></svg></div>
+                                <span>Help Center</span>
+                            </div>
+                            <span class="arrow-icon">></span>
+                        </div>
+
+                        <div class="service-item" onclick="openSubView('sub-settings')">
+                            <div class="service-left">
+                                <div class="service-icon-bg"><svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.03 2.18 13.82 2 13.58 2h-4.16c-.24 0-.45.18-.48.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.48.42h4.16c.24 0 .45-.18.48-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg></div>
+                                <span>Settings</span>
+                            </div>
+                            <span class="arrow-icon">></span>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-action btn-settings" onclick="openSubView('sub-settings')">Settings</button>
+                        <button class="btn-action btn-logout" onclick="logoutUser()">Logout</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- फुल-पेज सब-व्यूज़ -->
+        <div id="sub-balance" class="sub-view">
+            <div class="sub-header">
+                <button class="back-btn" onclick="closeSubView()">← Back</button>
+                <span class="sub-title">Balance Record</span>
+            </div>
+            <div class="sub-content-card">
+                <p style="color: #555;">Account Balance: <strong>₹0.00</strong></p>
+                <p style="margin-top: 10px; color: #9ca3af;">No more records found.</p>
+            </div>
+        </div>
+
+        <div id="sub-rewards" class="sub-view">
+            <div class="sub-header">
+                <button class="back-btn" onclick="closeSubView()">← Back</button>
+                <span class="sub-title">Rewards Record</span>
+            </div>
+            <div class="sub-content-card">
+                <p style="color: #555;">Account Rewards: <strong>₹0.00</strong></p>
+                <p style="margin-top: 10px; color: #9ca3af;">No rewards yet.</p>
+            </div>
+        </div>
+
+        <div id="sub-vip" class="sub-view">
+            <div class="sub-header">
+                <button class="back-btn" onclick="closeSubView()">← Back</button>
+                <span class="sub-title">Vip Introduction</span>
+            </div>
+            <div class="sub-content-card">
+                <div style="background: #d1fae5; padding: 12px; border-radius: 8px; color: #065f46;">
+                    <strong>LV0</strong>: Total Investment ₹0<br>
+                    <strong>LV1</strong>: Total Investment ₹270<br>
+                    <strong>LV2</strong>: Total Investment ₹4,270
+                </div>
+            </div>
+        </div>
+
+        <div id="sub-about" class="sub-view">
+            <div class="sub-header">
+                <button class="back-btn" onclick="closeSubView()">← Back</button>
+                <span class="sub-title">About Us</span>
+            </div>
+            <div class="sub-content-card">
+                <p style="font-size: 13px; color: #4b5563; line-height: 1.6;">
+                    Bajaj Global Funds provides secure asset management and verified consumer portfolios to ensure reliable daily returns.
+                </p>
+            </div>
+        </div>
+
+        <div id="sub-help" class="sub-view">
+            <div class="sub-header">
+                <button class="back-btn" onclick="closeSubView()">← Back</button>
+                <span class="sub-title">Help Center</span>
+            </div>
+            <div class="sub-content-card">
+                <p style="font-size: 13px; color: #4b5563;">
+                    For any support or query, contact our 24/7 official customer service at @BajajGlobalCS.
+                </p>
+            </div>
+        </div>
+
+        <div id="sub-settings" class="sub-view">
+            <div class="sub-header">
+                <button class="back-btn" onclick="closeSubView()">← Back</button>
+                <span class="sub-title">Setting Info</span>
+            </div>
+            <div class="sub-content-card">
+                <p style="font-size: 13px; color: #374151;">User ID: <strong id="setting-uid">--</strong></p>
+                <p style="font-size: 13px; color: #374151; margin-top: 8px;">Device Status: <strong>Secure & Bound</strong></p>
+            </div>
+        </div>
+
+        <!-- होम पेज जैसी सटीक फ्लोटिंग बॉटम नेविगेशन बार -->
+        <div class="bottom-nav">
+            <a href="home.html" class="nav-item" id="navHome">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                <span>Home</span>
+            </a>
+            <a href="invest.html" class="nav-item" id="navInvest">
+                <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+                <span>Invest</span>
+            </a>
+            
+            <!-- बीच वाला गिफ्ट बॉक्स (Notice) बटन -->
+            <div class="notice-center-wrapper">
+                <a href="notice.html" class="notice-center-btn" title="Notice Center">🎁</a>
+                <span class="notice-label">Notice</span>
+            </div>
+
+            <a href="blog.html" onclick="localStorage.setItem('activeTab', 'blog')" class="nav-item" id="navBlog">
+                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+                <span>Blog</span>
+            </a>
+            <a href="profile.html" class="nav-item active" id="navAccount">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <span>Account</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+        
+        let userId = localStorage.getItem('bgf_uid');
+        if (!userId) {
+            userId = "117065";
+            localStorage.setItem('bgf_uid', userId);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("user-id").innerText = userId;
+            document.getElementById("setting-uid").innerText = userId;
+            document.getElementById("username").innerText = localStorage.getItem('bgf_uname') || ("User_" + userId.slice(-4));
+        });
+
+        function openSubView(subViewId) {
+            document.querySelectorAll('.sub-view').forEach(v => v.classList.remove('active'));
+            document.getElementById(subViewId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function closeSubView() {
+            document.querySelectorAll('.sub-view').forEach(v => v.classList.remove('active'));
+        }
+
+        function logoutUser() {
+            if(confirm("Are you sure you want to logout?")) {
+                localStorage.removeItem('bgf_uid');
+                localStorage.removeItem('bgf_uname');
+                alert("Logged out successfully");
+                window.location.href = "register.html";
+            }
+        }
+
+        db.collection("users").doc(userId).onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById("amount-received").innerText = (data.amountReceived || 0).toFixed(2);
+                document.getElementById("recharge-balance").innerText = (data.rechargeBalance || 0).toFixed(2);
+                document.getElementById("withdraw-balance").innerText = (data.withdrawBalance || 0).toFixed(2);
+                if(data.username) {
+                    document.getElementById("username").innerText = data.username;
+                }
+                
+                if (data.profilePicUrl) {
+                    const imgEl = document.getElementById("profile-img");
+                    imgEl.src = data.profilePicUrl;
+                    imgEl.style.display = "block";
+                    document.getElementById("default-avatar-icon").style.display = "none";
+                }
+            }
+        });
+
+        function uploadProfileImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const storageRef = storage.ref().child(`profile_pics/${userId}_${Date.now()}`);
+            const uploadTask = storageRef.put(file);
+
+            uploadTask.on('state_changed', null, (error) => {
+                alert("Upload failed: " + error.message);
+            }, () => {
+                uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                    db.collection("users").doc(userId).set({ profilePicUrl: downloadURL }, { merge: true }).then(() => {
+                        alert("Profile picture updated!");
+                    });
+                });
+            });
+        }
+    </script>
+</body>
+</html>

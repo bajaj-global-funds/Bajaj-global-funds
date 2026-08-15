@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Withdraw & Bank Management</title>
+    <!-- Google Fonts for Unique Font Style in Numbers -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: #f0f2f5; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; }
+        
+        .container { width: 100%; max-width: 420px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        /* Top Green Header Bar */
+        .header { background: #10b981; color: white; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; font-size: 18px; font-weight: bold; }
+        .header-left { display: flex; align-items: center; }
+        .back-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; margin-right: 15px; text-decoration: none; }
+        .history-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+        .content { padding: 20px; }
+
+        /* Live Balance Green Box with Refresh Button */
+        .live-balance-box { background: linear-gradient(135deg, #10b981, #059669); color: white; border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); }
+        .lb-left .lb-title { font-size: 12px; opacity: 0.9; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .lb-left .lb-amount { font-size: 26px; font-weight: bold; font-family: 'Outfit', sans-serif; }
+        
+        .refresh-btn { background: rgba(255, 255, 255, 0.2); border: none; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; cursor: pointer; transition: background 0.2s; }
+        .refresh-btn:hover { background: rgba(255, 255, 255, 0.3); }
+
+        /* Spin Animation for Refresh Icon */
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinning { animation: spin 0.8s linear infinite; }
+
+        /* Form Inputs */
+        .input-group { margin-bottom: 15px; }
+        label { font-size: 13px; color: #475569; display: block; margin-bottom: 6px; font-weight: 500; }
+        input, select { width: 100%; padding: 12px 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; }
+        input:focus, select:focus { border-color: #10b981; background: #fff; }
+
+        /* Custom Clickable Bank Input Box */
+        .bank-select-box { width: 100%; padding: 12px 15px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #333; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Quick Amount Grid */
+        .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .q-btn { 
+            padding: 14px 10px; 
+            background: #f8fafc; 
+            border: 1.5px solid #cbd5e1; 
+            border-radius: 8px; 
+            font-family: 'Outfit', sans-serif; 
+            font-size: 16px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            text-align: center; 
+            color: #1e293b; 
+            transition: all 0.2s;
+        }
+        .q-btn:hover { background: #10b981; color: white; border-color: #10b981; transform: translateY(-2px); }
+
+        /* Buttons */
+        .btn-primary { width: 100%; padding: 14px; background: #10b981; border: none; color: white; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+        .btn-primary:active { transform: scale(0.98); }
+
+        /* History List Styles */
+        .history-list { display: flex; flex-direction: column; gap: 12px; max-height: 520px; overflow-y: auto; }
+        .history-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; }
+        .h-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .h-bank { font-size: 15px; font-weight: bold; color: #1e293b; }
+        .h-amount { font-size: 16px; font-weight: bold; color: #10b981; font-family: 'Outfit', sans-serif; }
+        .h-middle { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 8px 10px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-bottom: 8px; }
+        .h-order { font-size: 12px; color: #475569; font-family: monospace; }
+        .copy-btn { background: #10b981; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .copy-btn:active { transform: scale(0.95); }
+        .h-bottom { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b; }
+
+        .status-badge { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-approved { background: #d1fae5; color: #059669; }
+        .status-rejected { background: #fee2e2; color: #dc2626; }
+
+        /* --- MODERN PREMIUM POPUP MODAL --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 999; padding: 20px; }
+        .modal-box { background: white; padding: 30px 20px; border-radius: 16px; width: 100%; max-width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popScale 0.2s ease-in-out; }
+        @keyframes popScale { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .modal-icon { width: 60px; height: 60px; background: #d1fae5; color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px auto; }
+        .modal-title { font-size: 18px; font-weight: bold; color: #1e293b; margin-bottom: 8px; }
+        .modal-desc { font-size: 13px; color: #64748b; margin-bottom: 25px; line-height: 1.4; }
+        .modal-buttons { display: flex; gap: 10px; }
+        .modal-btn-cancel { flex: 1; padding: 12px; background: #f1f5f9; border: none; border-radius: 8px; font-weight: 600; color: #475569; cursor: pointer; }
+        .modal-btn-confirm { flex: 1; padding: 12px; background: #10b981; border: none; border-radius: 8px; font-weight: 600; color: white; cursor: pointer; }
+
+        /* --- BANK SELECTION POPUP MODAL --- */
+        .bank-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
+        .bank-modal-content { background: #fff; width: 100%; max-width: 360px; height: 65vh; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.25); animation: scaleUp 0.2s ease-in-out; }
+        @keyframes scaleUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .bank-modal-header { padding: 15px; background: #10b981; color: white; font-weight: bold; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .bank-modal-close { background: none; border: none; color: white; font-size: 22px; cursor: pointer; }
+        
+        .bank-search-container { padding: 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+        .bank-search-input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff; }
+        .bank-search-input:focus { border-color: #10b981; }
+
+        .bank-list-container { flex: 1; overflow-y: auto; padding: 5px 0; }
+        .bank-item { padding: 12px 18px; font-size: 14px; font-weight: 600; color: #dc2626; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
+        .bank-item:hover { background: #fef2f2; }
+
+        /* Hidden Class */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- 1. WITHDRAW PAGE -->
+    <div id="withdrawSection">
+        <div class="header">
+            <div class="header-left">
+                <a href="home.html" class="back-btn">&#8592;</a>
+                Withdraw
+            </div>
+            <button class="history-btn" onclick="openHistoryPage()">History</button>
+        </div>
+        <div class="content">
+            
+            <!-- Live Balance Green Box with Refresh Button -->
+            <div class="live-balance-box">
+                <div class="lb-left">
+                    <div class="lb-title">Live Balance</div>
+                    <div class="lb-amount">₹<span id="userBal">0.00</span></div>
+                </div>
+                <button class="refresh-btn" id="refreshBtn" onclick="refreshBalance()" title="Refresh Balance">
+                    &#x21bb;
+                </button>
+            </div>
+
+            <div class="input-group">
+                <label>Withdraw Amount</label>
+                <input id="wAmt" type="number" placeholder="Amount between ₹300 to ₹50000">
+            </div>
+
+            <div class="quick-grid">
+                <div class="q-btn" onclick="setAmt(300)">₹300</div>
+                <div class="q-btn" onclick="setAmt(500)">₹500</div>
+                <div class="q-btn" onclick="setAmt(1000)">₹1000</div>
+                <div class="q-btn" onclick="setAmt(2000)">₹2000</div>
+                <div class="q-btn" onclick="setAmt(5000)">₹5000</div>
+                <div class="q-btn" onclick="setAmt(10000)">₹10000</div>
+                <div class="q-btn" onclick="setAmt(15000)">₹15000</div>
+            </div>
+
+            <div class="input-group">
+                <label>Login Password</label>
+                <input id="wLoginPass" type="password" placeholder="Enter your login password">
+            </div>
+
+            <div class="input-group">
+                <label>Select Bank Card</label>
+                <select id="wBankSelect">
+                    <option value="">Please Select Bank Card</option>
+                </select>
+            </div>
+
+            <button class="btn-primary" onclick="submitWithdraw()">Submit Withdraw</button>
+        </div>
+    </div>
+
+    <!-- 2. ADD BANK CARD PAGE -->
+    <div id="bankCardSection" class="hidden">
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn" onclick="goBackToWithdraw()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer; margin-right:15px;">&#8592;</button>
+                Add Bank Card
+            </div>
+        </div>
+        <div class="content">
+            <div class="input-group">
+                <label>Select Bank Name</label>
+                <div class="bank-select-box" id="selectedBankDisplay" onclick="openBankModal()">
+                    <span id="bankNameText" style="color: #64748b;">Please select bank</span>
+                    <span>&#9662;</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Account Name</label>
+                <input id="accName" placeholder="Enter account holder name">
+            </div>
+
+            <div class="input-group">
+                <label>Account Number</label>
+                <input id="accNo" placeholder="Please enter your bank account number">
+            </div>
+
+            <div class="input-group">
+                <label>IFSC</label>
+                <input id="ifsc" placeholder="Bank IFSC code">
+            </div>
+
+            <div class="input-group">
+                <label>Login Password</label>
+                <input id="accLoginPass" type="password" placeholder="Enter your login password">
+            </div>
+
+            <button class="btn-primary" onclick="saveBankCard()">Confirm</button>
+        </div>
+    </div>
+
+    <!-- 3. WITHDRAW HISTORY PAGE (Full Page View) -->
+    <div id="historySection" class="hidden">
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn" onclick="goBackToWithdraw()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer; margin-right:15px;">&#8592;</button>
+                Withdraw History
+            </div>
+        </div>
+        <div class="content">
+            <div class="history-list" id="historyListContainer">
+                <p style="text-align:center; color:#64748b; font-size:14px; margin-top:20px;">Loading history...</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- BANK SELECTION MODAL (POPUP) WITH SEARCH & RED BANK NAMES -->
+<div class="bank-modal" id="bankListModal">
+    <div class="bank-modal-content">
+        <div class="bank-modal-header">
+            <span>Select Bank Name</span>
+            <button class="bank-modal-close" onclick="closeBankModal()">&times;</button>
+        </div>
+        <div class="bank-search-container">
+            <input type="text" id="bankSearchInput" class="bank-search-input" placeholder="Search bank name..." onkeyup="filterBanks()">
+        </div>
+        <div class="bank-list-container" id="bankListContainer">
+            <!-- All A to Z Banks populated dynamically via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- MODERN PREMIUM CENTER POPUP MODAL -->
+<div class="modal" id="systemPopup">
+    <div class="modal-box">
+        <div class="modal-icon" id="popupIcon">✓</div>
+        <div class="modal-title" id="popupTitle">Alert</div>
+        <div class="modal-desc" id="popupDesc">Operation successful</div>
+        <div class="modal-buttons" id="popupButtons">
+            <button class="modal-btn-confirm" style="width:100%" onclick="closePopup()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase Modular SDK Integration -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAyFldowBw6ChbopLGCCQ8U7_RH4kmyFpM",
+      authDomain: "creditinvestapp.firebaseapp.com",
+      projectId: "creditinvestapp",
+      storageBucket: "creditinvestapp.firebasestorage.app",
+      messagingSenderId: "299058832737",
+      appId: "1:299058832737:web:fe1c1df553e209715c1120"
+    };
+
+    const db = getFirestore(initializeApp(firebaseConfig));
+    
+    let currentUserId = localStorage.getItem('bgf_uid');
+    if(!currentUserId) {
+        currentUserId = "USER_" + Math.floor(100000 + Math.random() * 900000);
+        localStorage.setItem('bgf_uid', currentUserId);
+    }
+
+    // A to Z Bank List Data Array
+    const allBanks = [
+        "AB Bank", "Airtel Payments Bank", "American Express Banking Corporation", "Andhra Pradesh Grameena Vikas Bank", "Andhra Pragathi Grameena Bank", "ANZ Bank", "Arunachal Pradesh Rural Bank", "Aryavart Bank", "Assam Gramin Vikash Bank", "AU Small Finance Bank", "Axis Bank",
+        "Bandhan Bank", "Bangiya Gramin Vikas Bank", "Baroda Gujarat Gramin Bank", "Baroda Rajasthan Kshetriya Gramin Bank", "Baroda UP Bank", "Barclays Bank", "Bank of America", "Bank of Bahrain and Kuwait", "Bank of Baroda", "Bank of Ceylon", "Bank of China", "Bank of India", "Bank of Maharashtra", "Bank of Nova Scotia", "BNP Paribas",
+        "Canara Bank", "Capital Small Finance Bank", "Central Bank of India", "Chaitanya Godavari Grameena Bank", "Chhattisgarh Rajya Gramin Bank", "Citibank", "City Union Bank", "Crédit Agricole", "CSB Bank", "CTBC Bank",
+        "Dakshin Bihar Gramin Bank", "DCB Bank", "Deutsche Bank", "Dhanlaxmi Bank",
+        "Ellaquai Dehati Bank", "Equitas Small Finance Bank", "ESAF Small Finance Bank",
+        "Federal Bank", "Fino Payments Bank",
+        "HDFC Bank", "Himachal Pradesh Gramin Bank", "HSBC Bank",
+        "ICICI Bank", "IDBI Bank", "IDFC FIRST Bank", "India Post Payments Bank", "Indian Bank", "Indian Overseas Bank", "IndusInd Bank",
+        "J&K Grameen Bank", "Jana Small Finance Bank", "Jammu & Kashmir Bank", "Jharkhand Rajya Gramin Bank", "Jio Payments Bank", "JPMorgan Chase Bank",
+        "Karnataka Bank", "Karnataka Gramin Bank", "Karnataka Vikas Grameena Bank", "Karur Vysya Bank", "Kerala Gramin Bank", "Kotak Mahindra Bank",
+        "Madhya Pradesh Gramin Bank", "Madhyanchal Gramin Bank", "Maharashtra Gramin Bank", "Manipur Rural Bank", "Meghalaya Rural Bank", "Mizoram Rural Bank",
+        "Nagaland Rural Bank", "Nainital Bank",
+        "Odisha Gramya Bank",
+        "Paschim Banga Gramin Bank", "Paytm Payments Bank", "Prathama UP Gramin Bank", "Puduvai Bharathiar Grama Bank", "Punjab & Sind Bank", "Punjab Gramin Bank", "Punjab National Bank",
+        "Rajasthan Marudhara Gramin Bank", "RBL Bank",
+        "Saptagiri Grameena Bank", "Sarva Haryana Gramin Bank", "Saurashtra Gramin Bank", "Shivalik Small Finance Bank", "South Indian Bank", "Standard Chartered Bank", "State Bank of India", "Suryoday Small Finance Bank",
+        "Tamil Nadu Grama Bank", "Tamilnad Mercantile Bank", "Telangana Grameena Bank", "Tripura Gramin Bank",
+        "UCO Bank", "Ujjivan Small Finance Bank", "Union Bank of India", "Unity Small Finance Bank", "Utkal Grameen Bank", "Utkarsh Small Finance Bank", "Uttar Bihar Gramin Bank", "Uttarakhand Gramin Bank", "Uttarbanga Kshetriya Gramin Bank",
+        "Vidharbha Konkan Gramin Bank",
+        "YES Bank"
+    ];
+
+    let selectedBankValue = "";
+
+    function renderBankList(banksToRender) {
+        const container = document.getElementById('bankListContainer');
+        if(banksToRender.length === 0) {
+            container.innerHTML = `<p style="text-align:center; color:#64748b; padding:20px; font-size:13px;">No banks found!</p>`;
+            return;
+        }
+        let html = "";
+        banksToRender.forEach(bank => {
+            html += `<div class="bank-item" onclick="selectBank('${bank}')">${bank}</div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    renderBankList(allBanks);
+
+    window.openBankModal = () => {
+        document.getElementById('bankListModal').style.display = 'flex';
+        document.getElementById('bankSearchInput').value = '';
+        renderBankList(allBanks);
+        setTimeout(() => document.getElementById('bankSearchInput').focus(), 100);
+    };
+
+    window.closeBankModal = () => {
+        document.getElementById('bankListModal').style.display = 'none';
+    };
+
+    window.selectBank = (bankName) => {
+        selectedBankValue = bankName;
+        const display = document.getElementById('bankNameText');
+        display.innerText = bankName;
+        display.style.color = "#dc2626"; // Selected bank text in Red color
+        closeBankModal();
+    };
+
+    window.filterBanks = () => {
+        const queryText = document.getElementById('bankSearchInput').value.toLowerCase();
+        const filtered = allBanks.filter(b => b.toLowerCase().includes(queryText));
+        renderBankList(filtered);
+    };
+
+    window.setAmt = (amount) => {
+        document.getElementById('wAmt').value = amount;
+    };
+
+    let userCurrentBalance = 0;
+
+    async function checkUserBank() {
+        try {
+            const snap = await getDoc(doc(db, "users", currentUserId));
+            if(snap.exists()) {
+                const data = snap.data();
+                userCurrentBalance = Number(data.balance || data.amount || data.wallet || 0);
+                document.getElementById('userBal').innerText = userCurrentBalance.toLocaleString('en-IN');
+                
+                if(!data.accNo) {
+                    showPopup(
+                        "i",
+                        "Notice", 
+                        "You haven't linked your bank card yet, please link your bank card first", 
+                        true, 
+                        "Bind Bank Card", 
+                        "openAddBankPage()"
+                    );
+                } else {
+                    const select = document.getElementById('wBankSelect');
+                    select.innerHTML = `<option value="${data.accNo}">${data.bankName || 'Bank'} - (${data.accNo.slice(-4)})</option>`;
+                }
+            } else {
+                await setDoc(doc(db, "users", currentUserId), { balance: 0 }, { merge: true });
+                document.getElementById('userBal').innerText = "0.00";
+                showPopup(
+                    "i",
+                    "Notice", 
+                    "You haven't linked your bank card yet, please link your bank card first", 
+                    true, 
+                    "Bind Bank Card", 
+                    "openAddBankPage()"
+                );
+            }
+        } catch(e) {
+            console.error("Firebase Error:", e);
+        }
+    }
+    checkUserBank();
+
+    window.refreshBalance = async () => {
+        const btn = document.getElementById('refreshBtn');
+        btn.classList.add('spinning');
+        await checkUserBank();
+        setTimeout(() => {
+            btn.classList.remove('spinning');
+        }, 600);
+    };
+
+    window.showPopup = (icon, title, desc, showBtns, btnText, btnAction) => {
+        document.getElementById('popupIcon').innerText = icon;
+        document.getElementById('popupTitle').innerText = title;
+        document.getElementById('popupDesc').innerText = desc;
+        
+        const btnContainer = document.getElementById('popupButtons');
+        if(showBtns) {
+            btnContainer.innerHTML = `
+                <button class="modal-btn-cancel" onclick="closePopup()">Cancel</button>
+                <button class="modal-btn-confirm" onclick="${btnAction}">${btnText}</button>
+            `;
+        } else {
+            btnContainer.innerHTML = `<button class="modal-btn-confirm" style="width:100%" onclick="${btnAction || 'closePopup()'}">Confirm</button>`;
+        }
+        document.getElementById('systemPopup').style.display = 'flex';
+    };
+
+    window.closePopup = () => {
+        document.getElementById('systemPopup').style.display = 'none';
+    };
+
+    window.openAddBankPage = async () => {
+        const snap = await getDoc(doc(db, "users", currentUserId));
+        if(snap.exists() && snap.data().accNo) {
+            showPopup("!", "Notice", "Bank account already bound to another profile!", false, "", "");
+            return;
+        }
+
+        document.getElementById('systemPopup').style.display = 'none';
+        document.getElementById('withdrawSection').classList.add('hidden');
+        document.getElementById('bankCardSection').classList.remove('hidden');
+    };
+
+    // --- FULL PAGE HISTORY OPENER ---
+    window.openHistoryPage = async () => {
+        document.getElementById('systemPopup').style.display = 'none';
+        document.getElementById('withdrawSection').classList.add('hidden');
+        document.getElementById('bankCardSection').classList.add('hidden');
+        document.getElementById('historySection').classList.remove('hidden');
+        
+        const container = document.getElementById('historyListContainer');
+        container.innerHTML = `<p style="text-align:center; color:#64748b; font-size:14px; margin-top:20px;">Loading history...</p>`;
+
+        try {
+            const q = query(collection(db, "withdrawals"), where("uid", "==", currentUserId));
+            const querySnapshot = await getDocs(q);
+
+            if(querySnapshot.empty) {
+                container.innerHTML = `<p style="text-align:center; color:#64748b; font-size:14px; margin-top:20px;">No withdrawal history found!</p>`;
+                return;
+            }
+
+            let html = "";
+            querySnapshot.forEach((docSnap) => {
+                const item = docSnap.data();
+                let statusClass = "status-pending";
+                let statusText = "Processing";
+
+                if(item.status === "approved" || item.status === "success") {
+                    statusClass = "status-approved";
+                    statusText = "Accepted";
+                } else if(item.status === "rejected") {
+                    statusClass = "status-rejected";
+                    statusText = "Rejected";
+                }
+
+                let dateStr = item.timestamp ? new Date(item.timestamp.toDate()).toLocaleString('en-IN') : "Recent";
+                let orderId = item.orderId || "W" + Math.floor(100000000000 + Math.random() * 900000000000);
+
+                html += `
+                    <div class="history-item">
+                        <div class="h-top">
+                            <span class="h-bank">${item.bankName || 'Bank'}</span>
+                            <span class="h-amount">₹${item.amount}</span>
+                        </div>
+                        <div class="h-middle">
+                            <span class="h-order">Order: ${orderId}</span>
+                            <button class="copy-btn" onclick="copyText('${orderId}')">Copy</button>
+                        </div>
+                        <div class="h-bottom">
+                            <span>${dateStr}</span>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        } catch(e) {
+            container.innerHTML = `<p style="text-align:center; color:#dc2626; font-size:14px; margin-top:20px;">Error loading history.</p>`;
+        }
+    };
+
+    window.copyText = (text) => {
+        navigator.clipboard.writeText(text).then(() => {
+            showPopup("✓", "Success", "Order ID Copied: " + text, false, "", "");
+        }).catch(err => {
+            showPopup("!", "Error", "Copy failed!", false, "", "");
+        });
+    };
+
+    window.goBackToWithdraw = () => {
+        document.getElementById('bankCardSection').classList.add('hidden');
+        document.getElementById('historySection').classList.add('hidden');
+        document.getElementById('withdrawSection').classList.remove('hidden');
+        checkUserBank();
+    };
+
+    window.saveBankCard = async () => {
+        const bankName = selectedBankValue;
+        const accName = document.getElementById('accName').value.trim();
+        const accNo = document.getElementById('accNo').value.trim();
+        const ifsc = document.getElementById('ifsc').value.trim();
+        const loginPass = document.getElementById('accLoginPass').value.trim();
+
+        if(!bankName || !accName || !accNo || !ifsc || !loginPass) {
+            showPopup("!", "Warning", "कृपया सभी फील्ड्स भरें!", false, "", "");
+            return;
+        }
+
+        try {
+            const userRef = doc(db, "users", currentUserId);
+            const userSnap = await getDoc(userRef);
+
+            if(userSnap.exists() && userSnap.data().accNo) {
+                showPopup("!", "Notice", "Bank account already bound to another profile!", false, "", "");
+                return;
+            }
+
+            if(userSnap.exists() && userSnap.data().password) {
+                if(userSnap.data().password !== loginPass) {
+                    showPopup("✕", "Error", "गलत लॉगिन पासवर्ड (Incorrect Password)!", false, "", "");
+                    return;
+                }
+            }
+
+            await setDoc(userRef, {
+                bankName, accName, accNo, ifsc, password: loginPass
+            }, { merge: true });
+
+            showPopup("✓", "Success", "Bank card added successfully!", false, "Confirm", "goBackToWithdraw()");
+        } catch(e) {
+            showPopup("✕", "Error", e.message, false, "", "");
+        }
+    };
+
+    window.submitWithdraw = async () => {
+        const amount = Number(document.getElementById('wAmt').value);
+        const loginPass = document.getElementById('wLoginPass').value.trim();
+        const bankAcc = document.getElementById('wBankSelect').value;
+
+        if(!amount || amount < 300) {
+            showPopup("!", "Warning", "न्यूनतम विड्रॉल अमाउंट ₹300 है!", false, "", "");
+            return;
+        }
+
+        if(amount > userCurrentBalance) {
+            showPopup("!", "Insufficient Balance", "Your account balance is insufficient for this withdrawal request.", false, "", "");
+            return;
+        }
+
+        if(!loginPass) {
+            showPopup("!", "Warning", "Please enter right password!", false, "", "");
+            return;
+        }
+        if(!bankAcc) {
+            showPopup("!", "Warning", "कृपया बैंक कार्ड सेलेक्ट करें!", false, "", "");
+            return;
+        }
+
+        try {
+            const userRef = doc(db, "users", currentUserId);
+            const userSnap = await getDoc(userRef);
+            const uData = userSnap.data();
+
+            if(uData.password && uData.password !== loginPass) {
+                showPopup("✕", "Error", "गलत लॉगिन पासवर्ड (Incorrect Password)!", false, "", "");
+                return;
+            }
+
+            const newOrderId = "W" + Math.floor(100000000000 + Math.random() * 900000000000);
+
+            await addDoc(collection(db, "withdrawals"), {
+                uid: currentUserId,
+                orderId: newOrderId,
+                amount: amount,
+                bankName: uData.bankName,
+                accNo: uData.accNo,
+                ifsc: uData.ifsc,
+                status: 'pending',
+                timestamp: serverTimestamp()
+            });
+
+            await setDoc(userRef, {
+                balance: Number(uData.balance || 0) - amount
+            }, { merge: true });
+
+            document.getElementById('wAmt').value = '';
+            document.getElementById('wLoginPass').value = '';
+
+            showPopup(
+                "✓", 
+                "Application Successful", 
+                "Your withdrawal request has been submitted successfully.", 
+                false, 
+                "Confirm", 
+                "openHistoryPage()"
+            );
+
+        } catch(e) {
+            showPopup("✕", "Error", e.message, false, "", "");
+        }
+    };
+</script>
+
+</body>
+</html>
