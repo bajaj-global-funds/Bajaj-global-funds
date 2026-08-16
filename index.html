@@ -1,705 +1,987 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bajaj Global Funds - Community & Home</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Bajaj Global Funds - Home</title>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+const firebaseConfig = {
+  apiKey: "AIzaSyAyFldowBw6ChbopLGCCQ8U7_RH4kmyFpM",
+  authDomain: "creditinvestapp.firebaseapp.com",
+  projectId: "creditinvestapp",
+  storageBucket: "creditinvestapp.firebasestorage.app",
+  messagingSenderId: "299058832737",
+  appId: "1:299058832737:web:fe1c1df553e209715c1120"
+};
 
-        // डिवाइस बाइंडिंग हटाई गई: अब यूजर हर बार फ्रेश या अनलिमिटेड अकाउंट बना सकता है
-        document.addEventListener("DOMContentLoaded", async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const incomingRefCode = urlParams.get('invite'); // जैसे BGF123456
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-            let uniqueId = localStorage.getItem('bgf_uid');
-            let userName = localStorage.getItem('bgf_uname');
+window.firebaseDB = db;
 
-            if (!uniqueId) {
-                uniqueId = Math.floor(100000 + Math.random() * 900000).toString();
-                userName = "User_" + uniqueId.slice(-4);
-                localStorage.setItem('bgf_uid', uniqueId);
-                localStorage.setItem('bgf_uname', userName);
-            }
+/* ---------------- USER & REAL BALANCE ---------------- */
 
-            if (incomingRefCode && incomingRefCode.startsWith('BGF')) {
-                let referrerId = incomingRefCode.replace('BGF', '');
-                if (referrerId !== uniqueId) {
-                    try {
-                        const refDocRef = doc(db, "referrals", referrerId);
-                        const refSnap = await getDoc(refDocRef);
-                        
-                        if (refSnap.exists()) {
-                            await updateDoc(refDocRef, {
-                                count: increment(1),
-                                earnings: increment(25) // पर रजिस्ट्रेशन ₹25 तुरंत ऐड
-                            });
-                        } else {
-                            await setDoc(refDocRef, {
-                                count: 1,
-                                earnings: 25
-                            });
-                        }
-                        localStorage.setItem('referred_by', referrerId);
-                    } catch (err) {
-                        console.error("Referral count error:", err);
-                    }
-                }
-            }
+document.addEventListener("DOMContentLoaded", async () => {
 
-            // UI अपडेट करना और आपके GitHub Pages डोमेन के साथ रजिस्टर पेज का लिंक बनाना
-            document.getElementById('userNameDisplay').innerText = "Hello, " + (userName || "User");
-            document.getElementById('userIdDisplay').innerText = "ID: " + uniqueId;
-            
-            let customDomain = "https://bajaj-global-funds.github.io/Bajaj-global-funds";
-            let fullInviteUrl = `${customDomain}/register.html?invite=BGF${uniqueId}`;
-            
-            document.getElementById('inviteLinkText').innerText = fullInviteUrl;
-            document.getElementById('popupInviteLink').value = fullInviteUrl;
-            
-            document.getElementById('blogHeaderUserId').innerText = uniqueId;
-            document.getElementById('headerUserAvatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${uniqueId}`;
-        });
+  let uid =
+    localStorage.getItem("bgf_uid") ||
+    localStorage.getItem("userUID") ||
+    localStorage.getItem("uid") ||
+    localStorage.getItem("userId");
 
-        // पॉप-अप फंक्शंस
-        window.openPublishPopup = () => { document.getElementById('publishPopup').style.display = 'flex'; };
-        window.closePublishPopup = () => { document.getElementById('publishPopup').style.display = 'none'; };
+  let uname = localStorage.getItem("bgf_uname");
 
-        window.openInvitePopup = async () => {
-            document.getElementById('invitePopup').style.display = 'flex';
-            let uniqueId = localStorage.getItem('bgf_uid');
-            
-            try {
-                const docRef = doc(db, "referrals", uniqueId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    let data = docSnap.data();
-                    document.getElementById('popupTotalRefs').innerText = data.count || 0;
-                    document.getElementById('popupTotalEarnings').innerText = "₹ " + (data.earnings || 0);
-                } else {
-                    document.getElementById('popupTotalRefs').innerText = "0";
-                    document.getElementById('popupTotalEarnings').innerText = "₹ 0.00";
-                }
-            } catch (e) {
-                console.log("Firebase fetch error");
-            }
-        };
-        window.closeInvitePopup = () => { document.getElementById('invitePopup').style.display = 'none'; };
+  if (!uid) {
+    uid = "USER_" + Math.floor(100000 + Math.random() * 900000);
+    uname = "User_" + uid.slice(-4);
 
-        // लिंक कॉपी करने पर नीचे Toast Popup दिखाने वाला फंक्शन
-        window.copyInviteLinkPopup = () => {
-            const copyText = document.getElementById('popupInviteLink');
-            copyText.select();
-            copyText.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(copyText.value);
+    localStorage.setItem("bgf_uid", uid);
+    localStorage.setItem("bgf_uname", uname);
+  }
 
-            // नीचे Toast Notification दिखाने का कोड
-            const toast = document.getElementById('toastPopup');
-            toast.className = "toast-notification show";
-            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
-        };
+  if (!uname) {
+    uname = "User_" + uid.slice(-4);
+    localStorage.setItem("bgf_uname", uname);
+  }
 
-        window.previewImg = (event, previewId) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const box = document.getElementById(previewId);
-                    box.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">`;
-                }
-                reader.readAsDataURL(file);
-            }
-        };
+  document.getElementById("userNameDisplay").textContent =
+    "Hello, " + uname;
 
-        window.submitPost = async () => {
-            const content = document.getElementById('postTextContent').value.trim();
-            const img1Element = document.getElementById('imgInput1').files[0];
-            const img2Element = document.getElementById('imgInput2').files[0];
+  document.getElementById("userIdDisplay").textContent =
+    "ID: " + uid;
 
-            if (!content) {
-                alert("कृपया कुछ लिखें या अपनी समस्या दर्ज करें!");
-                return;
-            }
+  document.getElementById("blogHeaderUserId").textContent = uid;
 
-            const toBase64 = file => new Promise((resolve) => {
-                if (!file) resolve("");
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-            });
+  const inviteUrl =
+    "https://bajaj-global-funds.github.io/Bajaj-global-funds/register.html?invite=BGF" + uid;
 
-            const img1Base64 = await toBase64(img1Element);
-            const img2Base64 = await toBase64(img2Element);
+  document.getElementById("inviteLinkText").textContent = inviteUrl;
+  document.getElementById("popupInviteLink").value = inviteUrl;
 
-            let uid = localStorage.getItem('bgf_uid') || "976233";
-            let maskedUser = uid.slice(0, 2) + "****" + uid.slice(-2);
-            let randomAmounts = [300, 500, 1000, 1500, 2000, 3000];
-            let rAmt = randomAmounts[Math.floor(Math.random() * randomAmounts.length)];
-            let aiAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${Math.floor(Math.random() * 1000)}`;
+  await syncUserRealData(uid);
+  loadReferralData(uid);
+  loadPosts();
+  startAutoFakePosts();
+});
 
-            try {
-                await addDoc(collection(db, "posts"), {
-                    username: maskedUser,
-                    content: content,
-                    amount: rAmt.toFixed(2),
-                    img1: img1Base64,
-                    img2: img2Base64,
-                    avatar: aiAvatar,
-                    timestamp: serverTimestamp()
-                });
+async function syncUserRealData(uid) {
+  try {
+    const userRef = doc(db, "users", uid);
+    const snap = await getDoc(userRef);
 
-                closePublishPopup();
-                document.getElementById('postTextContent').value = "";
-                alert("Successfully Published!");
-            } catch (error) {
-                console.error("Error adding document: ", error);
-                alert("Publish nahi ho paya, dobara try karein!");
-            }
-        };
+    if (!snap.exists()) {
+      const initialData = {
+        uid: uid,
+        balance: 0.00,
+        amount: 0.00,
+        wallet: 0.00,
+        createdAt: serverTimestamp()
+      };
+      await setDoc(userRef, initialData, { merge: true });
+      updateUIBalance(0.00);
+    } else {
+      const data = snap.data();
+      const realBal = Number(
+        data.balance ??
+        data.amount ??
+        data.wallet ??
+        0
+      );
+      updateUIBalance(realBal);
+    }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const feed = document.getElementById('forumFeed');
-            const amounts = [300, 500, 800, 1000, 1500, 2000, 2500, 3000];
-            const sampleTexts = [
-                "Successfully withdrawn to my bank account. Fast and secure!",
-                "Got my payment within 5 minutes. Thanks BGF!",
-                "Awesome platform, my withdrawal is done successfully.",
-                "Received money instantly! Best earning app."
-            ];
+    onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const liveData = docSnap.data();
+        const updatedBal = Number(
+          liveData.balance ??
+          liveData.amount ??
+          liveData.wallet ??
+          0
+        );
+        updateUIBalance(updatedBal);
+      }
+    });
 
-            const genId = () => Math.floor(10000000 + Math.random() * 90000000);
+  } catch (error) {
+    console.error("Real balance sync error:", error);
+    updateUIBalance(0.00);
+  }
+}
 
-            let initialHtml = "";
-            for(let i = 0; i < 4; i++) {
-                let rAmt = amounts[Math.floor(Math.random() * amounts.length)];
-                let rText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
-                let rUser = genId().toString().slice(0, 2) + "****" + genId().toString().slice(6, 8);
-                let autoAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.floor(Math.random() * 1000)}`;
+function updateUIBalance(balanceVal) {
+  const formatted = balanceVal.toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 
-                initialHtml += `
-                    <div class="post-card">
-                        <div class="post-user-row">
-                            <div class="user-info-left">
-                                <img src="${autoAvatar}" class="ai-avatar-img">
-                                <span class="username-text">${rUser}</span>
-                            </div>
-                            <div class="amount-pill">₹ ${rAmt}.00 Success</div>
-                        </div>
-                        <p class="post-desc">${rText}</p>
-                        <div class="post-date-text">Time: A few minutes ago</div>
-                    </div>
-                `;
-            }
-            if(feed) feed.innerHTML = initialHtml;
+  const balEl = document.getElementById("realBalanceDisplay");
+  if (balEl) {
+    balEl.textContent = "₹ " + formatted;
+  }
+}
 
-            const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
-            onSnapshot(q, (snapshot) => {
-                let realHtml = "";
-                snapshot.forEach((doc) => {
-                    const post = doc.data();
-                    let dateStr = "Just now";
-                    if(post.timestamp) {
-                        dateStr = new Date(post.timestamp.toDate()).toLocaleTimeString();
-                    }
-                    let postAvatar = post.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.username}`;
+/* ---------------- REFERRAL ---------------- */
 
-                    let imagesHtml = "";
-                    if (post.img1 || post.img2) {
-                        imagesHtml = `
-                            <div class="post-images-grid">
-                                ${post.img1 ? `<img src="${post.img1}" class="uploaded-img-view">` : ''}
-                                ${post.img2 ? `<img src="${post.img2}" class="uploaded-img-view">` : ''}
-                            </div>
-                        `;
-                    }
+async function loadReferralData(uid) {
+  try {
+    const ref = doc(firebaseDB, "referrals", uid);
+    const snap = await getDoc(ref);
 
-                    realHtml += `
-                        <div class="post-card real-post-card">
-                            <div class="post-user-row">
-                                <div class="user-info-left">
-                                    <img src="${postAvatar}" class="ai-avatar-img">
-                                    <span class="username-text">${post.username || "User"}</span>
-                                </div>
-                                <div class="amount-pill">₹ ${post.amount} Success</div>
-                            </div>
-                            <p class="post-desc">${post.content}</p>
-                            ${imagesHtml}
-                            <div class="post-date-text">Time: ${dateStr}</div>
-                        </div>
-                    `;
-                });
-                
-                if(realHtml && feed) {
-                    feed.innerHTML = realHtml + feed.innerHTML;
-                }
-            });
-        });
+    if (snap.exists()) {
+      const data = snap.data();
 
-        window.switchTab = (tabName) => {
-            const homeSec = document.getElementById('homeSection');
-            const blogSec = document.getElementById('blogSection');
-            const navItems = document.querySelectorAll('.nav-item');
+      document.getElementById("popupTotalRefs").textContent =
+        data.count || 0;
 
-            navItems.forEach(item => item.classList.remove('active'));
+      document.getElementById("popupTotalEarnings").textContent =
+        "₹ " + Number(data.earnings || 0).toFixed(2);
+    }
+  } catch (error) {
+    console.error("Referral error:", error);
+  }
+}
 
-            if(tabName === 'home') {
-                homeSec.style.display = 'block';
-                blogSec.style.display = 'none';
-                document.getElementById('navHome').classList.add('active');
-            } else if(tabName === 'blog') {
-                homeSec.style.display = 'none';
-                blogSec.style.display = 'block';
-                document.getElementById('navBlog').classList.add('active');
-            }
-        };
-    </script>
+/* ---------------- POPUPS ---------------- */
 
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f4f6f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .app-container {
-            width: 100%;
-            max-width: 480px;
-            min-height: 100vh;
-            background: #f4f6f9;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            position: relative;
-            padding-bottom: 75px;
-        }
-        .header {
-            background: #00b050;
-            padding: 15px 20px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        .user-info h3 { font-size: 16px; font-weight: 700; }
-        .user-info p { font-size: 12px; opacity: 0.9; }
-        .support-icon { background: rgba(255,255,255,0.2); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; }
+window.openInvitePopup = async function () {
+  document.getElementById("invitePopup").style.display = "flex";
 
-        .content-body { flex: 1; overflow-y: auto; padding: 12px; }
+  const uid =
+    localStorage.getItem("bgf_uid") ||
+    localStorage.getItem("userUID") ||
+    localStorage.getItem("uid") ||
+    localStorage.getItem("userId");
 
-        .invite-banner {
-            background: linear-gradient(135deg, #00b050, #008f40);
-            padding: 15px;
-            border-radius: 12px;
-            color: white;
-            text-align: center;
-            margin-bottom: 12px;
-            cursor: pointer;
-        }
-        .invite-banner h4 { font-size: 15px; margin-bottom: 8px; }
-        .invite-btn {
-            background: #ffcc00;
-            color: #333;
-            border: none;
-            padding: 7px 20px;
-            font-weight: bold;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-        }
+  if (uid) {
+    await loadReferralData(uid);
+  }
+};
 
-        .quick-actions {
-            display: flex;
-            justify-content: space-between;
-            background: white;
-            padding: 16px 8px;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-            margin-bottom: 14px;
-        }
-        .action-item { text-align: center; cursor: pointer; flex: 1; text-decoration: none; background: none; border: none; }
-        .action-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-            border-radius: 14px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto 6px;
-            box-shadow: inset 0 2px 4px rgba(255,255,255,0.6);
-            transition: transform 0.2s;
-        }
-        .action-icon:active { transform: scale(0.95); }
-        .action-icon svg { width: 26px; height: 26px; fill: #00b050; }
-        .action-item span { font-size: 11px; color: #333; font-weight: 700; display: block; }
+window.closeInvitePopup = function () {
+  document.getElementById("invitePopup").style.display = "none";
+};
 
-        .section-card {
-            background: white;
-            padding: 12px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-bottom: 12px;
-        }
-        .section-card h4 { font-size: 14px; color: #333; margin-bottom: 8px; }
-        .link-box {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f8f9fa;
-            padding: 8px 10px;
-            border-radius: 8px;
-            border: 1px solid #eee;
-        }
-        .link-box span { font-size: 11px; color: #666; width: 65%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .copy-btn {
-            background: #ff7600;
-            color: white;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+window.openPublishPopup = function () {
+  document.getElementById("publishPopup").style.display = "flex";
+};
 
-        .notice-board-box {
-            background: linear-gradient(135deg, #111, #333);
-            color: white;
-            padding: 14px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            margin-bottom: 12px;
-            border: 1px solid #ffcc00;
-        }
-        .notice-board-box h4 { font-size: 14px; color: #ffcc00; margin-bottom: 6px; }
-        .notice-board-box p { font-size: 11px; line-height: 1.5; opacity: 0.95; }
+window.closePublishPopup = function () {
+  document.getElementById("publishPopup").style.display = "none";
+};
 
-        .bajaj-notice-box {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-            padding: 14px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(30,60,114,0.3);
-            margin-bottom: 12px;
-        }
-        .bajaj-notice-box h4 { font-size: 14px; color: #ffcc00; margin-bottom: 6px; }
-        .bajaj-notice-box p { font-size: 11px; line-height: 1.5; opacity: 0.95; }
+window.openTermsPopup = function () {
+  document.getElementById("termsPopup").style.display = "flex";
+};
 
-        .hero-header-blog { background: #00b050; padding: 12px 15px; color: white; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; margin-bottom: 10px; }
-        .user-profile-box { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 12px; margin-top: 8px; }
-        .user-profile-left { display: flex; align-items: center; gap: 10px; }
-        .ai-avatar-big { background: white; width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid white; }
-        .ai-avatar-img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: #e0e0e0; border: 1px solid #ccc; }
-        .user-details h4 { font-size: 14px; font-weight: bold; }
-        .user-details p { font-size: 10px; opacity: 0.85; }
-        .publish-btn-main { background: white; color: #00b050; border: none; padding: 6px 14px; border-radius: 18px; font-weight: bold; font-size: 12px; cursor: pointer; }
+window.closeTermsPopup = function () {
+  document.getElementById("termsPopup").style.display = "none";
+};
 
-        .post-card { background: white; border-radius: 12px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .real-post-card { border: 1.5px solid #00b050; } 
-        .post-user-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .user-info-left { display: flex; align-items: center; gap: 8px; }
-        .username-text { font-weight: bold; font-size: 12px; color: #333; }
-        .amount-pill { background: #e8f5e9; color: #00b050; padding: 3px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; }
-        .post-desc { font-size: 11px; color: #444; margin-bottom: 6px; line-height: 1.4; }
-        .post-images-grid { display: flex; gap: 8px; margin-bottom: 6px; overflow-x: auto; }
-        .uploaded-img-view { flex: 1; height: 110px; object-fit: cover; border-radius: 8px; border: 1px solid #eee; }
-        .post-date-text { font-size: 9px; color: #888; }
+/* ---------------- COPY ---------------- */
 
-        .bottom-nav {
-            background: #ffffff;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            height: 65px;
-            border-top: 1px solid #eee;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            max-width: 480px;
-            z-index: 100;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
-        }
-        .nav-item {
-            text-align: center;
-            cursor: pointer;
-            color: #999;
-            font-size: 11px;
-            font-weight: 600;
-            flex: 1;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            position: relative;
-        }
-        .nav-item.active { color: #00b050; }
-        .nav-item svg { width: 24px; height: 24px; fill: currentColor; margin-bottom: 3px; display: block; }
-        
-        .notice-center-wrapper {
-            flex: 1;
-            position: relative;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-        }
-        .notice-center-btn {
-            position: absolute;
-            top: -22px;
-            background: linear-gradient(135deg, #ff9900, #ff5500);
-            width: 58px;
-            height: 58px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 6px 15px rgba(255, 119, 0, 0.4);
-            cursor: pointer;
-            border: 4px solid #f4f6f9;
-            text-decoration: none;
-            font-size: 28px;
-            transition: transform 0.2s;
-        }
-        .notice-center-btn:active { transform: scale(0.95); }
-        .notice-label {
-            position: absolute;
-            bottom: 6px;
-            font-size: 11px;
-            color: #999;
-            font-weight: 600;
+window.copyInviteLinkPopup = async function () {
+
+  const input = document.getElementById("popupInviteLink");
+
+  try {
+    await navigator.clipboard.writeText(input.value);
+  } catch {
+    input.select();
+    document.execCommand("copy");
+  }
+
+  showToast("Link copied successfully!");
+};
+
+window.showToast = function(message) {
+
+  const toast = document.getElementById("toastPopup");
+
+  toast.textContent = message;
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2500);
+};
+
+/* ---------------- IMAGE PREVIEW ---------------- */
+
+window.previewImg = function(event, id) {
+
+  const file = event.target.files[0];
+
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+
+    document.getElementById(id).innerHTML =
+      `<img src="${e.target.result}" class="preview-image">`;
+  };
+
+  reader.readAsDataURL(file);
+};
+
+/* ---------------- POSTS ---------------- */
+
+window.submitPost = async function () {
+
+  const text =
+    document.getElementById("postTextContent").value.trim();
+
+  if (!text) {
+    showToast("Please enter your message.");
+    return;
+  }
+
+  const uid =
+    localStorage.getItem("bgf_uid") ||
+    localStorage.getItem("userUID") ||
+    localStorage.getItem("uid") ||
+    localStorage.getItem("userId") ||
+    "User";
+
+  const username =
+    uid.slice(0,2) + "****" + uid.slice(-2);
+
+  const file1 =
+    document.getElementById("imgInput1").files[0];
+
+  const file2 =
+    document.getElementById("imgInput2").files[0];
+
+  async function fileToBase64(file) {
+
+    if (!file) return "";
+
+    return new Promise(resolve => {
+
+      const reader = new FileReader();
+
+      reader.onload = () => resolve(reader.result);
+
+      reader.readAsDataURL(file);
+    });
+  }
+
+  try {
+
+    const img1 = await fileToBase64(file1);
+    const img2 = await fileToBase64(file2);
+
+    await addDoc(collection(firebaseDB, "posts"), {
+
+      username,
+      content: text,
+      img1,
+      img2,
+      timestamp: serverTimestamp()
+
+    });
+
+    document.getElementById("postTextContent").value = "";
+
+    document.getElementById("previewBox1").innerHTML =
+      `<svg viewBox="0 0 24 24">
+        <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5L19 18H5z"/>
+      </svg>`;
+
+    document.getElementById("previewBox2").innerHTML =
+      `<svg viewBox="0 0 24 24">
+        <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5L19 18H5z"/>
+      </svg>`;
+
+    closePublishPopup();
+
+    showToast("Successfully published!");
+
+  } catch(error) {
+
+    console.error(error);
+
+    showToast("Unable to publish. Please try again.");
+
+  }
+};
+
+/* ---------------- AUTO FAKE WITHDRAWAL GENERATOR ---------------- */
+
+const fakeWithdrawalTexts = [
+  "Successfully withdrew earnings to bank account!",
+  "Instant withdrawal received within seconds.",
+  "Great platform, got my payout successfully.",
+  "Payout credited directly to my account.",
+  "Smooth and fast withdrawal process!"
+];
+
+function startAutoFakePosts() {
+  const feed = document.getElementById("forumFeed");
+
+  setInterval(() => {
+    const randomPrefix = Math.floor(10 + Math.random() * 89);
+    const randomSuffix = Math.floor(10 + Math.random() * 89);
+    const user = `${randomPrefix}****${randomSuffix}`;
+    
+    const amounts = ["₹500", "₹1,000", "₹1,500", "₹2,000", "₹5,000", "₹10,000"];
+    const amount = amounts[Math.floor(Math.random() * amounts.length)];
+    
+    const text = fakeWithdrawalTexts[Math.floor(Math.random() * fakeWithdrawalTexts.length)];
+    const time = "Just now";
+    const avatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + Math.random();
+
+    const card = document.createElement("div");
+    card.className = "post-card";
+    card.innerHTML = `
+      <div class="post-user-row">
+        <div class="user-info-left">
+          <div class="small-avatar">
+            <img src="${avatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+          </div>
+          <span class="username-text">${user}</span>
+        </div>
+        <span class="status-pill" style="background:#e8f5e9; color:#00b050;">${amount}</span>
+      </div>
+      <p class="post-desc">
+        ${text}
+      </p>
+      <div class="post-date-text">
+        ${time}
+      </div>
+    `;
+
+    if (feed.firstChild) {
+      feed.insertBefore(card, feed.firstChild);
+    } else {
+      feed.appendChild(card);
+    }
+
+    if (feed.children.length > 25) {
+      feed.removeChild(feed.lastChild);
+    }
+  }, 1000); // Har 1 second mein naya fake withdrawal post aayega
+}
+
+/* ---------------- FIREBASE POSTS ---------------- */
+
+function loadPosts() {
+
+  const feed =
+    document.getElementById("forumFeed");
+
+  const q = query(
+    collection(firebaseDB, "posts"),
+    orderBy("timestamp", "desc")
+  );
+
+  onSnapshot(q, snapshot => {
+
+    snapshot.forEach(item => {
+
+      const post = item.data();
+
+      let time = "Just now";
+
+      if (post.timestamp) {
+        time =
+          post.timestamp.toDate().toLocaleString();
+      }
+
+      let images = "";
+
+      if (post.img1 || post.img2) {
+
+        images = `<div class="post-images">`;
+
+        if (post.img1) {
+          images +=
+            `<img src="${post.img1}" class="uploaded-img">`;
         }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: flex-end; }
-        .modal-content { background: white; width: 100%; max-width: 480px; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); max-height: 85vh; overflow-y: auto; }
-        
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .modal-header h3 { font-size: 16px; color: #333; }
-        .close-modal-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: #888; }
-        
-        .modal-textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 10px; font-size: 12px; outline: none; resize: none; margin-bottom: 12px; background: #fafafa; }
-        .upload-row-label { font-size: 11px; font-weight: bold; color: #555; margin-bottom: 6px; }
-        .upload-boxes-container { display: flex; gap: 10px; margin-bottom: 15px; }
-        .picker-box { flex: 1; height: 80px; border: 2px dashed #ccc; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: #fafafa; font-size: 20px; color: #888; overflow: hidden; }
-        .submit-post-btn { width: 100%; background: #00b050; color: white; border: none; padding: 12px; border-radius: 25px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        if (post.img2) {
+          images +=
+            `<img src="${post.img2}" class="uploaded-img">`;
+        }
 
-        .invite-rule-box {
-            background: #e8f5e9;
-            border: 1px dashed #00b050;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 11px;
-            color: #2e7d32;
-            margin-bottom: 12px;
-            line-height: 1.4;
-        }
-        .popup-stats-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        .popup-stat-card { flex: 1; background: #f8f9fa; border: 1px solid #eee; padding: 10px; border-radius: 8px; text-align: center; }
-        .popup-stat-card h4 { font-size: 16px; color: #00b050; margin-bottom: 2px; }
-        .popup-stat-card p { font-size: 10px; color: #666; font-weight: 600; }
+        images += `</div>`;
+      }
 
-        .toast-notification {
-            visibility: hidden;
-            min-width: 200px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 4px;
-            padding: 10px;
-            position: fixed;
-            z-index: 2000;
-            left: 50%;
-            bottom: 30px;
-            transform: translateX(-50%);
-            font-size: 12px;
-            box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
-        }
-        .toast-notification.show {
-            visibility: visible;
-            animation: fadein 0.5s, fadeout 0.5s 2.5s;
-        }
-        @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
-        @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
-    </style>
+      const realCard = document.createElement("div");
+      realCard.className = "post-card";
+      realCard.innerHTML = `
+
+        <div class="post-user-row">
+
+          <div class="user-info-left">
+
+            <div class="small-avatar">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+            </div>
+
+            <span class="username-text">
+              ${post.username || "User"}
+            </span>
+
+          </div>
+
+          <span class="status-pill">
+            Published
+          </span>
+
+        </div>
+
+        <p class="post-desc">
+          ${escapeHtml(post.content || "")}
+        </p>
+
+        ${images}
+
+        <div class="post-date-text">
+          ${time}
+        </div>
+
+      `;
+
+      if (feed.firstChild) {
+        feed.insertBefore(realCard, feed.firstChild);
+      } else {
+        feed.appendChild(realCard);
+      }
+    });
+
+  });
+}
+
+function escapeHtml(text) {
+
+  const div = document.createElement("div");
+
+  div.textContent = text;
+
+  return div.innerHTML;
+}
+
+/* ---------------- NAVIGATION ---------------- */
+
+window.switchTab = function(tab) {
+
+  const home =
+    document.getElementById("homeSection");
+
+  const blog =
+    document.getElementById("blogSection");
+
+  document.querySelectorAll(".nav-item")
+    .forEach(el => el.classList.remove("active"));
+
+  if (tab === "home") {
+
+    home.style.display = "block";
+    blog.style.display = "none";
+
+    document.getElementById("navHome")
+      .classList.add("active");
+
+  }
+
+  if (tab === "blog") {
+
+    home.style.display = "none";
+    blog.style.display = "block";
+
+    document.getElementById("navBlog")
+      .classList.add("active");
+
+  }
+};
+</script>
+
+<style>
+/* Saari original CSS styles as it is hain */
+* {
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html, body {
+  width:100%;
+  min-height:100%;
+}
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background:#f4f6f9;
+  display:flex;
+  justify-content:center;
+  overflow-x:hidden;
+}
+
+button, a {
+  font-family:inherit;
+}
+
+button {
+  cursor:pointer;
+}
+
+svg {
+  width:24px;
+  height:24px;
+  fill:currentColor;
+}
+
+.app-container {
+  width:100%;
+  max-width:480px;
+  min-height:100vh;
+  background:#f4f6f9;
+  position:relative;
+  padding-bottom:78px;
+  box-shadow: 0 0 20px rgba(0,0,0,.12);
+}
+
+.header {
+  height:68px;
+  background:#00b050;
+  color:white;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 18px;
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+
+.user-info h3 { font-size:16px; font-weight:700; }
+.user-info p { font-size:11px; opacity:.9; margin-top:2px; }
+
+.support-icon {
+  width:38px; height:38px; border-radius:50%;
+  background: rgba(255,255,255,.18);
+  display:flex; justify-content:center; align-items:center; color:white; text-decoration:none;
+}
+.support-icon svg { width:21px; height:21px; }
+
+.content-body { padding:12px; min-height:calc(100vh - 68px); overflow-y:auto; }
+
+.balance-card {
+  background:linear-gradient(135deg, #00b050, #047835);
+  color: white; padding: 16px; border-radius: 12px; margin-bottom: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 176, 80, 0.2);
+}
+.balance-card-left span { font-size: 11px; text-transform: uppercase; opacity: 0.9; font-weight: 600; }
+.balance-card-left h2 { font-size: 24px; font-weight: 800; margin-top: 4px; }
+.balance-card-right a {
+  background: white; color: #00b050; padding: 8px 14px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; text-decoration: none; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.notice-board-box {
+  background: linear-gradient(135deg, #111, #333);
+  color:white; padding:14px; border-radius:12px; margin-bottom:12px;
+  border:1px solid #ffcc00; box-shadow: 0 4px 12px rgba(0,0,0,.25);
+}
+.notice-title { display:flex; align-items:center; gap:8px; color:#ffcc00; font-size:14px; font-weight:700; margin-bottom:7px; }
+.notice-title svg { width:20px; height:20px; }
+.notice-board-box p { font-size:11px; line-height:1.5; opacity:.95; }
+
+.invite-banner {
+  background: linear-gradient(135deg, #00b050, #008f40);
+  padding:15px; border-radius:12px; color:white; text-align:center; margin-bottom:12px;
+}
+.invite-banner h4 { font-size:15px; margin-bottom:9px; }
+.invite-btn { background:#ffcc00; color:#333; border:0; padding:8px 20px; border-radius:20px; font-weight:700; font-size:12px; }
+
+.quick-actions {
+  display:grid; grid-template-columns: repeat(4,1fr); background:white;
+  padding:15px 6px; border-radius:16px; margin-bottom:14px; box-shadow: 0 4px 12px rgba(0,0,0,.06);
+}
+.action-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; text-decoration:none; color:#333; border:0; background:transparent; min-width:0; }
+.action-icon {
+  width:48px; height:48px; border-radius:14px;
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  display:flex; justify-content:center; align-items:center; color:#00b050;
+}
+.action-icon svg { width:25px; height:25px; }
+.action-item span { font-size:10px; font-weight:700; color:#333; }
+
+.section-card { background:white; padding:12px; border-radius:12px; margin-bottom:12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+.section-card h4 { font-size:14px; color:#333; margin-bottom:8px; }
+
+.link-box {
+  display:flex; align-items:center; justify-content:space-between;
+  background:#f8f9fa; padding:8px 10px; border-radius:8px; border:1px solid #eee; gap:7px;
+}
+.link-box span { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; color:#666; }
+.copy-btn { background:#ff7600; color:white; border:0; padding:7px 10px; border-radius:6px; font-size:10px; font-weight:700; white-space:nowrap; }
+
+.bajaj-notice-box {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color:white; padding:14px; border-radius:12px; margin-bottom:12px;
+}
+.bajaj-title { display:flex; align-items:center; gap:7px; color:#ffcc00; font-size:14px; font-weight:700; margin-bottom:7px; }
+.bajaj-title svg { width:21px; height:21px; }
+.bajaj-notice-box p { font-size:11px; line-height:1.5; }
+
+.hero-header-blog { background:#00b050; padding:12px; color:white; border-radius: 0 0 15px 15px; }
+.user-profile-box { display:flex; justify-content:space-between; align-items:center; padding:9px; background: rgba(255,255,255,.12); border-radius:12px; }
+.user-profile-left { display:flex; align-items:center; gap:9px; }
+.ai-avatar-big { width:40px; height:40px; border-radius:50%; background:white; padding:6px; color:#00b050; }
+.user-details h4 { font-size:14px; }
+.user-details p { font-size:10px; opacity:.8; }
+
+.publish-btn-main {
+  background:white; color:#00b050; border:0; padding:7px 12px;
+  border-radius:18px; font-size:11px; font-weight:700; display:flex; align-items:center; gap:5px;
+}
+.publish-btn-main svg { width:15px; height:15px; }
+
+.post-card {
+  background:white; border-radius:12px; padding:12px; margin-bottom:10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05); border:1px solid #e8e8e8;
+}
+.post-user-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; }
+.user-info-left { display:flex; align-items:center; gap:8px; }
+.small-avatar {
+  width:30px; height:30px; border-radius:50%; background:#e8f5e9;
+  color:#00b050; display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+.small-avatar svg { width:18px; height:18px; }
+.username-text { font-size:12px; font-weight:700; color:#333; }
+.status-pill { background:#e8f5e9; color:#00b050; padding:4px 8px; border-radius:10px; font-size:9px; font-weight:700; }
+
+.post-desc { font-size:11px; line-height:1.5; color:#444; margin-bottom:7px; }
+.post-images { display:flex; gap:8px; overflow-x:auto; margin-bottom:7px; }
+.uploaded-img { width:50%; min-width:48%; height:110px; object-fit:cover; border-radius:8px; border:1px solid #eee; }
+.post-date-text { font-size:9px; color:#888; }
+.empty-state { text-align:center; color:#888; padding:50px 20px; font-size:12px; }
+
+.bottom-nav {
+  position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:480px; height:68px; background:white;
+  border-top:1px solid #eee; display:flex; align-items:center; justify-content:space-around;
+  z-index:100; box-shadow: 0 -4px 15px rgba(0,0,0,.07);
+}
+.nav-item { flex:1; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:3px; color:#999; text-decoration:none; font-size:10px; font-weight:600; }
+.nav-item svg { width:23px; height:23px; }
+.nav-item.active { color:#00b050; }
+
+.notice-center-wrapper { flex:1; height:100%; position:relative; display:flex; justify-content:center; }
+.notice-center-btn {
+  position:absolute; top:-20px; width:58px; height:58px; border-radius:50%;
+  background: linear-gradient(135deg, #ff9900, #ff5500); border:4px solid #f4f6f9;
+  color:white; display:flex; align-items:center; justify-content:center;
+  box-shadow: 0 6px 15px rgba(255,119,0,.4); text-decoration:none;
+}
+.notice-center-btn svg { width:28px; height:28px; }
+.notice-label { position:absolute; bottom:6px; font-size:10px; color:#999; font-weight:600; }
+
+.modal-overlay {
+  display:none; position:fixed; inset:0; background: rgba(0,0,0,.5);
+  z-index:1000; justify-content:center; align-items:flex-end;
+}
+.modal-content {
+  width:100%; max-width:480px; max-height:88vh; overflow-y:auto;
+  background:white; padding:20px; border-radius: 20px 20px 0 0; animation: slideUp .2s ease;
+}
+@keyframes slideUp {
+  from { transform:translateY(100%); }
+  to { transform:translateY(0); }
+}
+.modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
+.modal-header h3 { font-size:16px; color:#333; }
+.close-modal-btn { width:32px; height:32px; border:0; border-radius:50%; background:#f4f4f4; color:#666; display:flex; align-items:center; justify-content:center; }
+.close-modal-btn svg { width:18px; height:18px; }
+
+.modal-textarea { width:100%; height:100px; resize:none; border:1px solid #ddd; border-radius:10px; padding:10px; outline:none; font-size:12px; margin-bottom:12px; }
+.upload-row-label { font-size:11px; font-weight:700; color:#555; margin-bottom:7px; }
+.upload-boxes-container { display:flex; gap:10px; margin-bottom:15px; }
+.picker-box { flex:1; height:80px; border:2px dashed #ccc; border-radius:10px; display:flex; justify-content:center; align-items:center; color:#888; background:#fafafa; overflow:hidden; }
+.picker-box svg { width:28px; height:28px; }
+.preview-image { width:100%; height:100%; object-fit:cover; }
+
+.submit-post-btn {
+  width:100%; background:#00b050; color:white; border:0; padding:12px;
+  border-radius:25px; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:7px;
+}
+
+.invite-rule-box { background:#e8f5e9; border:1px dashed #00b050; padding:11px; border-radius:8px; font-size:11px; color:#2e7d32; line-height:1.5; margin-bottom:13px; }
+.popup-stats-row { display:flex; gap:10px; margin-bottom:15px; }
+.popup-stat-card { flex:1; background:#f8f9fa; border:1px solid #eee; padding:11px; border-radius:8px; text-align:center; }
+.popup-stat-card h4 { font-size:17px; color:#00b050; margin-bottom:3px; }
+.popup-stat-card p { font-size:9px; color:#666; font-weight:600; }
+
+.toast-notification {
+  position:fixed; left:50%; bottom:90px; transform: translate(-50%,20px);
+  background:#222; color:white; padding:10px 18px; border-radius:8px;
+  font-size:11px; opacity:0; visibility:hidden; transition:.25s; z-index:2000; white-space:nowrap;
+}
+.toast-notification.show { opacity:1; visibility:visible; transform: translate(-50%,0); }
+</style>
 </head>
+
 <body>
 
-    <div class="app-container">
-        <div class="header">
-            <div class="user-info">
-                <h3 id="userNameDisplay">Hello, User</h3>
-                <p id="userIdDisplay">ID: Loading...</p>
-            </div>
-            <a href="https://t.me/BajajGlobalCS" target="_blank" class="support-icon" title="Customer Service">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h1v-8H5v-2a7 7 0 0 1 14 0v2h-2v8h1c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z"/></svg>
-            </a>
-        </div>
+<div class="app-container">
 
-        <div id="homeSection" class="content-body">
-            <div class="notice-board-box">
-                <h4>📢 Official Notice Board</h4>
-                <p>Welcome to <strong>Bajaj Global Funds</strong>! Complete your daily tasks, invite friends to earn rich bonuses, and contact our 24/7 official support <strong>@BajajGlobalCS</strong> for any assistance.</p>
-            </div>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="user-info">
+      <h3 id="userNameDisplay">Hello, User</h3>
+      <p id="userIdDisplay">ID: Loading...</p>
+    </div>
+    <a href="https://t.me/BajajGlobalCS" target="_blank" class="support-icon" aria-label="Customer Support">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2a8 8 0 0 0-8 8v6a2 2 0 0 0 2 2h2v-7H6v-1a6 6 0 0 1 12 0v1h-2v7h2a2 2 0 0 0 2-2v-6a8 8 0 0 0-8-8z"/>
+        <path d="M8 20h4v2H8z"/>
+      </svg>
+    </a>
+  </header>
 
-            <div class="invite-banner" onclick="openInvitePopup()">
-                <h4>Invite friends to win cash</h4>
-                <button class="invite-btn">Invite Friends</button>
-            </div>
-
-            <div class="quick-actions">
-                <a href="recharge.html" class="action-item">
-                    <div class="action-icon">
-                        <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-                    </div>
-                    <span>Recharge</span>
-                </a>
-                <a href="widraw.html" class="action-item">
-                    <div class="action-icon">
-                        <svg viewBox="0 0 24 24"><path d="M2 17h20v2H2zm1.15-4.05L4 13.9l3.15-3.15L9.3 12.9 16.85 5.35 18 6.5 9.3 15.2l-3.3-3.3-2.85 2.85z"/></svg>
-                    </div>
-                    <span>Withdrawal</span>
-                </a>
-                <a href="luckydraw.html" class="action-item">
-                    <div class="action-icon">
-                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                    </div>
-                    <span>Lucky Draw</span>
-                </a>
-                <a href="team.html" class="action-item">
-                    <div class="action-icon">
-                        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-                    </div>
-                    <span>Team</span>
-                </a>
-                <a href="https://t.me/BajajGlobalCS" target="_blank" class="action-item">
-                    <div class="action-icon">
-                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.02-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.05-.78 4.11-1.79 6.85-2.97 8.22-3.54 3.91-1.63 4.72-1.91 5.25-1.92.12 0 .38.03.55.17.14.12.18.28.2.45z"/></svg>
-                    </div>
-                    <span>Telegram</span>
-                </a>
-            </div>
-
-            <div class="section-card">
-                <h4>Welfare Activity Center</h4>
-                <div class="link-box">
-                    <span id="inviteLinkText">Loading...</span>
-                    <button class="copy-btn" onclick="openInvitePopup()">Copy Link</button>
-                </div>
-            </div>
-
-            <div class="bajaj-notice-box">
-                <h4>💼 Bajaj Global Funds Investment Notice</h4>
-                <p>Please note that all funds and investments processed through this platform are securely allocated into <strong>Bajaj Global Funds</strong>. Your capital is utilized to back verified consumer and commercial portfolios, ensuring reliable daily returns and secure asset management.</p>
-            </div>
-        </div>
-
-        <div id="blogSection" class="content-body" style="display: none; padding: 0;">
-            <div class="hero-header-blog">
-                <div class="user-profile-box">
-                    <div class="user-profile-left">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=user_header" class="ai-avatar-big" id="headerUserAvatar">
-                        <div class="user-details">
-                            <h4 id="blogHeaderUserId">976233</h4>
-                            <p>ID <span id="headerIdMask">***</span></p>
-                        </div>
-                    </div>
-                    <button class="publish-btn-main" onclick="openPublishPopup()">✏️ Publish</button>
-                </div>
-            </div>
-            <div style="padding: 12px;" id="forumFeed"></div>
-        </div>
-
-        <div class="bottom-nav">
-            <a onclick="switchTab('home')" class="nav-item active" id="navHome">
-                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-                <span>Home</span>
-            </a>
-            <a href="invest.html" class="nav-item" id="navInvest">
-                <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
-                <span>Invest</span>
-            </a>
-            
-            <div class="notice-center-wrapper">
-                <a href="notice.html" class="notice-center-btn" title="Notice Center">🎁</a>
-                <span class="notice-label">Notice</span>
-            </div>
-
-            <a onclick="switchTab('blog')" class="nav-item" id="navBlog">
-                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
-                <span>Blog</span>
-            </a>
-            <a href="profile.html" class="nav-item" id="navAccount">
-                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                <span>Account</span>
-            </a>
-        </div>
+  <!-- HOME -->
+  <main id="homeSection" class="content-body">
+    <div class="balance-card">
+      <div class="balance-card-left">
+        <span>Available Balance</span>
+        <h2 id="realBalanceDisplay">₹ 0.00</h2>
+      </div>
+      <div class="balance-card-right">
+        <a href="recharge.html">Recharge</a>
+      </div>
     </div>
 
-    <div class="modal-overlay" id="publishPopup">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Post Problem / Withdrawal Proof</h3>
-                <button class="close-modal-btn" onclick="closePublishPopup()">✕</button>
-            </div>
-            <textarea id="postTextContent" class="modal-textarea" placeholder="Apni problem ya withdrawal ka message yahan likhein..."></textarea>
-            <div class="upload-row-label">Upload 2 Photos (Screenshots)</div>
-            <div class="upload-boxes-container">
-                <label for="imgInput1" class="picker-box" id="previewBox1">📷</label>
-                <input type="file" id="imgInput1" accept="image/*" style="display: none;" onchange="previewImg(event, 'previewBox1')">
-                <label for="imgInput2" class="picker-box" id="previewBox2">📷</label>
-                <input type="file" id="imgInput2" accept="image/*" style="display: none;" onchange="previewImg(event, 'previewBox2')">
-            </div>
-            <button class="submit-post-btn" onclick="submitPost()">Publish Now</button>
-        </div>
+    <div class="notice-board-box">
+      <div class="notice-title">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2a7 7 0 0 0-7 7v4.6L3.3 17A1 1 0 0 0 4 18.7h16a1 1 0 0 0 .7-1.7L19 13.6V9a7 7 0 0 0-7-7zm0 20a3 3 0 0 0 2.8-2H9.2A3 3 0 0 0 12 22z"/>
+        </svg>
+        <span>Official Notice Board</span>
+      </div>
+      <p>Welcome to <strong>Bajaj Global Funds</strong>. Please use the official support channel for assistance.</p>
     </div>
 
-    <div class="modal-overlay" id="invitePopup">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Invite Friends & Earn Cash</h3>
-                <button class="close-modal-btn" onclick="closeInvitePopup()">✕</button>
-            </div>
-            <div class="invite-rule-box">
-                👉 <strong>Per Registration:</strong> Get <strong>₹25</strong> added instantly when your friend registers.<br>
-                👉 <strong>Per Deposit:</strong> Get <strong>₹80</strong> extra when your referred user makes a deposit!
-            </div>
-            <div class="popup-stats-row">
-                <div class="popup-stat-card">
-                    <h4 id="popupTotalRefs">0</h4>
-                    <p>Total Registered</p>
-                </div>
-                <div class="popup-stat-card">
-                    <h4 id="popupTotalEarnings">₹ 0.00</h4>
-                    <p>Total Commission</p>
-                </div>
-            </div>
-            <div class="upload-row-label">Your Exclusive Invite Link (Direct Register)</div>
-            <div class="link-box" style="margin-bottom: 15px;">
-                <input type="text" id="popupInviteLink" readonly value="" style="border:none; background:transparent; width:70%; font-size:11px; color:#555; outline:none;">
-                <button class="copy-btn" onclick="copyInviteLinkPopup()">Copy Link</button>
-            </div>
-            <button class="submit-post-btn" onclick="copyInviteLinkPopup()">Share Link Now</button>
-        </div>
+    <div class="invite-banner" onclick="openInvitePopup()">
+      <h4>Invite friends</h4>
+      <button class="invite-btn">Invite Friends</button>
     </div>
 
-    <div id="toastPopup" class="toast-notification">Link copied successfully!</div>
+    <div class="quick-actions">
+      <a href="recharge.html" class="action-item">
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4H4V6h16v2zm-8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4 z"/></svg>
+        </div>
+        <span>Recharge</span>
+      </a>
+      <a href="widraw.html" class="action-item">
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 4h16v4h-2V6H6v12h12v-2h2v4H4V4zm11.5 3L14 8.5l2.5 2.5H9v2h7.5L14 15.5 15.5 17l5-5-5-5z"/></svg>
+        </div>
+        <span>Withdrawal</span>
+      </a>
+      <a href="lucky-draw.html" class="action-item">
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 3 1.3 3.8H17l-3 2.2 1.1 3.5-3.1-2.1-3.1 2.1 1.1-3.5-3-2.2h3.7L12 6z"/></svg>
+        </div>
+        <span>Lucky Draw</span>
+      </a>
+      <a href="https://t.me/BajajGlobalCS" target="_blank" class="action-item">
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24"><path d="M21.4 3.6 3.7 10.4c-1.2.5-1.2 1.2-.2 1.5l4.5 1.4 1.7 5.2c.2.6.1.8.7.8.5 0 .7-.2 1-.4l2.2-2.1 4.6 3.4c.8.5 1.4.3 1.6-.7l3-14.1c.3-1.3-.5-1.9-1.7-1.2z"/></svg>
+        </div>
+        <span>Telegram</span>
+      </a>
+    </div>
+
+    <div class="section-card">
+      <h4>Welfare Activity Center</h4>
+      <div class="link-box">
+        <span id="inviteLinkText">Loading...</span>
+        <button class="copy-btn" onclick="openInvitePopup()">Copy</button>
+      </div>
+    </div>
+
+    <div style="background: #ffffff; padding: 14px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05);">
+      <h4 style="font-size: 14px; color: #333; margin-bottom: 8px;">About Bajaj Finance & Investment Services</h4>
+      <p style="font-size: 11px; color: #555; line-height: 1.5; margin-bottom: 10px;">
+        Welcome to Bajaj Global Funds. All capital and funds invested through this platform are securely utilized to back various commercial loan programs, micro-finance initiatives, and structured credit facilities distributed to verified borrowers.
+      </p>
+      <div style="font-size: 11px; color: #333; margin-bottom: 8px; display: flex; align-items: center;">
+        <input type="checkbox" id="ageCheck" style="margin-right: 6px;" checked>
+        <label for="ageCheck" style="font-weight: 600;">I confirm that I am 18 years of age or older.</label>
+      </div>
+      <div style="font-size: 11px;">
+        <a href="#" onclick="openTermsPopup(); return false;" style="color: #ff7600; text-decoration: underline; font-weight: 700;">
+          Click here to read comprehensive Terms & Conditions (18+ Mandatory)
+        </a>
+      </div>
+    </div>
+
+    <div class="bajaj-notice-box">
+      <div class="bajaj-title">
+        <svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3zm0 4 4 1.5V11c0 3.3-2 6.7-4 8-2-1.3-4-4.7-4-8V7.5L12 6z"/></svg>
+        <span>Platform Information</span>
+      </div>
+      <p>Please review the platform terms and applicable information before using any financial service.</p>
+    </div>
+  </main>
+
+  <!-- BLOG -->
+  <section id="blogSection" class="content-body" style="display:none;padding:0;">
+    <div class="hero-header-blog">
+      <div class="user-profile-box">
+        <div class="user-profile-left">
+          <div class="ai-avatar-big">
+            <svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/></svg>
+          </div>
+          <div class="user-details">
+            <h4 id="blogHeaderUserId">Loading...</h4>
+            <p>User ID</p>
+          </div>
+        </div>
+        <button class="publish-btn-main" onclick="openPublishPopup()">
+          <svg viewBox="0 0 24 24"><path d="m4 17.3-.7 3.4 3.4-.7L18.3 8.4l-2.7-2.7L4 17.3zm15.7-10.1c.4-.4.4-1 0-1.4l-1.5-1.5a1 1 0 0 0-1.4 0l-1.3 1.3 2.7 2.7 1.5-1.1z"/></svg>
+          Publish
+        </button>
+      </div>
+    </div>
+
+    <div id="forumFeed" style="padding:12px;">
+      <div class="empty-state">Loading posts...</div>
+    </div>
+  </section>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <a class="nav-item active" id="navHome" onclick="switchTab('home')">
+      <svg viewBox="0 0 24 24"><path d="M12 3 3 10v10h6v-6h6v6h6V10l-9-7z"/></svg>
+      <span>Home</span>
+    </a>
+    <a href="invest.html" class="nav-item" id="navInvest">
+      <svg viewBox="0 0 24 24"><path d="M4 19h16v2H4zM6 17V9h3v8H6zm5 0V5h3v12h-3zm5 0v-5h3v5h-3z"/></svg>
+      <span>Invest</span>
+    </a>
+    <div class="notice-center-wrapper">
+      <a href="notice.html" class="notice-center-btn" aria-label="Notice">
+        <svg viewBox="0 0 24 24"><path d="M12 3a7 7 0 0 0-7 7v4l-2 3h18l-2-3v-4a7 7 0 0 0-7-7zm0 18a3 3 0 0 0 3-3H9a3 3 0 0 0 3 3z"/></svg>
+      </a>
+      <span class="notice-label">Notice</span>
+    </div>
+    <a class="nav-item" id="navBlog" onclick="switchTab('blog')">
+      <svg viewBox="0 0 24 24"><path d="M20 3H4a2 2 0 0 0-2 2v14l4-3h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-2 8H6V9h12v2zm-4 4H6v-2h8v2zm4-8H6V5h12v2z"/></svg>
+      <span>Blog</span>
+    </a>
+    <a href="profile.html" class="nav-item" id="navAccount">
+      <svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5z"/></svg>
+      <span>Account</span>
+    </a>
+  </nav>
+
+</div>
+
+<!-- PUBLISH POPUP -->
+<div class="modal-overlay" id="publishPopup">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Publish Post</h3>
+      <button class="close-modal-btn" onclick="closePublishPopup()">
+        <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      </button>
+    </div>
+    <textarea id="postTextContent" class="modal-textarea" placeholder="Write your message..."></textarea>
+    <div class="upload-row-label">Upload Photos</div>
+    <div class="upload-boxes-container">
+      <label for="imgInput1" class="picker-box" id="previewBox1">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-9 4 5 6-2 2-3-3-4 5H5l5-10z"/></svg>
+      </label>
+      <input type="file" id="imgInput1" accept="image/*" hidden onchange="previewImg(event,'previewBox1')">
+
+      <label for="imgInput2" class="picker-box" id="previewBox2">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-9 4 5 6-2 2-3-3-4 5H5l5-10z"/></svg>
+      </label>
+      <input type="file" id="imgInput2" accept="image/*" hidden onchange="previewImg(event,'previewBox2')">
+    </div>
+    <button class="submit-post-btn" onclick="submitPost()">
+      <svg viewBox="0 0 24 24"><path d="M2 21 23 12 2 3v7l15 2-15 2v7z"/></svg>
+      Publish Now
+    </button>
+  </div>
+</div>
+
+<!-- INVITE POPUP -->
+<div class="modal-overlay" id="invitePopup">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Invite Friends</h3>
+      <button class="close-modal-btn" onclick="closeInvitePopup()">
+        <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      </button>
+    </div>
+    <div class="invite-rule-box">Share your invite link with friends.</div>
+    <div class="popup-stats-row">
+      <div class="popup-stat-card">
+        <h4 id="popupTotalRefs">0</h4>
+        <p>Total Registered</p>
+      </div>
+      <div class="popup-stat-card">
+        <h4 id="popupTotalEarnings">₹ 0.00</h4>
+        <p>Total Commission</p>
+      </div>
+    </div>
+    <div class="upload-row-label">Your Invite Link</div>
+    <div class="link-box" style="margin-bottom:15px;">
+      <input type="text" id="popupInviteLink" readonly style="border:0; background:transparent; width:70%; font-size:10px; outline:none;">
+      <button class="copy-btn" onclick="copyInviteLinkPopup()">Copy</button>
+    </div>
+    <button class="submit-post-btn" onclick="copyInviteLinkPopup()">
+      <svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+      Copy Link
+    </button>
+  </div>
+</div>
+
+<!-- TERMS POPUP -->
+<div class="modal-overlay" id="termsPopup" style="display: none; align-items: center;">
+  <div class="modal-content" style="max-height: 85vh; display: flex; flex-direction: column;">
+    <div class="modal-header" style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px;">
+      <h3>Bajaj Global Funds - Comprehensive Terms & Conditions</h3>
+      <button class="close-modal-btn" onclick="closeTermsPopup()">
+        <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      </button>
+    </div>
+    <div style="flex: 1; overflow-y: auto; font-size: 11px; color: #555; line-height: 1.6; padding-right: 5px;">
+      <p><strong>1. Introduction & Acceptance of Terms</strong><br>Please read these Terms and Conditions carefully.</p>
+    </div>
+    <div style="border-top: 1px solid #eee; padding-top: 12px; margin-top: 10px; text-align: center;">
+      <button class="submit-post-btn" onclick="closeTermsPopup()">I Have Read & Agree</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toastPopup" class="toast-notification">Link copied successfully!</div>
+
 </body>
 </html>

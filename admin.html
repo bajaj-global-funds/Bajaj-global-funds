@@ -1,559 +1,1135 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <title>Bajaj Finance Master Admin - Complete 11 Options</title>
-    <style>
-        :root { --bg: #0f172a; --card: #1e293b; --primary: #0056b3; --text: #ffffff; --border: #334155; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background: var(--bg); color: var(--text); padding: 15px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Devil Master Admin - Ultimate Edition</title>
 
-        /* Stats Bar */
-        .stats-bar { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .stat-card { background: var(--card); padding: 12px 20px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; }
-        .stat-card span { font-weight: bold; color: #60a5fa; }
+<style>
+:root{
+    --bg:#050505;
+    --bg2:#100606;
+    --card:#150b0b;
+    --card2:#1d0d0d;
+    --red:#ef2020;
+    --red2:#ff4545;
+    --darkred:#7f1111;
+    --text:#fff;
+    --muted:#a9a0a0;
+    --border:#4b1b1b;
+    --green:#16a34a;
+    --yellow:#ca8a04;
+}
 
-        /* Navigation */
-        .nav-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; }
-        .nav-btn { padding: 10px 16px; background: #334155; border: none; color: white; cursor: pointer; border-radius: 6px; white-space: nowrap; font-size: 13px; }
-        .nav-btn.active { background: var(--primary); font-weight: bold; }
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,sans-serif;
+}
 
-        /* Pages */
-        .page { display: none; background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid var(--border); }
-        .page.active { display: block; }
-        
-        h3 { margin-bottom: 15px; color: #60a5fa; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-        label { font-size: 12px; color: #94a3b8; display: block; margin-top: 10px; margin-bottom: 4px; }
-        input { width: 100%; padding: 10px; background: #030712; border: 1px solid var(--border); color: white; border-radius: 6px; margin-bottom: 10px; font-size: 14px; }
-        button.action-btn { padding: 10px 20px; background: var(--primary); border: none; color: white; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 5px; }
-        
-        /* Separate Box / Card Design for Records */
-        .record-card {
-            background: #030712; border: 1px solid var(--border); border-radius: 10px;
-            padding: 15px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;
-        }
-        .record-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; flex-wrap: wrap; gap: 5px; }
-        .record-actions { display: flex; gap: 8px; margin-top: 5px; }
+body{
+    background:
+        radial-gradient(circle at 50% 20%,rgba(150,0,0,.25),transparent 35%),
+        linear-gradient(135deg,#020202,#130505 50%,#030303);
+    color:var(--text);
+    min-height:100vh;
+    padding:14px;
+    overflow-x:hidden;
+}
 
-        .sub-btn { padding: 6px 14px; font-size: 12px; background: #475569; border: none; color: white; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .sub-btn.danger { background: #dc2626; }
-        .sub-btn.success { background: #16a34a; }
-        .sub-btn.primary { background: #0056b3; }
-        .status-badge { padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .status-success { background: #16a34a; color: white; }
-        .status-rejected { background: #dc2626; color: white; }
-        .status-pending { background: #ca8a04; color: white; }
-    </style>
+/* Devil SVG Background */
+.devil-bg{
+    position:fixed;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    pointer-events:none;
+    z-index:-1;
+    opacity:.075;
+}
+
+.devil-bg svg{
+    width:min(700px,100vw);
+    height:min(700px,100vh);
+    filter:drop-shadow(0 0 30px #ff0000);
+}
+
+.top-title{
+    background:linear-gradient(135deg,#160606,#300909,#100303);
+    border:1px solid #6e1919;
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:15px;
+    box-shadow:0 0 25px rgba(255,0,0,.12);
+}
+
+.title-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.logo{
+    width:50px;
+    height:50px;
+    background:#260606;
+    border:1px solid #a21b1b;
+    border-radius:12px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.logo svg{
+    width:34px;
+    height:34px;
+}
+
+.top-title h1{
+    font-size:21px;
+    color:#fff;
+}
+
+.top-title p{
+    color:#9e8d8d;
+    font-size:12px;
+    margin-top:4px;
+}
+
+.online{
+    margin-left:auto;
+    color:#35d675;
+    font-size:12px;
+    white-space:nowrap;
+}
+
+/* Stats */
+.stats-bar{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:15px;
+}
+
+.stat-card{
+    background:rgba(22,8,8,.94);
+    border:1px solid var(--border);
+    border-radius:11px;
+    padding:14px;
+    box-shadow:0 5px 20px rgba(0,0,0,.25);
+}
+
+.stat-card small{
+    color:var(--muted);
+    font-size:11px;
+}
+
+.stat-card strong{
+    display:block;
+    color:#ff4a4a;
+    font-size:22px;
+    margin-top:5px;
+}
+
+/* Navigation */
+.nav-bar{
+    display:flex;
+    gap:7px;
+    overflow-x:auto;
+    padding:5px 2px 12px;
+    scrollbar-width:thin;
+}
+
+.nav-btn{
+    flex:0 0 auto;
+    padding:10px 14px;
+    border:1px solid #4a1818;
+    border-radius:8px;
+    background:#1a0b0b;
+    color:#d8caca;
+    cursor:pointer;
+    font-size:12px;
+    transition:.2s;
+}
+
+.nav-btn:hover{
+    border-color:#e52a2a;
+    transform:translateY(-1px);
+}
+
+.nav-btn.active{
+    background:linear-gradient(135deg,#9d1111,#ed2020);
+    color:#fff;
+    border-color:#ff4a4a;
+    box-shadow:0 0 12px rgba(255,0,0,.25);
+}
+
+/* Pages */
+.page{
+    display:none;
+    background:rgba(18,8,8,.96);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:20px;
+    min-height:300px;
+    box-shadow:0 10px 35px rgba(0,0,0,.35);
+}
+
+.page.active{
+    display:block;
+}
+
+h3{
+    color:#ff4a4a;
+    font-size:18px;
+    margin-bottom:16px;
+    padding-bottom:10px;
+    border-bottom:1px solid #452020;
+}
+
+label{
+    display:block;
+    color:#a99a9a;
+    font-size:12px;
+    margin:11px 0 5px;
+}
+
+input,select{
+    width:100%;
+    padding:11px;
+    border-radius:7px;
+    border:1px solid #492020;
+    background:#070707;
+    color:#fff;
+    outline:none;
+}
+
+input:focus,select:focus{
+    border-color:#e52a2a;
+    box-shadow:0 0 8px rgba(255,0,0,.15);
+}
+
+.action-btn{
+    padding:10px 18px;
+    border:0;
+    border-radius:7px;
+    background:linear-gradient(135deg,#9f1010,#ed2424);
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:7px;
+}
+
+.action-btn:hover{
+    filter:brightness(1.15);
+}
+
+.sub-btn{
+    padding:7px 12px;
+    border:0;
+    border-radius:6px;
+    background:#342020;
+    color:#fff;
+    cursor:pointer;
+    font-size:12px;
+}
+
+.sub-btn.primary{
+    background:#7f1515;
+}
+
+.sub-btn.success{
+    background:#166534;
+}
+
+.sub-btn.danger{
+    background:#991b1b;
+}
+
+/* Records */
+.record-card{
+    background:linear-gradient(135deg,#090606,#160909);
+    border:1px solid #3f1919;
+    border-radius:10px;
+    padding:14px;
+    margin-bottom:10px;
+}
+
+.record-row{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+    font-size:13px;
+    line-height:1.6;
+}
+
+.record-actions{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+    margin-top:10px;
+}
+
+.status-badge{
+    padding:3px 8px;
+    border-radius:5px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.status-success{
+    background:#166534;
+}
+
+.status-rejected{
+    background:#991b1b;
+}
+
+.status-pending{
+    background:#92400e;
+}
+
+.search-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+}
+
+.search-row input{
+    margin:0;
+}
+
+.empty{
+    text-align:center;
+    padding:25px;
+    color:#766b6b;
+}
+
+.notice{
+    background:#210b0b;
+    border:1px solid #5b1d1d;
+    padding:12px;
+    border-radius:8px;
+    color:#c5b2b2;
+    font-size:12px;
+    margin-bottom:12px;
+}
+
+/* Popup */
+.popup-layer{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.78);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+}
+
+.popup{
+    width:min(380px,90%);
+    background:linear-gradient(145deg,#180707,#080303);
+    border:1px solid #9d2020;
+    border-radius:15px;
+    padding:25px;
+    text-align:center;
+    box-shadow:0 0 45px rgba(255,0,0,.25);
+}
+
+.popup-icon{
+    font-size:42px;
+    margin-bottom:8px;
+}
+
+.popup h2{
+    color:#ff3b3b;
+    margin-bottom:8px;
+}
+
+.popup p{
+    color:#b9aaaa;
+    font-size:13px;
+    margin-bottom:17px;
+}
+
+.popup button{
+    padding:10px 28px;
+    border:0;
+    border-radius:7px;
+    background:#c51b1b;
+    color:#fff;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+/* Mobile */
+@media(max-width:650px){
+    body{padding:9px}
+    .stats-bar{grid-template-columns:1fr}
+    .page{padding:15px}
+    .online{display:none}
+    .search-row{flex-direction:column}
+    .search-row button{width:100%}
+}
+</style>
 </head>
+
 <body>
 
-<!-- Live Stats Summary -->
+<!-- DEVIL SVG BACKGROUND -->
+<div class="devil-bg">
+<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <radialGradient id="devilGlow">
+            <stop offset="0" stop-color="#ff3030"/>
+            <stop offset="1" stop-color="#300000"/>
+        </radialGradient>
+    </defs>
+    <path d="M115 175 L45 60 L180 120 Q300 45 420 120 L555 60 L485 175 Q515 235 495 335 Q470 470 300 525 Q130 470 105 335 Q85 235 115 175Z" fill="url(#devilGlow)" stroke="#ff2020" stroke-width="8"/>
+    <path d="M135 245 Q190 205 250 245" fill="none" stroke="#000" stroke-width="22"/>
+    <path d="M465 245 Q410 205 350 245" fill="none" stroke="#000" stroke-width="22"/>
+    <path d="M155 275 Q205 240 255 280 L215 315Z" fill="#ff4b4b"/>
+    <path d="M445 275 Q395 240 345 280 L385 315Z" fill="#ff4b4b"/>
+    <path d="M230 365 Q300 415 370 365 Q345 455 300 465 Q255 455 230 365Z" fill="#070000" stroke="#ff3030" stroke-width="5"/>
+    <path d="M210 365 L190 415 M390 365 L410 415" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="205" cy="278" r="9" fill="#fff"/>
+    <circle cx="395" cy="278" r="9" fill="#fff"/>
+</svg>
+</div>
+
+<!-- HEADER -->
+<div class="top-title">
+    <div class="title-row">
+        <div class="logo">
+            <svg viewBox="0 0 100 100">
+                <path d="M15 35L5 10L35 25Q50 15 65 25L95 10L85 35Q90 70 50 90Q10 70 15 35Z" fill="#e51c1c"/>
+                <circle cx="35" cy="47" r="5" fill="#fff"/>
+                <circle cx="65" cy="47" r="5" fill="#fff"/>
+                <path d="M32 65Q50 80 68 65" fill="none" stroke="#000" stroke-width="6"/>
+            </svg>
+        </div>
+        <div>
+            <h1>DEVIL MASTER ADMIN</h1>
+            <p>Firebase Control & Real-Time Monitoring Panel</p>
+        </div>
+        <div class="online">● FIREBASE ONLINE</div>
+    </div>
+</div>
+
+<!-- STATS -->
 <div class="stats-bar">
-    <div class="stat-card">Total Users: <span id="st-users">0</span></div>
-    <div class="stat-card">Pending Deposits: <span id="st-dep">0</span></div>
-    <div class="stat-card">Pending Withdrawals: <span id="st-with">0</span></div>
+    <div class="stat-card">
+        <small>Total Users</small>
+        <strong id="st-users">0</strong>
+    </div>
+    <div class="stat-card">
+        <small>Pending Deposits</small>
+        <strong id="st-dep">0</strong>
+    </div>
+    <div class="stat-card">
+        <small>Pending Withdrawals</small>
+        <strong id="st-with">0</strong>
+    </div>
 </div>
 
-<!-- 11 Options Navigation -->
+<!-- 12 OPTIONS -->
 <div class="nav-bar">
-    <button class="nav-btn active" onclick="showPage('dash', this)">1. Dashboard</button>
-    <button class="nav-btn" onclick="showPage('users', this)">2. Users List</button>
-    <button class="nav-btn" onclick="showPage('dep', this)">3. Deposits</button>
-    <button class="nav-btn" onclick="showPage('with', this)">4. Withdrawals</button>
-    <button class="nav-btn" onclick="showPage('bank', this)">5. Bank Search & Edit</button>
-    <button class="nav-btn" onclick="showPage('upi', this)">6. UPI Config</button>
-    <button class="nav-btn" onclick="showPage('bonus', this)">7. Bonus Setup</button>
-    <button class="nav-btn" onclick="showPage('pkg', this)">8. Packages</button>
-    <button class="nav-btn" onclick="showPage('gift', this)">9. Gift Code</button>
-    <button class="nav-btn" onclick="showPage('ref', this)">10. Referrals</button>
-    <button class="nav-btn" onclick="showPage('cs', this)">11. Support Link</button>
+<button class="nav-btn active" onclick="showPage('dash',this)">1. Dashboard</button>
+<button class="nav-btn" onclick="showPage('users',this)">2. Users List</button>
+<button class="nav-btn" onclick="showPage('dep',this)">3. Deposits</button>
+<button class="nav-btn" onclick="showPage('with',this)">4. Withdrawals</button>
+<button class="nav-btn" onclick="showPage('bank',this)">5. Bank Search & Edit</button>
+<button class="nav-btn" onclick="showPage('upi',this)">6. UPI Config</button>
+<button class="nav-btn" onclick="showPage('bonus',this)">7. Bonus Setup</button>
+<button class="nav-btn" onclick="showPage('pkg',this)">8. Packages</button>
+<button class="nav-btn" onclick="showPage('gift',this)">9. Gift Code</button>
+<button class="nav-btn" onclick="showPage('ref',this)">10. Referrals</button>
+<button class="nav-btn" onclick="showPage('cs',this)">11. Support Link</button>
+<button class="nav-btn" onclick="showPage('userInvest',this)">12. VIP Purchases</button>
 </div>
 
-<!-- 1. Dashboard -->
+<!-- 1 DASHBOARD -->
 <div id="dash" class="page active">
-    <h3>Dashboard Overview</h3>
-    <p>System status: <span style="color:#34d399;">Online & Connected to Firebase</span></p>
+<h3>👹 Dashboard Overview</h3>
+<div class="notice">Firebase realtime connection active. नीचे के आंकड़े Firestore से realtime में पढ़े जाते हैं।</div>
+<div class="record-card">
+<div class="record-row"><span><b>System:</b></span><span style="color:#35d675">● Online</span></div>
+<div class="record-row"><span><b>Database:</b></span><span>Cloud Firestore</span></div>
+<div class="record-row"><span><b>Live Listener:</b></span><span style="color:#35d675">Enabled</span></div>
+</div>
 </div>
 
-<!-- 2. Users Management (With Search) -->
+<!-- 2 USERS -->
 <div id="users" class="page">
-    <h3>User Management (Search & Edit Balance)</h3>
-    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <input id="searchUserPhone" placeholder="Search by Phone / UID" style="margin-bottom:0;">
-        <button class="action-btn" style="margin-top:0;" onclick="filterUsers()">Search</button>
-        <button class="sub-btn primary" style="margin-top:0;" onclick="resetUserSearch()">Reset</button>
-    </div>
-    <div id="usersContainer"></div>
+<h3>👹 User Management & Balance Edit</h3>
+<div class="search-row">
+<input id="searchUserPhone" placeholder="Search Phone / UID">
+<button class="action-btn" onclick="filterUsers()">Search</button>
+<button class="sub-btn primary" onclick="resetUserSearch()">Reset</button>
+</div>
+<div id="usersContainer"></div>
 </div>
 
-<!-- 3. Deposits (With Search Box) -->
+<!-- 3 DEPOSITS -->
 <div id="dep" class="page">
-    <h3>Deposit History & Approval</h3>
-    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <input id="searchDepInput" placeholder="Search by UTR Number or UID" style="margin-bottom:0;">
-        <button class="action-btn" style="margin-top:0;" onclick="filterDeposits()">Search</button>
-        <button class="sub-btn primary" style="margin-top:0;" onclick="resetDepositSearch()">Reset</button>
-    </div>
-    <div id="depContainer"></div>
+<h3>🔥 Deposit Management</h3>
+<div class="notice">डिपोजिट 'Accept' करने पर यूजर के खाते में अमाउंट ऑटोमैटिक जुड़ जाएगा।</div>
+<div class="search-row">
+<input id="searchDepInput" placeholder="Search UTR / UID">
+<button class="action-btn" onclick="filterDeposits()">Search</button>
+<button class="sub-btn primary" onclick="resetDepositSearch()">Reset</button>
+</div>
+<div id="depContainer"></div>
 </div>
 
-<!-- 4. Withdrawals (With Search Box) -->
+<!-- 4 WITHDRAWALS -->
 <div id="with" class="page">
-    <h3>Withdrawal Requests & Bank Details</h3>
-    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <input id="searchWithInput" placeholder="Search by UID or Account No" style="margin-bottom:0;">
-        <button class="action-btn" style="margin-top:0;" onclick="filterWithdrawals()">Search</button>
-        <button class="sub-btn primary" style="margin-top:0;" onclick="resetWithdrawalSearch()">Reset</button>
-    </div>
-    <div id="withContainer"></div>
+<h3>🔥 Withdrawal Management</h3>
+<div class="notice">यहाँ से विथड्रॉ अप्रूव या रिजेक्ट करने पर एक्शन बटन स्वतः हट जाएंगे।</div>
+<div class="search-row">
+<input id="searchWithInput" placeholder="Search UID / Account No">
+<button class="action-btn" onclick="filterWithdrawals()">Search</button>
+<button class="sub-btn primary" onclick="resetWithdrawalSearch()">Reset</button>
+</div>
+<div id="withContainer"></div>
 </div>
 
-<!-- 5. Bank Manager (Updated with Edit & Delete) -->
+<!-- 5 BANK -->
 <div id="bank" class="page">
-    <h3>User Bank Account Management, Edit & Delete</h3>
-    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <input id="inBankUid" placeholder="Enter Phone Number / UID" style="margin-bottom:0;">
-        <button class="action-btn" style="margin-top:0;" onclick="searchUserBank()">Search Bank</button>
-    </div>
-    <div id="bankRes" style="margin-top:15px; font-size:14px;"></div>
+<h3>🏦 Bank Search & Edit</h3>
+<div class="search-row">
+<input id="inBankUid" placeholder="Enter Phone Number / UID">
+<button class="action-btn" onclick="searchUserBank()">Search Bank</button>
+</div>
+<div id="bankRes"></div>
 </div>
 
-<!-- 6. UPI Config -->
+<!-- 6 UPI -->
 <div id="upi" class="page">
-    <h3>Merchant UPI Configuration</h3>
-    <label>UPI ID</label>
-    <input id="inUpi" placeholder="merchant@paytm">
-    <button class="action-btn" onclick="saveSetting('settings', 'payment', {upiId: document.getElementById('inUpi').value})">Update UPI</button>
+<h3>💳 UPI Configuration</h3>
+<label>Merchant UPI ID</label>
+<input id="inUpi" placeholder="merchant@upi">
+<button class="action-btn" onclick="saveSetting('settings','payment',{upiId:document.getElementById('inUpi').value})">Update UPI</button>
 </div>
 
-<!-- 7. Bonus Setup -->
+<!-- 7 BONUS -->
 <div id="bonus" class="page">
-    <h3>Bonus Configuration</h3>
-    <label>Bonus Amount (₹)</label>
-    <input id="inBonus" type="number" placeholder="50">
-    <button class="action-btn" onclick="saveSetting('settings', 'config', {bonusAmount: Number(document.getElementById('inBonus').value)})">Save Bonus</button>
+<h3>🎁 Bonus Configuration</h3>
+<label>Bonus Amount ₹</label>
+<input id="inBonus" type="number" placeholder="50">
+<button class="action-btn" onclick="saveSetting('settings','config',{bonusAmount:Number(document.getElementById('inBonus').value)})">Save Bonus</button>
 </div>
 
-<!-- 8. Packages -->
+<!-- 8 PACKAGES -->
 <div id="pkg" class="page">
-    <h3>Payment Packages Manager</h3>
-    <label>Package ID</label>
-    <input id="pkgId" placeholder="pkg_100">
-    <label>Amount (₹)</label>
-    <input id="pkgAmt" type="number" placeholder="500">
-    <label>Daily Return (₹)</label>
-    <input id="pkgRev" type="number" placeholder="50">
-    <button class="action-btn" onclick="savePackage()">Save Package</button>
+<h3>📦 Payment Packages</h3>
+<label>Package ID</label>
+<input id="pkgId" placeholder="pkg_100">
+<label>Amount ₹</label>
+<input id="pkgAmt" type="number" placeholder="500">
+<label>Daily Return ₹</label>
+<input id="pkgRev" type="number" placeholder="50">
+<button class="action-btn" onclick="savePackage()">Save Package</button>
 </div>
 
-<!-- 9. Gift Code Manager -->
+<!-- 9 GIFT -->
 <div id="gift" class="page">
-    <h3>Gift Code Generator</h3>
-    <label>Gift Code</label>
-    <input id="gCode" placeholder="BAJAJ2026">
-    <label>Amount (₹)</label>
-    <input id="gAmt" type="number" placeholder="50">
-    <label>User Limit</label>
-    <input id="gLimit" type="number" placeholder="100">
-    <button class="action-btn" onclick="saveGiftCode()">Generate Gift Code</button>
+<h3>🎁 Gift Code Manager</h3>
+<label>Gift Code</label>
+<input id="gCode" placeholder="DEVIL2026">
+<label>Amount ₹</label>
+<input id="gAmt" type="number" placeholder="50">
+<label>User Limit</label>
+<input id="gLimit" type="number" placeholder="100">
+<button class="action-btn" onclick="saveGiftCode()">Save Gift Code</button>
 </div>
 
-<!-- 10. Referrals -->
+<!-- 10 REFERRALS -->
 <div id="ref" class="page">
-    <h3>Referral Statistics</h3>
-    <div id="refContainer"></div>
+<h3>👥 Referral Statistics</h3>
+<div id="refContainer"></div>
 </div>
 
-<!-- 11. Support Link -->
+<!-- 11 SUPPORT -->
 <div id="cs" class="page">
-    <h3>Customer Service Link</h3>
-    <label>Telegram / Support URL</label>
-    <input id="inCs" placeholder="https://t.me/support">
-    <button class="action-btn" onclick="saveSetting('settings', 'support', {csLink: document.getElementById('inCs').value})">Update Support Link</button>
+<h3>📞 Customer Service Link</h3>
+<label>Telegram / Support URL</label>
+<input id="inCs" placeholder="https://t.me/support">
+<button class="action-btn" onclick="saveSetting('settings','support',{csLink:document.getElementById('inCs').value})">Update Support Link</button>
 </div>
 
-<!-- Firebase Modular SDK v12 Script -->
+<!-- 12 VIP PURCHASES (INVEST) -->
+<div id="userInvest" class="page">
+<h3>👑 User VIP Investments (invest.html records)</h3>
+<div class="notice">किस यूजर ने कौन सा VIP पैकेज खरीदा है, उसका डेटा यहाँ दिखेगा।</div>
+<div id="investContainer"></div>
+</div>
+
+<!-- POPUP -->
+<div id="popupLayer" class="popup-layer">
+<div class="popup">
+<div class="popup-icon">👹</div>
+<h2 id="popupTitle">Action Complete</h2>
+<p id="popupText">Operation completed.</p>
+<button onclick="closePopupWithSound()">OK</button>
+</div>
+</div>
+
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAyFldowBw6ChbopLGCCQ8U7_RH4kmyFpM",
-      authDomain: "creditinvestapp.firebaseapp.com",
-      projectId: "creditinvestapp",
-      storageBucket: "creditinvestapp.firebasestorage.app",
-      messagingSenderId: "299058832737",
-      appId: "1:299058832737:web:fe1c1df553e209715c1120"
-    };
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import { getFirestore, doc, setDoc, updateDoc, getDoc, collection, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
-    const db = getFirestore(initializeApp(firebaseConfig));
+const firebaseConfig={
+apiKey:"AIzaSyAyFldowBw6ChbopLGCCQ8U7_RH4kmyFpM",
+authDomain:"creditinvestapp.firebaseapp.com",
+projectId:"creditinvestapp",
+storageBucket:"creditinvestapp.firebasestorage.app",
+messagingSenderId:"299058832737",
+appId:"1:299058832737:web:fe1c1df553e209715c1120"
+};
 
-    let allUsersCache = [];
-    let allDepositsCache = [];
-    let allWithdrawalsCache = [];
-    let currentSearchedUid = null;
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
 
-    window.showPage = (id, btn) => {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        btn.classList.add('active');
-    };
+let allUsersCache=[];
+let allDepositsCache=[];
+let allWithdrawalsCache=[];
+let allInvestmentsCache=[];
 
-    window.saveSetting = async (col, docId, data) => {
-        try {
-            await setDoc(doc(db, col, docId), data, { merge: true });
-            alert("✅ Successfully Saved / Updated!");
-        } catch(e) { alert("❌ Error: " + e.message); }
-    };
+let audioCtx=null;
 
-    window.savePackage = async () => {
-        const id = document.getElementById('pkgId').value.trim();
-        const amt = Number(document.getElementById('pkgAmt').value);
-        const rev = Number(document.getElementById('pkgRev').value);
-        if(!id || !amt) return alert("Please fill Package ID and Amount!");
-        try {
-            await setDoc(doc(db, "packages", id), { packageId: id, amount: amt, reward: rev }, { merge: true });
-            alert("✅ Package Saved Successfully!");
-        } catch(e) { alert("❌ Error: " + e.message); }
-    };
+function initAudio(){
+if(!audioCtx){
+audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+}
+if(audioCtx.state==="suspended"){
+audioCtx.resume();
+}
+}
 
-    window.saveGiftCode = async () => {
-        const code = document.getElementById('gCode').value.trim();
-        const amt = Number(document.getElementById('gAmt').value);
-        const limit = Number(document.getElementById('gLimit').value);
-        if(!code || !amt || !limit) return alert("Please fill all gift code fields!");
-        try {
-            await setDoc(doc(db, "giftcodes", code), { code, amount: amt, limit: limit, claimed: 0 }, { merge: true });
-            alert("✅ Gift Code Generated Successfully!");
-        } catch(e) { alert("❌ Error: " + e.message); }
-    };
+function tapSound(){
+try{
+initAudio();
+const now=audioCtx.currentTime;
+const osc=audioCtx.createOscillator();
+const gain=audioCtx.createGain();
+osc.type="sine";
+osc.frequency.setValueAtTime(190,now);
+osc.frequency.exponentialRampToValueAtTime(75,now+.07);
+gain.gain.setValueAtTime(.07,now);
+gain.gain.exponentialRampToValueAtTime(.001,now+.08);
+osc.connect(gain);
+gain.connect(audioCtx.destination);
+osc.start(now);
+osc.stop(now+.08);
+}catch(e){}
+}
 
-    // --- BANK SEARCH, EDIT & DELETE FUNCTIONS ---
-    window.searchUserBank = async () => {
-        const uid = document.getElementById('inBankUid').value.trim();
-        const res = document.getElementById('bankRes');
-        if(!uid) return alert("Please enter User Phone/UID!");
-        res.innerHTML = "⏳ Searching user bank details...";
-        
-        try {
-            const snap = await getDoc(doc(db, "users", uid));
-            if(snap.exists()) {
-                const d = snap.data();
-                currentSearchedUid = uid;
-                
-                res.innerHTML = `
-                    <div class="record-card" style="background:#0f172a; border:1px solid var(--border);">
-                        <div class="record-row"><span><b>Holder Name:</b> <input id="editHolder" value="${d.holderName || d.name || d.nickname || ''}" style="margin:0; width:190px; display:inline-block;"></span></div>
-                        <div class="record-row" style="margin-top:6px;"><span><b>Bank Name:</b> <input id="editBankName" value="${d.bankName || ''}" style="margin:0; width:190px; display:inline-block;"></span></div>
-                        <div class="record-row" style="margin-top:6px;"><span><b>Account No:</b> <input id="editAccNo" value="${d.accNo || ''}" style="margin:0; width:190px; display:inline-block;"></span></div>
-                        <div class="record-row" style="margin-top:6px;"><span><b>IFSC Code:</b> <input id="editIfsc" value="${d.ifsc || ''}" style="margin:0; width:190px; display:inline-block;"></span></div>
-                        <div class="record-actions" style="margin-top:12px;">
-                            <button class="sub-btn success" onclick="saveUserBank()">Update Bank</button>
-                            <button class="sub-btn danger" onclick="deleteUserBank()">Delete Bank</button>
-                        </div>
-                    </div>`;
-            } else { 
-                res.innerHTML = "❌ User not found in database."; 
-                currentSearchedUid = null;
-            }
-        } catch(e) { 
-            res.innerHTML = "❌ Error: " + e.message; 
-        }
-    };
+/* Real Heavy Creepy Devil Laugh Audio Effect */
+function realDevilLaughSound(){
+try{
+initAudio();
+const now=audioCtx.currentTime;
+let laughPattern = [
+    {f: 180, t: 0.0, d: 0.15},
+    {f: 130, t: 0.15, d: 0.15},
+    {f: 220, t: 0.32, d: 0.15},
+    {f: 160, t: 0.48, d: 0.15},
+    {f: 280, t: 0.65, d: 0.18},
+    {f: 210, t: 0.84, d: 0.18},
+    {f: 120, t: 1.04, d: 0.35}
+];
 
-    window.saveUserBank = async () => {
-        if(!currentSearchedUid) return alert("No user selected!");
-        const holderName = document.getElementById('editHolder').value.trim();
-        const bankName = document.getElementById('editBankName').value.trim();
-        const accNo = document.getElementById('editAccNo').value.trim();
-        const ifsc = document.getElementById('editIfsc').value.trim();
+laughPattern.forEach(item => {
+    let osc = audioCtx.createOscillator();
+    let gain = audioCtx.createGain();
+    let filter = audioCtx.createBiquadFilter();
+    
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(item.f, now + item.t);
+    osc.frequency.linearRampToValueAtTime(item.f * 0.7, now + item.t + item.d);
 
-        try {
-            await setDoc(doc(db, "users", currentSearchedUid), {
-                holderName: holderName,
-                bankName: bankName,
-                accNo: accNo,
-                ifsc: ifsc
-            }, { merge: true });
-            alert("✅ User bank details successfully updated!");
-        } catch(e) { alert("❌ Error: " + e.message); }
-    };
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(700, now + item.t);
 
-    window.deleteUserBank = async () => {
-        if(!currentSearchedUid) return alert("No user selected!");
-        if(!confirm("Are you sure you want to delete/clear this user's bank details?")) return;
+    gain.gain.setValueAtTime(0.001, now + item.t);
+    gain.gain.linearRampToValueAtTime(0.25, now + item.t + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + item.t + item.d);
 
-        try {
-            await setDoc(doc(db, "users", currentSearchedUid), {
-                holderName: "",
-                bankName: "",
-                accNo: "",
-                ifsc: ""
-            }, { merge: true });
-            alert("✅ Bank details cleared successfully!");
-            document.getElementById('inBankUid').value = "";
-            document.getElementById('bankRes').innerHTML = "";
-            currentSearchedUid = null;
-        } catch(e) { alert("❌ Error: " + e.message); }
-    };
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
 
-    window.editBalance = async (uid, currentBal) => {
-        const amt = prompt("Enter amount to add (e.g. 100) or subtract (e.g. -100):");
-        if(amt === null || amt === "") return;
-        const addVal = Number(amt);
-        try {
-            const userRef = doc(db, "users", uid);
-            const userSnap = await getDoc(userRef);
-            let prevBal = Number(currentBal);
-            let prevRecharge = 0;
-            if(userSnap.exists()) {
-                prevBal = Number(userSnap.data().balance || userSnap.data().rechargeBalance || currentBal);
-                prevRecharge = Number(userSnap.data().rechargeBalance || 0);
-            }
-            const newBal = prevBal + addVal;
-            const newRecharge = prevRecharge + addVal;
+    osc.start(now + item.t);
+    osc.stop(now + item.t + item.d);
+});
+}catch(e){}
+}
 
-            // दोनों फील्ड्स (balance और rechargeBalance) एक साथ अपडेट करें ताकि ऐप में कहीं भी बैलेंस मिस न हो
-            await setDoc(userRef, { 
-                balance: newBal,
-                rechargeBalance: newRecharge 
-            }, { merge: true });
+document.addEventListener("click",e=>{
+if(e.target.closest("button")){
+tapSound();
+}
+});
 
-            alert("✅ Balance successfully updated to ₹" + newBal);
-        } catch(e) { alert("❌ Error: " + e.message); }
-    };
+window.showPopup=(title,text)=>{
+document.getElementById("popupTitle").innerText=title;
+document.getElementById("popupText").innerText=text;
+document.getElementById("popupLayer").style.display="flex";
+};
 
-    window.toggleBlock = async (uid, isBlocked) => {
-        const action = isBlocked ? "Unblock" : "Block";
-        if(!confirm(`Are you sure you want to ${action} this user?`)) return;
-        try {
-            await setDoc(doc(db, "users", uid), { isBlocked: !isBlocked }, { merge: true });
-            alert(`✅ User successfully ${action.toLowerCase()}ed!`);
-        } catch(e) { alert("❌ Error: " + e.message); }
-    };
+window.closePopupWithSound=()=>{
+realDevilLaughSound();
+document.getElementById("popupLayer").style.display="none";
+};
 
-    window.updateDepositStatus = async (orderId, uid, amount, status) => {
-        try {
-            await updateDoc(doc(db, "recharges", orderId), { status: status });
-            if(status === 'success') {
-                const userRef = doc(db, "users", uid);
-                const userSnap = await getDoc(userRef);
-                if(userSnap.exists()) {
-                    const userData = userSnap.data();
-                    const currentBal = Number(userData.balance || 0);
-                    const currentRechargeBal = Number(userData.rechargeBalance || 0);
-                    const depositAmt = Number(amount);
+window.showPage=(id,btn)=>{
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+btn.classList.add("active");
+};
 
-                    // यूजर के दोनों मुख्य बैलेंस फील्ड्स में अमाउंट जोड़ें ताकि ऐप तुरंत अपडेट हो जाए
-                    await setDoc(userRef, { 
-                        balance: currentBal + depositAmt,
-                        rechargeBalance: currentRechargeBal + depositAmt 
-                    }, { merge: true });
-                }
-            }
-            alert(`✅ Deposit successfully marked as ${status.toUpperCase()}!`);
-        } catch(e) { alert("❌ Error: " + e.message); }
-    };
+window.saveSetting=async(col,id,data)=>{
+try{
+await setDoc(doc(db,col,id),data,{merge:true});
+showPopup("👹 UPDATED","Setting Firebase में successfully save हो गई।");
+}catch(e){
+showPopup("ERROR",e.message);
+}
+};
 
-    window.updateWithdrawalStatus = async (orderId, uid, amount, status) => {
-        try {
-            await updateDoc(doc(db, "withdrawals", orderId), { status: status });
-            if(status === 'rejected') {
-                const userRef = doc(db, "users", uid);
-                const userSnap = await getDoc(userRef);
-                if(userSnap.exists()) {
-                    const userData = userSnap.data();
-                    const currentBal = Number(userData.balance || 0);
-                    const currentRechargeBal = Number(userData.rechargeBalance || 0);
-                    const refundAmt = Number(amount);
+window.savePackage=async()=>{
+const id=document.getElementById("pkgId").value.trim();
+const amount=Number(document.getElementById("pkgAmt").value);
+const reward=Number(document.getElementById("pkgRev").value);
+if(!id||!amount){
+showPopup("WARNING","Package ID और Amount भरें।");
+return;
+}
+try{
+await setDoc(doc(db,"packages",id),{packageId:id,amount:amount,reward:reward},{merge:true});
+showPopup("👹 PACKAGE SAVED","Package Firebase में save हो गया।");
+}catch(e){
+showPopup("ERROR",e.message);
+}
+};
 
-                    await setDoc(userRef, { 
-                        balance: currentBal + refundAmt,
-                        rechargeBalance: currentRechargeBal + refundAmt 
-                    }, { merge: true });
-                }
-            }
-            alert(`✅ Withdrawal successfully marked as ${status.toUpperCase()}!`);
-        } catch(e) { alert("❌ Error: " + e.message); }
-    };
+window.saveGiftCode=async()=>{
+const code=document.getElementById("gCode").value.trim();
+const amount=Number(document.getElementById("gAmt").value);
+const limit=Number(document.getElementById("gLimit").value);
+if(!code||!amount||!limit){
+showPopup("WARNING","Gift Code, Amount और Limit भरें।");
+return;
+}
+try{
+await setDoc(doc(db,"giftcodes",code),{code:code,amount:amount,limit:limit,claimed:0},{merge:true});
+showPopup("👹 GIFT SAVED","Gift code Firebase में save हो गया।");
+}catch(e){
+showPopup("ERROR",e.message);
+}
+};
 
-    // Render Functions
-    function renderUsers(usersList) {
-        let html = "";
-        if(usersList.length === 0) {
-            document.getElementById('usersContainer').innerHTML = "<p style='color:#94a3b8; text-align:center;'>No users found.</p>";
-            return;
-        }
-        usersList.forEach(u => {
-            const blocked = u.isBlocked ? '<span style="color:red">Blocked</span>' : '<span style="color:green">Active</span>';
-            const displayBal = u.balance !== undefined ? u.balance : (u.rechargeBalance || 0);
-            html += `
-                <div class="record-card">
-                    <div class="record-row"><span><b>Phone/UID:</b> ${u.id}</span><span><b>Balance:</b> ₹${displayBal}</span></div>
-                    <div class="record-row"><span><b>Nickname:</b> ${u.nickname||u.name||'N/A'}</span><span><b>Status:</b> ${blocked}</span></div>
-                    <div class="record-actions">
-                        <button class="sub-btn primary" onclick="editBalance('${u.id}', ${displayBal})">Edit Balance</button>
-                        <button class="sub-btn ${u.isBlocked?'success':'danger'}" onclick="toggleBlock('${u.id}', ${u.isBlocked||false})">${u.isBlocked?'Unblock':'Block'}</button>
-                    </div>
-                </div>`;
+// Manual Balance Edit (Add/Deduct)
+window.modifyUserBalance=async(uid)=>{
+let amountStr = prompt("Enter amount to add (e.g. 100) or deduct (e.g. -50):");
+if(!amountStr) return;
+let amt = Number(amountStr);
+if(isNaN(amt)){
+showPopup("ERROR","Invalid amount!");
+return;
+}
+try{
+await updateDoc(doc(db,"users",uid),{
+balance: increment(amt)
+});
+showPopup("👹 SUCCESS","User balance updated successfully!");
+}catch(e){
+showPopup("ERROR",e.message);
+}
+};
+
+// Deposit Accept / Reject actions (Adds balance to user account on success)
+window.updateDepositStatus=async(id, status)=>{
+try{
+const depositDocRef = doc(db, "recharges", id);
+const depositSnap = await getDoc(depositDocRef);
+
+if(!depositSnap.exists()){
+    showPopup("ERROR", "Deposit record not found!");
+    return;
+}
+
+const depositData = depositSnap.data();
+const userId = depositData.uid;
+const amount = Number(depositData.amount || 0);
+const currentStatus = depositData.status;
+
+// If already success, don't add balance again
+if(currentStatus === "success" && status === "success"){
+    showPopup("INFO", "Deposit is already approved.");
+    return;
+}
+
+// Update recharge document status
+await updateDoc(depositDocRef, { status: status });
+
+// If status is success, add balance to user document automatically
+if(status === "success" && userId && amount > 0){
+    const userDocRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userDocRef);
+
+    if(userSnap.exists()){
+        await updateDoc(userDocRef, {
+            balance: increment(amount)
         });
-        document.getElementById('usersContainer').innerHTML = html;
+    } else {
+        // If user doc doesn't exist by uid, create/set balance
+        await setDoc(userDocRef, { balance: amount }, { merge: true });
     }
+    showPopup("👹 SUCCESS", `Deposit approved! ₹${amount} added to user ${userId} account.`);
+} else {
+    showPopup("👹 STATUS UPDATED", `Deposit has been marked as ${status}.`);
+}
 
-    function renderDeposits(depList) {
-        let html = "";
-        if(depList.length === 0) {
-            document.getElementById('depContainer').innerHTML = "<p style='color:#94a3b8; text-align:center;'>No deposits found.</p>";
-            return;
-        }
-        depList.forEach(v => {
-            const orderId = v.id;
-            let actionButtons = '';
-            let badgeClass = 'status-pending';
-            if(v.status === 'success') {
-                badgeClass = 'status-success';
-                actionButtons = '<span style="color:#16a34a; font-weight:bold;">✔ Approved</span>';
-            } else if(v.status === 'rejected') {
-                badgeClass = 'status-rejected';
-                actionButtons = '<span style="color:#dc2626; font-weight:bold;">✖ Rejected</span>';
-            } else {
-                actionButtons = `
-                    <button class="sub-btn success" onclick="updateDepositStatus('${orderId}', '${v.uid}', ${v.amount}, 'success')">Approve</button>
-                    <button class="sub-btn danger" onclick="updateDepositStatus('${orderId}', '${v.uid}', ${v.amount}, 'rejected')">Reject</button>
-                `;
-            }
+}catch(e){
+showPopup("ERROR", e.message);
+}
+};
 
-            html += `
-                <div class="record-card">
-                    <div class="record-row"><span><b>UID:</b> ${v.uid}</span><span><b>Amount:</b> ₹${v.amount}</span></div>
-                    <div class="record-row"><span><b>UTR:</b> ${v.utrNumber||v.utr||'N/A'}</span><span><b>Status:</b> <span class="status-badge ${badgeClass}">${v.status}</span></span></div>
-                    <div class="record-actions">${actionButtons}</div>
-                </div>`;
-        });
-        document.getElementById('depContainer').innerHTML = html;
-    }
+// Withdrawal Accept / Reject actions (Hides buttons once processed)
+window.updateWithdrawalStatus=async(id, status)=>{
+try{
+await updateDoc(doc(db,"withdrawals",id),{status: status});
+showPopup("👹 STATUS UPDATED", `Withdrawal has been marked as ${status}.`);
+}catch(e){
+showPopup("ERROR", e.message);
+}
+};
 
-    function renderWithdrawals(withList) {
-        let html = "";
-        if(withList.length === 0) {
-            document.getElementById('withContainer').innerHTML = "<p style='color:#94a3b8; text-align:center;'>No withdrawals found.</p>";
-            return;
-        }
-        withList.forEach(v => {
-            const orderId = v.id;
-            let actionButtons = '';
-            let badgeClass = 'status-pending';
-            if(v.status === 'success') {
-                badgeClass = 'status-success';
-                actionButtons = '<span style="color:#16a34a; font-weight:bold;">✔ Approved</span>';
-            } else if(v.status === 'rejected') {
-                badgeClass = 'status-rejected';
-                actionButtons = '<span style="color:#dc2626; font-weight:bold;">✖ Rejected</span>';
-            } else {
-                actionButtons = `
-                    <button class="sub-btn success" onclick="updateWithdrawalStatus('${orderId}', '${v.uid}', ${v.amount}, 'success')">Approve</button>
-                    <button class="sub-btn danger" onclick="updateWithdrawalStatus('${orderId}', '${v.uid}', ${v.amount}, 'rejected')">Reject</button>
-                `;
-            }
+window.searchUserBank=async()=>{
+const uid=document.getElementById("inBankUid").value.trim();
+const res=document.getElementById("bankRes");
+if(!uid){
+showPopup("WARNING","Phone Number या UID डालें।");
+return;
+}
+res.innerHTML="<div class='empty'>⏳ Searching...</div>";
+try{
+const snap=await getDoc(doc(db,"users",uid));
+if(!snap.exists()){
+res.innerHTML="<div class='empty'>User नहीं मिला।</div>";
+return;
+}
+const d=snap.data();
+res.innerHTML=`
+<div class="record-card">
+<div class="record-row"><span><b>UID:</b></span><span>${escapeHtml(uid)}</span></div>
+<label>Holder Name</label>
+<input id="editHolder" value="${escapeAttr(d.holderName||d.name||d.nickname||"")}">
+<label>Bank Name</label>
+<input id="editBankName" value="${escapeAttr(d.bankName||"")}">
+<label>Account Number</label>
+<input id="editAccNo" value="${escapeAttr(d.accNo||"")}">
+<label>IFSC</label>
+<input id="editIfsc" value="${escapeAttr(d.ifsc||"")}">
+<div class="record-actions">
+<button class="sub-btn success" onclick="saveUserBank('${escapeAttr(uid)}')">Update Bank</button>
+<button class="sub-btn danger" onclick="clearUserBank('${escapeAttr(uid)}')">Clear Bank</button>
+</div>
+</div>
+`;
+}catch(e){
+res.innerHTML="<div class='empty'>Error: "+escapeHtml(e.message)+"</div>";
+}
+};
 
-            html += `
-                <div class="record-card">
-                    <div class="record-row"><span><b>UID:</b> ${v.uid}</span><span><b>Amount:</b> ₹${v.amount}</span></div>
-                    <div class="record-row"><span><b>Status:</b> <span class="status-badge ${badgeClass}">${v.status}</span></span><span><b>Bank:</b> ${v.bankName||'N/A'}</span></div>
-                    <div class="record-row"><span><b>Acc:</b> ${v.accNo||'N/A'} | <b>IFSC:</b> ${v.ifsc||'N/A'}</span></div>
-                    <div class="record-actions">${actionButtons}</div>
-                </div>`;
-        });
-        document.getElementById('withContainer').innerHTML = html;
-    }
+window.saveUserBank=async(uid)=>{
+try{
+await setDoc(doc(db,"users",uid),{
+holderName:document.getElementById("editHolder").value.trim(),
+bankName:document.getElementById("editBankName").value.trim(),
+accNo:document.getElementById("editAccNo").value.trim(),
+ifsc:document.getElementById("editIfsc").value.trim()
+},{merge:true});
+showPopup("👹 BANK UPDATED","Bank details Firebase में update हो गईं।");
+}catch(e){
+showPopup("ERROR",e.message);
+}
+};
 
-    // Search Filters
-    window.filterUsers = () => {
-        const query = document.getElementById('searchUserPhone').value.trim();
-        if(!query) return renderUsers(allUsersCache);
-        const filtered = allUsersCache.filter(u => u.id.includes(query));
-        renderUsers(filtered);
-    };
-    window.resetUserSearch = () => {
-        document.getElementById('searchUserPhone').value = "";
-        renderUsers(allUsersCache);
-    };
+window.clearUserBank=async(uid)=>{
+if(!confirm("Bank details clear करना चाहते हैं?")) return;
+try{
+await setDoc(doc(db,"users",uid),{holderName:"",bankName:"",accNo:"",ifsc:""},{merge:true});
+showPopup("👹 BANK CLEARED","Bank details clear हो गईं।");
+document.getElementById("bankRes").innerHTML="";
+}catch(e){
+showPopup("ERROR",e.message);
+}
+};
 
-    window.filterDeposits = () => {
-        const query = document.getElementById('searchDepInput').value.trim().toLowerCase();
-        if(!query) return renderDeposits(allDepositsCache);
-        const filtered = allDepositsCache.filter(d => {
-            const utr = (d.utrNumber || d.utr || '').toLowerCase();
-            const uid = (d.uid || '').toLowerCase();
-            return utr.includes(query) || uid.includes(query);
-        });
-        renderDeposits(filtered);
-    };
-    window.resetDepositSearch = () => {
-        document.getElementById('searchDepInput').value = "";
-        renderDeposits(allDepositsCache);
-    };
+function renderUsers(list){
+const box=document.getElementById("usersContainer");
+if(!list.length){
+box.innerHTML="<div class='empty'>No users found.</div>";
+return;
+}
+box.innerHTML=list.map(u=>{
+const bal=u.balance!==undefined?u.balance:(u.rechargeBalance||0);
+return `
+<div class="record-card">
+<div class="record-row">
+<span><b>Phone / UID:</b> ${escapeHtml(u.id)}</span>
+<span><b>Balance:</b> ₹${Number(bal||0).toFixed(2)}</span>
+</div>
+<div class="record-row">
+<span><b>Name:</b> ${escapeHtml(u.nickname||u.name||"N/A")}</span>
+<span><b>Status:</b> <span style="color:${u.isBlocked?"#ff4040":"#35d675"}">${u.isBlocked?"Blocked":"Active"}</span></span>
+</div>
+<div class="record-actions">
+<button class="sub-btn primary" onclick="modifyUserBalance('${escapeAttr(u.id)}')">Edit Balance (+/-)</button>
+</div>
+</div>
+`;
+}).join("");
+}
 
-    window.filterWithdrawals = () => {
-        const query = document.getElementById('searchWithInput').value.trim().toLowerCase();
-        if(!query) return renderWithdrawals(allWithdrawalsCache);
-        const filtered = allWithdrawalsCache.filter(w => {
-            const uid = (w.uid || '').toLowerCase();
-            const acc = (w.accNo || '').toLowerCase();
-            return uid.includes(query) || acc.includes(query);
-        });
-        renderWithdrawals(filtered);
-    };
-    window.resetWithdrawalSearch = () => {
-        document.getElementById('searchWithInput').value = "";
-        renderWithdrawals(allWithdrawalsCache);
-    };
+window.filterUsers=()=>{
+const q=document.getElementById("searchUserPhone").value.trim().toLowerCase();
+if(!q){
+renderUsers(allUsersCache);
+return;
+}
+renderUsers(allUsersCache.filter(u=>String(u.id).toLowerCase().includes(q)||String(u.phone||"").toLowerCase().includes(q)));
+};
 
-    // --- REAL-TIME LISTENERS ---
-    onSnapshot(collection(db, "users"), snap => {
-        document.getElementById('st-users').innerText = snap.size;
-        allUsersCache = [];
-        snap.forEach(d => { allUsersCache.push({ id: d.id, ...d.data() }); });
-        renderUsers(allUsersCache);
-    });
+window.resetUserSearch=()=>{
+document.getElementById("searchUserPhone").value="";
+renderUsers(allUsersCache);
+};
 
-    onSnapshot(collection(db, "recharges"), snap => {
-        let p = 0;
-        allDepositsCache = [];
-        snap.forEach(d => {
-            const v = d.data();
-            if(v.status === 'pending') p++;
-            allDepositsCache.push({ id: d.id, ...v });
-        });
-        document.getElementById('st-dep').innerText = p;
-        renderDeposits(allDepositsCache);
-    });
+function renderDeposits(list){
+const box=document.getElementById("depContainer");
+if(!list.length){
+box.innerHTML="<div class='empty'>No deposits found.</div>";
+return;
+}
+box.innerHTML=list.map(v=>{
+let cls="status-pending";
+if(v.status==="success") cls="status-success";
+if(v.status==="rejected") cls="status-rejected";
 
-    onSnapshot(collection(db, "withdrawals"), snap => {
-        let p = 0;
-        allWithdrawalsCache = [];
-        snap.forEach(d => {
-            const v = d.data();
-            if(v.status === 'pending') p++;
-            allWithdrawalsCache.push({ id: d.id, ...v });
-        });
-        document.getElementById('st-with').innerText = p;
-        renderWithdrawals(allWithdrawalsCache);
-    });
+let actionButtonsHTML = "";
+if(v.status !== "success" && v.status !== "rejected"){
+    actionButtonsHTML = `
+    <div class="record-actions">
+        <button class="sub-btn success" onclick="updateDepositStatus('${escapeAttr(v.id)}', 'success')">Accept</button>
+        <button class="sub-btn danger" onclick="updateDepositStatus('${escapeAttr(v.id)}', 'rejected')">Reject</button>
+    </div>`;
+}
 
-    onSnapshot(collection(db, "referrals"), snap => {
-        let html = "";
-        snap.forEach(d => {
-            const v = d.data();
-            html += `
-                <div class="record-card">
-                    <div class="record-row"><span><b>UID:</b> ${d.id}</span><span><b>Earnings:</b> ₹${v.earnings||0}</span></div>
-                    <div class="record-row"><span><b>Total Referrals:</b> ${v.totalReferrals||0}</span></div>
-                </div>`;
-        });
-        document.getElementById('refContainer').innerHTML = html || "<p style='color:#94a3b8; text-align:center;'>No referrals found.</p>";
-    });
+return `
+<div class="record-card">
+<div class="record-row">
+<span><b>UID:</b> ${escapeHtml(v.uid||"N/A")}</span>
+<span><b>Amount:</b> ₹${Number(v.amount||0).toFixed(2)}</span>
+</div>
+<div class="record-row">
+<span><b>UTR:</b> ${escapeHtml(v.utrNumber||v.utr||"N/A")}</span>
+<span><b>Status:</b> <span class="status-badge ${cls}">${escapeHtml(v.status||"pending")}</span></span>
+</div>
+${actionButtonsHTML}
+</div>
+`;
+}).join("");
+}
+
+window.filterDeposits=()=>{
+const q=document.getElementById("searchDepInput").value.trim().toLowerCase();
+if(!q){
+renderDeposits(allDepositsCache);
+return;
+}
+renderDeposits(allDepositsCache.filter(v=>String(v.uid||"").toLowerCase().includes(q)||String(v.utrNumber||v.utr||"").toLowerCase().includes(q)));
+};
+
+window.resetDepositSearch=()=>{
+document.getElementById("searchDepInput").value="";
+renderDeposits(allDepositsCache);
+};
+
+function renderWithdrawals(list){
+const box=document.getElementById("withContainer");
+if(!list.length){
+box.innerHTML="<div class='empty'>No withdrawals found.</div>";
+return;
+}
+box.innerHTML=list.map(v=>{
+let cls="status-pending";
+if(v.status==="success") cls="status-success";
+if(v.status==="rejected") cls="status-rejected";
+
+let actionButtonsHTML = "";
+if(v.status !== "success" && v.status !== "rejected"){
+    actionButtonsHTML = `
+    <div class="record-actions">
+        <button class="sub-btn success" onclick="updateWithdrawalStatus('${escapeAttr(v.id)}', 'success')">Accept</button>
+        <button class="sub-btn danger" onclick="updateWithdrawalStatus('${escapeAttr(v.id)}', 'rejected')">Reject</button>
+    </div>`;
+}
+
+return `
+<div class="record-card">
+<div class="record-row">
+<span><b>UID:</b> ${escapeHtml(v.uid||"N/A")}</span>
+<span><b>Amount:</b> ₹${Number(v.amount||0).toFixed(2)}</span>
+</div>
+<div class="record-row">
+<span><b>Status:</b> <span class="status-badge ${cls}">${escapeHtml(v.status||"pending")}</span></span>
+<span><b>Bank:</b> ${escapeHtml(v.bankName||"N/A")}</span>
+</div>
+<div class="record-row">
+<span><b>Account:</b> ${escapeHtml(v.accNo||"N/A")}</span>
+<span><b>IFSC:</b> ${escapeHtml(v.ifsc||"N/A")}</span>
+</div>
+${actionButtonsHTML}
+</div>
+`;
+}).join("");
+}
+
+window.filterWithdrawals=()=>{
+const q=document.getElementById("searchWithInput").value.trim().toLowerCase();
+if(!q){
+renderWithdrawals(allWithdrawalsCache);
+return;
+}
+renderWithdrawals(allWithdrawalsCache.filter(v=>String(v.uid||"").toLowerCase().includes(q)||String(v.accNo||"").toLowerCase().includes(q)));
+};
+
+window.resetWithdrawalSearch=()=>{
+document.getElementById("searchWithInput").value="";
+renderWithdrawals(allWithdrawalsCache);
+};
+
+function renderInvestments(list){
+const box=document.getElementById("investContainer");
+if(!list.length){
+box.innerHTML="<div class='empty'>No VIP purchases found yet.</div>";
+return;
+}
+box.innerHTML=list.map(v=>`
+<div class="record-card">
+<div class="record-row">
+<span><b>UID / User:</b> ${escapeHtml(v.uid||v.userId||"N/A")}</span>
+<span><b>Package:</b> ${escapeHtml(v.packageId||v.packageName||"VIP Pack")}</span>
+</div>
+<div class="record-row">
+<span><b>Amount:</b> ₹${Number(v.amount||0).toFixed(2)}</span>
+<span><b>Date:</b> ${escapeHtml(v.date||v.timestamp||"N/A")}</span>
+</div>
+</div>
+`).join("");
+}
+
+function renderReferrals(list){
+const box=document.getElementById("refContainer");
+if(!list.length){
+box.innerHTML="<div class='empty'>No referrals found.</div>";
+return;
+}
+box.innerHTML=list.map(v=>`
+<div class="record-card">
+<div class="record-row">
+<span><b>UID:</b> ${escapeHtml(v.id)}</span>
+<span><b>Earnings:</b> ₹${Number(v.earnings||0).toFixed(2)}</span>
+</div>
+<div class="record-row">
+<span><b>Total Referrals:</b> ${Number(v.totalReferrals||0)}</span>
+</div>
+</div>
+`).join("");
+}
+
+function escapeHtml(value){
+return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+}
+
+function escapeAttr(value){
+return escapeHtml(value);
+}
+
+// Firebase Realtime Listeners
+onSnapshot(collection(db,"users"),snap=>{
+document.getElementById("st-users").innerText=snap.size;
+allUsersCache=[];
+snap.forEach(d=>{allUsersCache.push({id:d.id,...d.data()});});
+renderUsers(allUsersCache);
+});
+
+onSnapshot(collection(db,"recharges"),snap=>{
+let pending=0;
+allDepositsCache=[];
+snap.forEach(d=>{
+const v=d.data();
+if(v.status==="pending") pending++;
+allDepositsCache.push({id:d.id,...v});
+});
+document.getElementById("st-dep").innerText=pending;
+renderDeposits(allDepositsCache);
+});
+
+onSnapshot(collection(db,"withdrawals"),snap=>{
+let pending=0;
+allWithdrawalsCache=[];
+snap.forEach(d=>{
+const v=d.data();
+if(v.status==="pending") pending++;
+allWithdrawalsCache.push({id:d.id,...v});
+});
+document.getElementById("st-with").innerText=pending;
+renderWithdrawals(allWithdrawalsCache);
+});
+
+onSnapshot(collection(db,"investments"),snap=>{
+allInvestmentsCache=[];
+snap.forEach(d=>{
+allInvestmentsCache.push({id:d.id,...d.data()});
+});
+renderInvestments(allInvestmentsCache);
+});
+
+onSnapshot(collection(db,"referrals"),snap=>{
+const list=[];
+snap.forEach(d=>{list.push({id:d.id,...d.data()});});
+renderReferrals(list);
+});
+
+onSnapshot(doc(db,"settings","payment"),snap=>{
+if(snap.exists()){
+document.getElementById("inUpi").value=snap.data().upiId||"";
+}
+});
+
+onSnapshot(doc(db,"settings","support"),snap=>{
+if(snap.exists()){
+document.getElementById("inCs").value=snap.data().csLink||"";
+}
+});
+
+onSnapshot(doc(db,"settings","config"),snap=>{
+if(snap.exists()){
+document.getElementById("inBonus").value=snap.data().bonusAmount??"";
+}
+});
+
 </script>
+
 </body>
 </html>

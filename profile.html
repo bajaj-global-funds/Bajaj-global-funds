@@ -1,733 +1,3586 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Account Profile - Bajaj Global Funds</title>
-    
-    <!-- Firebase CDNs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account Profile - Bajaj Global Funds</title>
 
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { 
-            background-color: #f4f6f9; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 
-        .app-container {
-            width: 100%;
-            max-width: 480px;
-            min-height: 100vh;
-            background: #f4f6f9;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            position: relative;
-            padding-bottom: 75px;
-        }
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+}
 
-        .page-view { display: none; }
-        .page-view.active-page { display: block; }
-        .content-body { flex: 1; overflow-y: auto; }
+body{
+    background:#f4f6f9;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    color:#1f2937;
+}
 
-        /* टॉप ग्रीन हेडर एरिया */
-        .header-section {
-            background-color: #00b050;
-            padding: 20px 15px 40px 15px;
-            color: #ffffff;
-            border-bottom-left-radius: 25px;
-            border-bottom-right-radius: 25px;
-        }
+button,
+input,
+textarea,
+select{
+    font-family:inherit;
+}
 
-        .user-info-box {
-            display: flex;
-            align-items: center;
-            margin-bottom: 25px;
-        }
+button{
+    -webkit-tap-highlight-color:transparent;
+}
 
-        .avatar-box {
-            position: relative;
-            width: 65px;
-            height: 65px;
-            background: #ffffff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            margin-right: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            cursor: pointer;
-        }
+.app-container{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    background:#f4f6f9;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    padding-bottom:75px;
+    box-shadow:0 0 15px rgba(0,0,0,.10);
+}
 
-        .avatar-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+.content-body{
+    flex:1;
+    overflow-y:auto;
+}
 
-        .camera-overlay {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+.page-view{
+    display:none;
+}
 
-        .camera-overlay svg {
-            width: 14px;
-            height: 14px;
-            fill: #ffffff;
-        }
+.page-view.active-page{
+    display:block;
+}
 
-        .user-details h2 {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
+/* ================= HEADER ================= */
 
-        .user-id-badge {
-            display: inline-flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 13px;
-        }
+.header-section{
+    background:#00b050;
+    padding:20px 15px 40px;
+    color:#fff;
+    border-bottom-left-radius:25px;
+    border-bottom-right-radius:25px;
+}
 
-        .balance-row {
-            display: flex;
-            justify-content: space-between;
-            text-align: center;
-            margin-top: 15px;
-        }
+.user-info-box{
+    display:flex;
+    align-items:center;
+    margin-bottom:25px;
+}
 
-        .balance-item h3 {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
+.avatar-box{
+    position:relative;
+    width:65px;
+    height:65px;
+    background:#fff;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    margin-right:15px;
+    box-shadow:0 4px 8px rgba(0,0,0,.15);
+    cursor:pointer;
+    flex-shrink:0;
+}
 
-        .balance-item p {
-            font-size: 11px;
-            opacity: 0.9;
-        }
+.avatar-box img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
 
-        .container {
-            padding: 0 15px;
-            margin-top: -20px;
-        }
+.camera-overlay{
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:100%;
+    background:rgba(0,0,0,.58);
+    height:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
 
-        .vip-card {
-            background: #fff8eb;
-            border: 1px solid #fde6c5;
-            border-radius: 12px;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-        }
+.camera-overlay svg{
+    width:14px;
+    height:14px;
+    fill:#fff;
+}
 
-        .vip-left {
-            display: flex;
-            align-items: center;
-        }
+.user-details{
+    min-width:0;
+}
 
-        .vip-icon {
-            font-size: 24px;
-            margin-right: 10px;
-        }
+.user-details h2{
+    font-size:18px;
+    font-weight:700;
+    margin-bottom:5px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:230px;
+}
 
-        .vip-info h4 {
-            font-size: 15px;
-            color: #b45309;
-            font-weight: bold;
-        }
+.user-id-badge{
+    display:inline-flex;
+    align-items:center;
+    background:rgba(255,255,255,.20);
+    padding:4px 10px;
+    border-radius:20px;
+    font-size:12px;
+}
 
-        .vip-info p {
-            font-size: 11px;
-            color: #78350f;
-            margin-top: 2px;
-        }
+.balance-row{
+    display:flex;
+    justify-content:space-between;
+    text-align:center;
+    margin-top:15px;
+    gap:5px;
+}
 
-        .upgrade-btn {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+.balance-item{
+    flex:1;
+    min-width:0;
+}
 
-        /* Recharge और Withdraw ग्रिड */
-        .menu-grid {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 20px 10px;
-            display: flex;
-            justify-content: space-around;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-            margin-bottom: 15px;
-        }
+.balance-item h3{
+    font-size:17px;
+    font-weight:700;
+    margin-bottom:4px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
 
-        .menu-item {
-            text-decoration: none;
-            color: #374151;
-            font-size: 12px;
-            flex: 1;
-            cursor: pointer;
-            background: none;
-            border: none;
-            display: block;
-        }
+.balance-item p{
+    font-size:10px;
+    opacity:.92;
+    line-height:1.3;
+}
 
-        .menu-icon-box {
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 6px auto;
-        }
+/* ================= CONTENT ================= */
 
-        .bg-yellow { background-color: #fef3c7; color: #d97706; }
-        .bg-green { background-color: #d1fae5; color: #059669; }
+.container{
+    padding:0 15px;
+    margin-top:-20px;
+}
 
-        .menu-icon-box svg {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
-        }
+.vip-card{
+    background:#fff8eb;
+    border:1px solid #fde6c5;
+    border-radius:12px;
+    padding:15px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    box-shadow:0 4px 10px rgba(0,0,0,.05);
+    margin-bottom:15px;
+}
 
-        /* Application Service लिस्ट */
-        .app-service-box {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        }
+.vip-left{
+    display:flex;
+    align-items:center;
+    min-width:0;
+}
 
-        .app-service-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #1f2937;
-            margin-bottom: 12px;
-        }
+.vip-icon{
+    width:46px;
+    height:46px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-right:10px;
+    flex-shrink:0;
+}
 
-        .service-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #f3f4f6;
-            cursor: pointer;
-        }
+.vip-icon svg{
+    width:42px;
+    height:42px;
+}
 
-        .service-item:last-child {
-            border-bottom: none;
-        }
+.vip-info{
+    min-width:0;
+}
 
-        .service-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+.vip-info h4{
+    font-size:14px;
+    color:#b45309;
+    font-weight:800;
+}
 
-        .service-icon-bg {
-            width: 36px;
-            height: 36px;
-            background-color: #d1fae5;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+.vip-info p{
+    font-size:10px;
+    color:#78350f;
+    margin-top:3px;
+    line-height:1.35;
+}
 
-        .service-icon-bg svg {
-            width: 20px;
-            height: 20px;
-            fill: #00b050;
-        }
+.upgrade-btn{
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+    color:#fff;
+    border:none;
+    padding:8px 13px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    flex-shrink:0;
+}
 
-        .service-item span:nth-child(2) {
-            font-size: 14px;
-            color: #374151;
-            font-weight: 500;
-        }
+/* ================= DEPOSIT / WITHDRAW ================= */
 
-        .arrow-icon {
-            color: #9ca3af;
-            font-size: 16px;
-        }
+.menu-grid{
+    background:#fff;
+    border-radius:12px;
+    padding:20px 10px;
+    display:flex;
+    justify-content:space-around;
+    text-align:center;
+    box-shadow:0 2px 8px rgba(0,0,0,.03);
+    margin-bottom:15px;
+}
 
-        /* फुल-पेज सब-व्यूज़ */
-        .sub-view {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #f4f6f9;
-            z-index: 10000;
-            overflow-y: auto;
-            padding: 20px;
-        }
+.menu-item{
+    text-decoration:none;
+    color:#374151;
+    font-size:12px;
+    flex:1;
+    cursor:pointer;
+    background:none;
+    border:none;
+    display:block;
+}
 
-        .sub-view.active {
-            display: block;
-        }
+.menu-icon-box{
+    width:45px;
+    height:45px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto 6px;
+}
 
-        .sub-header {
-            display: flex;
-            align-items: center;
-            background: #ffffff;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+.bg-yellow{
+    background:#fef3c7;
+    color:#d97706;
+}
 
-        .back-btn {
-            background: none;
-            border: none;
-            color: #00b050;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+.bg-green{
+    background:#d1fae5;
+    color:#059669;
+}
 
-        .sub-title {
-            font-size: 17px;
-            font-weight: bold;
-            color: #1f2937;
-            margin-left: 15px;
-        }
+.menu-icon-box svg{
+    width:24px;
+    height:24px;
+    fill:currentColor;
+}
 
-        .sub-content-card {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        }
+/* ================= SERVICE ================= */
 
-        .action-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
-        .btn-action {
-            flex: 1;
-            padding: 12px;
-            border-radius: 10px;
-            border: none;
-            font-weight: bold;
-            font-size: 13px;
-            cursor: pointer;
-            text-align: center;
-        }
-        .btn-settings { background-color: #e5e7eb; color: #374151; }
-        .btn-logout { background-color: #fee2e2; color: #dc2626; }
+.app-service-box{
+    background:#fff;
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:15px;
+    box-shadow:0 2px 8px rgba(0,0,0,.03);
+}
 
-        /* होम पेज जैसी सटीक फ्लोटिंग नेविगेशन बार */
-        .bottom-nav {
-            background: #ffffff;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            height: 65px;
-            border-top: 1px solid #eee;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            max-width: 480px;
-            z-index: 100;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
-        }
-        .nav-item {
-            text-align: center;
-            cursor: pointer;
-            color: #999;
-            font-size: 11px;
-            font-weight: 600;
-            flex: 1;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            position: relative;
-        }
-        .nav-item.active { color: #00b050; }
-        .nav-item svg { width: 24px; height: 24px; fill: currentColor; margin-bottom: 3px; display: block; }
-        
-        /* बीच वाला गिफ्ट बॉक्स (Notice) बटन */
-        .notice-center-wrapper {
-            flex: 1;
-            position: relative;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-        }
-        .notice-center-btn {
-            position: absolute;
-            top: -22px;
-            background: linear-gradient(135deg, #ff9900, #ff5500);
-            width: 58px;
-            height: 58px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 6px 15px rgba(255, 119, 0, 0.4);
-            cursor: pointer;
-            border: 4px solid #f4f6f9;
-            text-decoration: none;
-            font-size: 28px;
-            transition: transform 0.2s;
-        }
-        .notice-center-btn:active { transform: scale(0.95); }
-        .notice-label {
-            position: absolute;
-            bottom: 6px;
-            font-size: 11px;
-            color: #999;
-            font-weight: 600;
-        }
-    </style>
+.app-service-title{
+    font-size:16px;
+    font-weight:700;
+    color:#1f2937;
+    margin-bottom:12px;
+}
+
+.service-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 0;
+    border-bottom:1px solid #f3f4f6;
+    cursor:pointer;
+    transition:.15s;
+}
+
+.service-item:active{
+    transform:scale(.985);
+    background:#fafafa;
+}
+
+.service-item:last-child{
+    border-bottom:none;
+}
+
+.service-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.service-icon-bg{
+    width:36px;
+    height:36px;
+    background:#d1fae5;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+}
+
+.service-icon-bg svg{
+    width:20px;
+    height:20px;
+    fill:#00b050;
+}
+
+.service-item span:nth-child(2){
+    font-size:14px;
+    color:#374151;
+    font-weight:500;
+}
+
+.arrow-icon{
+    color:#9ca3af;
+    font-size:20px;
+}
+
+/* ================= ACTION BUTTONS ================= */
+
+.action-buttons{
+    display:flex;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.btn-action{
+    flex:1;
+    padding:12px;
+    border-radius:11px;
+    border:none;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+}
+
+.btn-action svg{
+    width:20px;
+    height:20px;
+}
+
+.btn-settings{
+    background:#fff;
+    color:#374151;
+    border:1px solid #e5e7eb;
+}
+
+.btn-logout{
+    background:#fff0f0;
+    color:#dc2626;
+    border:1px solid #fecaca;
+}
+
+/* ================= SUB VIEW ================= */
+
+.sub-view{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:#f4f6f9;
+    z-index:10000;
+    overflow-y:auto;
+    padding:20px;
+}
+
+.sub-view.active{
+    display:block;
+}
+
+.sub-inner{
+    width:100%;
+    max-width:480px;
+    margin:0 auto;
+    padding-bottom:30px;
+}
+
+.sub-header{
+    display:flex;
+    align-items:center;
+    background:#fff;
+    padding:15px;
+    border-radius:12px;
+    margin-bottom:15px;
+    box-shadow:0 2px 5px rgba(0,0,0,.05);
+    position:sticky;
+    top:0;
+    z-index:5;
+}
+
+.back-btn{
+    background:none;
+    border:none;
+    color:#00a548;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+}
+
+.back-btn svg{
+    width:20px;
+    height:20px;
+    fill:currentColor;
+}
+
+.sub-title{
+    font-size:17px;
+    font-weight:700;
+    color:#1f2937;
+    margin-left:15px;
+}
+
+.sub-content-card{
+    background:#fff;
+    padding:18px;
+    border-radius:14px;
+    box-shadow:0 2px 8px rgba(0,0,0,.04);
+    margin-bottom:14px;
+}
+
+.section-title{
+    font-size:16px;
+    font-weight:800;
+    margin-bottom:5px;
+}
+
+.muted{
+    color:#9ca3af;
+    font-size:12px;
+}
+
+/* ================= PREMIUM CARDS ================= */
+
+.premium-card{
+    background:linear-gradient(145deg,#fffdf7,#fff7df);
+    border:1px solid #f2d98b;
+    border-radius:15px;
+    padding:16px;
+    box-shadow:0 7px 20px rgba(180,140,20,.10);
+    margin-bottom:12px;
+}
+
+.gold-title{
+    color:#a87800;
+    font-weight:800;
+}
+
+.stat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:14px;
+}
+
+.stat-box{
+    background:#f9fafb;
+    border-radius:11px;
+    padding:13px;
+    border:1px solid #f0f0f0;
+}
+
+.stat-box small{
+    color:#9ca3af;
+    display:block;
+    font-size:10px;
+    margin-bottom:5px;
+}
+
+.stat-box strong{
+    font-size:16px;
+}
+
+/* ================= TRANSACTIONS ================= */
+
+.transaction-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.transaction-card{
+    background:#fff;
+    border:1px solid #edf0f2;
+    border-radius:13px;
+    padding:13px;
+    box-shadow:0 3px 10px rgba(0,0,0,.03);
+}
+
+.transaction-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.transaction-left{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+}
+
+.transaction-icon{
+    width:39px;
+    height:39px;
+    border-radius:11px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+}
+
+.transaction-icon.plus{
+    background:#dcfce7;
+    color:#16a34a;
+}
+
+.transaction-icon.minus{
+    background:#fee2e2;
+    color:#dc2626;
+}
+
+.transaction-icon svg{
+    width:20px;
+    height:20px;
+    fill:currentColor;
+}
+
+.transaction-name{
+    font-size:13px;
+    font-weight:700;
+}
+
+.transaction-type{
+    font-size:10px;
+    color:#9ca3af;
+    margin-top:3px;
+}
+
+.transaction-amount{
+    font-size:15px;
+    font-weight:800;
+    white-space:nowrap;
+}
+
+.transaction-amount.plus{
+    color:#16a34a;
+}
+
+.transaction-amount.minus{
+    color:#dc2626;
+}
+
+.transaction-details{
+    margin-top:10px;
+    padding-top:9px;
+    border-top:1px solid #f3f4f6;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+}
+
+.tx-detail{
+    font-size:10px;
+    color:#6b7280;
+}
+
+.tx-detail strong{
+    display:block;
+    color:#374151;
+    font-size:11px;
+    margin-top:2px;
+}
+
+.status{
+    display:inline-flex;
+    padding:3px 7px;
+    border-radius:20px;
+    font-size:9px;
+    font-weight:700;
+}
+
+.status.completed{
+    background:#dcfce7;
+    color:#15803d;
+}
+
+.status.pending{
+    background:#fef3c7;
+    color:#a16207;
+}
+
+.status.failed{
+    background:#fee2e2;
+    color:#b91c1c;
+}
+
+/* ================= HELP CENTER ================= */
+
+.form-group{
+    margin-bottom:13px;
+}
+
+.form-label{
+    display:block;
+    font-size:12px;
+    font-weight:700;
+    color:#374151;
+    margin-bottom:6px;
+}
+
+.form-control{
+    width:100%;
+    border:1px solid #e5e7eb;
+    background:#fafafa;
+    border-radius:10px;
+    padding:11px 12px;
+    outline:none;
+    font-size:13px;
+    color:#374151;
+}
+
+.form-control:focus{
+    border-color:#00b050;
+    background:#fff;
+    box-shadow:0 0 0 3px rgba(0,176,80,.08);
+}
+
+textarea.form-control{
+    min-height:110px;
+    resize:vertical;
+}
+
+.submit-btn{
+    width:100%;
+    border:none;
+    border-radius:11px;
+    padding:13px;
+    background:linear-gradient(135deg,#00b050,#008c40);
+    color:#fff;
+    font-size:13px;
+    font-weight:800;
+    cursor:pointer;
+    box-shadow:0 6px 15px rgba(0,176,80,.20);
+}
+
+.submit-btn:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+/* ================= SETTINGS ================= */
+
+.setting-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 0;
+    border-bottom:1px solid #f3f4f6;
+}
+
+.setting-row:last-child{
+    border-bottom:none;
+}
+
+.setting-info{
+    display:flex;
+    align-items:center;
+    gap:11px;
+}
+
+.setting-icon{
+    width:38px;
+    height:38px;
+    border-radius:11px;
+    background:#ecfdf5;
+    color:#00a548;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.setting-icon svg{
+    width:20px;
+    height:20px;
+    fill:currentColor;
+}
+
+.setting-name{
+    font-size:13px;
+    font-weight:700;
+}
+
+.setting-value{
+    font-size:11px;
+    color:#9ca3af;
+    margin-top:2px;
+}
+
+.vip-badge{
+    background:linear-gradient(135deg,#f8d76d,#b8860b);
+    color:#fff;
+    border-radius:20px;
+    padding:5px 9px;
+    font-size:9px;
+    font-weight:800;
+}
+
+/* ================= POPUP ================= */
+
+.popup-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.60);
+    backdrop-filter:blur(5px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:30000;
+}
+
+.popup-overlay.show{
+    display:flex;
+}
+
+.vip-popup{
+    width:100%;
+    max-width:360px;
+    background:linear-gradient(145deg,#ffffff,#fffaf0);
+    border:1px solid #efd37b;
+    border-radius:22px;
+    padding:25px 20px 20px;
+    text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,.25);
+    animation:popupIn .18s ease-out;
+}
+
+@keyframes popupIn{
+    from{
+        opacity:0;
+        transform:scale(.94) translateY(10px);
+    }
+    to{
+        opacity:1;
+        transform:scale(1) translateY(0);
+    }
+}
+
+.popup-icon{
+    width:62px;
+    height:62px;
+    margin:0 auto 12px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.popup-icon.gold{
+    background:linear-gradient(135deg,#ffe9a8,#d5a52b);
+}
+
+.popup-icon.red{
+    background:#fee2e2;
+}
+
+.popup-icon.green{
+    background:#dcfce7;
+}
+
+.popup-icon svg{
+    width:31px;
+    height:31px;
+}
+
+.popup-title{
+    font-size:19px;
+    font-weight:800;
+    color:#1f2937;
+    margin-bottom:7px;
+}
+
+.popup-text{
+    font-size:12px;
+    line-height:1.55;
+    color:#6b7280;
+    margin-bottom:18px;
+}
+
+.popup-buttons{
+    display:flex;
+    gap:9px;
+}
+
+.popup-btn{
+    flex:1;
+    border:none;
+    border-radius:10px;
+    padding:11px;
+    font-size:12px;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.popup-btn.cancel{
+    background:#f3f4f6;
+    color:#374151;
+}
+
+.popup-btn.confirm{
+    background:linear-gradient(135deg,#d4a72c,#a87500);
+    color:#fff;
+}
+
+.popup-btn.danger{
+    background:linear-gradient(135deg,#ef4444,#b91c1c);
+    color:#fff;
+}
+
+.popup-btn.success{
+    background:linear-gradient(135deg,#00b050,#008b3f);
+    color:#fff;
+}
+
+/* ================= TOAST ================= */
+
+.toast{
+    position:fixed;
+    left:50%;
+    bottom:88px;
+    transform:translateX(-50%) translateY(20px);
+    background:#1f2937;
+    color:#fff;
+    padding:10px 15px;
+    border-radius:9px;
+    font-size:11px;
+    opacity:0;
+    pointer-events:none;
+    z-index:40000;
+    transition:.25s;
+    max-width:90%;
+    text-align:center;
+}
+
+.toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+}
+
+/* ================= BOTTOM NAV ================= */
+
+.bottom-nav{
+    background:#fff;
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    height:65px;
+    border-top:1px solid #eee;
+    position:fixed;
+    bottom:0;
+    width:100%;
+    max-width:480px;
+    z-index:100;
+    box-shadow:0 -4px 15px rgba(0,0,0,.05);
+}
+
+.nav-item{
+    text-align:center;
+    cursor:pointer;
+    color:#999;
+    font-size:11px;
+    font-weight:600;
+    flex:1;
+    text-decoration:none;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:100%;
+    position:relative;
+}
+
+.nav-item.active{
+    color:#00b050;
+}
+
+.nav-item svg{
+    width:24px;
+    height:24px;
+    fill:currentColor;
+    margin-bottom:3px;
+}
+
+.notice-center-wrapper{
+    flex:1;
+    position:relative;
+    height:100%;
+    display:flex;
+    justify-content:center;
+}
+
+.notice-center-btn{
+    position:absolute;
+    top:-22px;
+    background:linear-gradient(135deg,#ff9900,#ff5500);
+    width:58px;
+    height:58px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    box-shadow:0 6px 15px rgba(255,119,0,.4);
+    cursor:pointer;
+    border:4px solid #f4f6f9;
+    text-decoration:none;
+    transition:transform .2s;
+}
+
+.notice-center-btn:active{
+    transform:scale(.95);
+}
+
+.notice-center-btn svg{
+    width:31px;
+    height:31px;
+}
+
+.notice-label{
+    position:absolute;
+    bottom:6px;
+    font-size:11px;
+    color:#999;
+    font-weight:600;
+}
+
+/* ================= EMPTY ================= */
+
+.empty-state{
+    text-align:center;
+    padding:28px 10px;
+    color:#9ca3af;
+}
+
+.empty-state svg{
+    width:44px;
+    height:44px;
+    fill:#d1d5db;
+    margin-bottom:8px;
+}
+
+.empty-state p{
+    font-size:12px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:360px){
+    .header-section{
+        padding-left:12px;
+        padding-right:12px;
+    }
+
+    .container{
+        padding-left:12px;
+        padding-right:12px;
+    }
+
+    .balance-item h3{
+        font-size:14px;
+    }
+
+    .balance-item p{
+        font-size:9px;
+    }
+
+    .vip-card{
+        padding:12px;
+    }
+
+    .vip-info p{
+        max-width:125px;
+    }
+
+    .sub-view{
+        padding:12px;
+    }
+}
+</style>
 </head>
+
 <body>
 
-    <div class="app-container">
-        <div class="content-body">
-            <!-- Account / Profile Page Main View -->
-            <div id="page-account" class="page-view active-page">
-                <!-- टॉप ग्रीन हेडर -->
-                <div class="header-section">
-                    <div class="user-info-box">
-                        <div class="avatar-box" onclick="document.getElementById('file-input').click()">
-                            <img id="profile-img" src="" alt="Avatar" style="display: none;">
-                            <div id="default-avatar-icon">
-                                <svg viewBox="0 0 24 24" width="36" height="36" fill="#00b050"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.83 5.37c.56-.68.94-1.63.84-2.58-.81.03-1.8.54-2.38 1.22-.52.6-.98 1.57-.85 2.51.91.07 1.83-.46 2.39-1.15z"/></svg>
-                            </div>
-                            <div class="camera-overlay">
-                                <svg viewBox="0 0 24 24"><path d="M12 9c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3m0-2c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5m0-2c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z"/></svg>
-                            </div>
-                        </div>
-                        <input type="file" id="file-input" style="display: none;" accept="image/*" onchange="uploadProfileImage(event)">
+<div class="app-container">
 
-                        <div class="user-details">
-                            <h2 id="username">My_User</h2>
-                            <div class="user-id-badge">
-                               <span>ID: <span id="user-id">Loading...</span></span>
-                            </div>
-                        </div>
-                    </div>
+<div class="content-body">
 
-                    <div class="balance-row">
-                        <div class="balance-item">
-                            <h3 id="amount-received">0.00</h3>
-                            <p>Amount to be received</p>
-                        </div>
-                        <div class="balance-item">
-                            <h3 id="recharge-balance">0.00</h3>
-                            <p>Recharge Balance</p>
-                        </div>
-                        <div class="balance-item">
-                            <h3 id="withdraw-balance">0.00</h3>
-                            <p>Withdraw Balance</p>
-                        </div>
+<!-- ================= MAIN PROFILE ================= -->
+
+<div id="page-account" class="page-view active-page">
+
+<div class="header-section">
+
+<div class="user-info-box">
+
+<div class="avatar-box"
+onclick="document.getElementById('file-input').click()">
+
+<img id="profile-img" src="" alt="Avatar" style="display:none;">
+
+<div id="default-avatar-icon">
+<svg viewBox="0 0 24 24" width="36" height="36" fill="#00b050">
+<path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/>
+</svg>
+</div>
+
+<div class="camera-overlay">
+<svg viewBox="0 0 24 24">
+<path d="M9 2l-1.8 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.2L15 2H9zm3 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+</svg>
+</div>
+
+</div>
+
+<input type="file"
+id="file-input"
+style="display:none"
+accept="image/*"
+onchange="uploadProfileImage(event)">
+
+<div class="user-details">
+<h2 id="username">My_User</h2>
+
+<div class="user-id-badge">
+<span>ID: <span id="user-id">Loading...</span></span>
+</div>
+
+</div>
+
+</div>
+
+<div class="balance-row">
+
+<div class="balance-item">
+<h3 id="amount-received">0.00</h3>
+<p>Amount to be received</p>
+</div>
+
+<div class="balance-item">
+<h3 id="recharge-balance">0.00</h3>
+<p>Recharge Balance</p>
+</div>
+
+<div class="balance-item">
+<h3 id="withdraw-balance">0.00</h3>
+<p>Withdraw Balance</p>
+</div>
+
+</div>
+
+</div>
+
+<div class="container">
+
+<!-- ================= VIP CARD ================= -->
+
+<div class="vip-card">
+
+<div class="vip-left">
+
+<div class="vip-icon">
+<svg viewBox="0 0 24 24" fill="none">
+<path d="M3 6l4 4 5-7 5 7 4-4-2 14H5L3 6z"
+stroke="#ba9800"
+stroke-width="1.8"
+stroke-linejoin="round"/>
+<path d="M7 20h10M6 17h12"
+stroke="#ba9800"
+stroke-width="1.8"
+stroke-linecap="round"/>
+</svg>
+</div>
+
+<div class="vip-info">
+<h4 id="vip-level-title">VIP LEVEL 0</h4>
+<p id="vip-description">VIP membership information</p>
+</div>
+
+</div>
+
+<button class="upgrade-btn"
+onclick="openSubView('sub-vip')">
+Upgrade
+</button>
+
+</div>
+
+<!-- ================= DEPOSIT / WITHDRAW ================= -->
+
+<div class="menu-grid">
+
+<a href="recharge.html" class="menu-item">
+
+<div class="menu-icon-box bg-yellow">
+<svg viewBox="0 0 24 24">
+<path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.11.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+</svg>
+</div>
+
+<span>Deposit</span>
+
+</a>
+
+<a href="widraw.html" class="menu-item">
+
+<div class="menu-icon-box bg-green">
+<svg viewBox="0 0 24 24">
+<path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-2H2v2zm2-1h2v-1H4v1z"/>
+</svg>
+</div>
+
+<span>Withdraw</span>
+
+</a>
+
+</div>
+
+<!-- ================= SERVICE LIST ================= -->
+
+<div class="app-service-box">
+
+<div class="app-service-title">
+Application Service
+</div>
+
+<!-- Balance -->
+
+<div class="service-item"
+onclick="openSubView('sub-balance')">
+
+<div class="service-left">
+
+<div class="service-icon-bg">
+<svg viewBox="0 0 24 24">
+<path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h9zm-9-2h10V8H12v8z"/>
+</svg>
+</div>
+
+<span>My Balance</span>
+
+</div>
+
+<span class="arrow-icon">›</span>
+
+</div>
+
+<!-- Transactions -->
+
+<div class="service-item"
+onclick="openSubView('sub-transactions')">
+
+<div class="service-left">
+
+<div class="service-icon-bg">
+<svg viewBox="0 0 24 24">
+<path d="M4 6h16v2H4V6zm0 5h10v2H4v-2zm0 5h16v2H4v-2zm14-5l4 3-4 3v-2h-3v-2h3v-2z"/>
+</svg>
+</div>
+
+<span>Transactions</span>
+
+</div>
+
+<span class="arrow-icon">›</span>
+
+</div>
+
+<!-- Rewards -->
+
+<div class="service-item"
+onclick="openSubView('sub-rewards')">
+
+<div class="service-left">
+
+<div class="service-icon-bg">
+<svg viewBox="0 0 24 24">
+<path d="M12 2l2.4 6.3L21 9l-5 4.2L17.5 20 12 16.7 6.5 20 8 13.2 3 9l6.6-.7L12 2z"/>
+</svg>
+</div>
+
+<span>My Rewards</span>
+
+</div>
+
+<span class="arrow-icon">›</span>
+
+</div>
+
+<!-- VIP -->
+
+<div class="service-item"
+onclick="openSubView('sub-vip')">
+
+<div class="service-left">
+
+<div class="service-icon-bg">
+<svg viewBox="0 0 24 24">
+<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+</svg>
+</div>
+
+<span>VIP Level</span>
+
+</div>
+
+<span class="arrow-icon">›</span>
+
+</div>
+
+<!-- About -->
+
+<div class="service-item"
+onclick="openSubView('sub-about')">
+
+<div class="service-left">
+
+<div class="service-icon-bg">
+<svg viewBox="0 0 24 24">
+<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+</svg>
+</div>
+
+<span>About Us</span>
+
+</div>
+
+<span class="arrow-icon">›</span>
+
+</div>
+
+<!-- Help -->
+
+<div class="service-item"
+onclick="openSubView('sub-help')">
+
+<div class="service-left">
+
+<div class="service-icon-bg">
+<svg viewBox="0 0 24 24">
+<path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2zm1 17h-2v-2h2zm2.07-7.75l-.9.92A3.49 3.49 0 0 0 13 15h-2a5.05 5.05 0 0 1 1.46-3.54l1.24-1.26A2 2 0 1 0 10 9H8a4 4 0 1 1 7.07 2.25z"/>
+</svg>
+</div>
+
+<span>Help Center</span>
+
+</div>
+
+<span class="arrow-icon">›</span>
+
+</div>
+
+<!-- Settings -->
+
+<div class="service-item"
+onclick="openSubView('sub-settings')">
+
+<div class="service-left">
+
+<div class="service-icon-bg">
+<svg viewBox="0 0 24 24">
+<path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.6 7.6 0 0 0-1.69-.98l-.38-2.65A.49.49 0 0 0 14 2h-4a.49.49 0 0 0-.49.42L9.13 5.07c-.61.25-1.18.58-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46a.5.5 0 0 0 .61.22l2.49-1c.51.4 1.08.73 1.69.98l.38 2.65A.49.49 0 0 0 10 22h4a.49.49 0 0 0 .49-.42l.38-2.65a7.6 7.6 0 0 0 1.69-.98l2.49 1a.5.5 0 0 0 .61-.22l2-3.46a.5.5 0 0 0-.12-.64zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z"/>
+</svg>
+</div>
+
+<span>Settings</span>
+
+</div>
+
+<span class="arrow-icon">›</span>
+
+</div>
+
+</div>
+
+<!-- ================= ACTION BUTTONS ================= -->
+
+<div class="action-buttons">
+
+<button class="btn-action btn-settings"
+onclick="openSubView('sub-settings')">
+
+<svg viewBox="0 0 24 24" fill="none">
+<path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"
+stroke="#9a7200"
+stroke-width="1.7"/>
+<path d="M19.4 15a7.8 7.8 0 0 0 .1-3 7.8 7.8 0 0 0-.1-3l2-1.5-2-3.5-2.4 1a8.6 8.6 0 0 0-2.5-1.5L14.2 1h-4.1l-.4 2.5a8.6 8.6 0 0 0-2.5 1.5l-2.4-1-2 3.5 2 1.5a7.8 7.8 0 0 0-.1 3 7.8 7.8 0 0 0 .1 3l-2 1.5 2 3.5 2.4-1a8.6 8.6 0 0 0 2.5 1.5l.4 2.5h4.1l.4-2.5a8.6 8.6 0 0 0 2.5-1.5l2.4 1 2-3.5-2-1.5z"
+stroke="#9a7200"
+stroke-width="1.3"
+stroke-linejoin="round"/>
+</svg>
+
+Settings
+
+</button>
+
+<button class="btn-action btn-logout"
+onclick="logoutUser()">
+
+<svg viewBox="0 0 24 24" fill="none">
+<path d="M10 4H5v16h5M14 8l4 4-4 4M9 12h9"
+stroke="#dc2626"
+stroke-width="1.8"
+stroke-linecap="round"
+stroke-linejoin="round"/>
+</svg>
+
+Logout
+
+</button>
+
+</div>
+
+</div>
+</div>
+
+<!-- ===================================================== -->
+<!-- BALANCE VIEW -->
+<!-- ===================================================== -->
+
+<div id="sub-balance" class="sub-view">
+
+<div class="sub-inner">
+
+<div class="sub-header">
+
+<button class="back-btn" onclick="closeSubView()">
+<svg viewBox="0 0 24 24">
+<path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+</svg>
+Back
+</button>
+
+<span class="sub-title">My Balance</span>
+
+</div>
+
+<div class="premium-card">
+
+<div class="section-title gold-title">
+Current Account Balance
+</div>
+
+<div style="font-size:28px;font-weight:900;margin-top:7px;">
+₹<span id="balance-main">0.00</span>
+</div>
+
+<div class="stat-grid">
+
+<div class="stat-box">
+<small>Amount Received</small>
+<strong>₹<span id="balance-received">0.00</span></strong>
+</div>
+
+<div class="stat-box">
+<small>Recharge Balance</small>
+<strong>₹<span id="balance-recharge">0.00</span></strong>
+</div>
+
+<div class="stat-box">
+<small>Withdraw Balance</small>
+<strong>₹<span id="balance-withdraw">0.00</span></strong>
+</div>
+
+<div class="stat-box">
+<small>Transactions</small>
+<strong id="balance-tx-count">0</strong>
+</div>
+
+</div>
+
+</div>
+
+<div class="sub-content-card">
+
+<div class="section-title">
+Balance Activity
+</div>
+
+<p class="muted" style="margin-top:5px;">
+हर transaction आपके account balance के effect के साथ दिखाई जाएगी।
+</p>
+
+<div id="balance-mini-transactions"
+style="margin-top:14px;"></div>
+
+</div>
+
+</div>
+</div>
+
+<!-- ===================================================== -->
+<!-- TRANSACTIONS VIEW -->
+<!-- ===================================================== -->
+
+<div id="sub-transactions" class="sub-view">
+
+<div class="sub-inner">
+
+<div class="sub-header">
+
+<button class="back-btn" onclick="closeSubView()">
+<svg viewBox="0 0 24 24">
+<path d="M20 11H7.83l5.59-5.59L12 4l8 8-8 8-1.41-1.41L17.17 13H20v-2z"/>
+</svg>
+Back
+</button>
+
+<span class="sub-title">Transactions</span>
+
+</div>
+
+<div class="sub-content-card">
+
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+
+<div>
+<div class="section-title">Transaction History</div>
+<div class="muted">Complete account activity</div>
+</div>
+
+<button onclick="loadTransactions()"
+style="border:none;background:#ecfdf5;color:#008f43;border-radius:9px;padding:8px 10px;font-size:11px;font-weight:700;">
+Refresh
+</button>
+
+</div>
+
+</div>
+
+<div id="transaction-list" class="transaction-list">
+
+<div class="empty-state">
+
+<svg viewBox="0 0 24 24">
+<path d="M4 4h16v2H4V4zm0 4h16v2H4V8zm0 4h10v2H4v-2zm0 4h16v2H4v-2z"/>
+</svg>
+
+<p>Loading transactions...</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+<!-- ===================================================== -->
+<!-- REWARDS VIEW -->
+<!-- ===================================================== -->
+
+<div id="sub-rewards" class="sub-view">
+
+<div class="sub-inner">
+
+<div class="sub-header">
+
+<button class="back-btn" onclick="closeSubView()">
+<svg viewBox="0 0 24 24">
+<path d="M20 11H7.83l5.59-5.59L12 4l8 8-8 8-1.41-1.41L17.17 13H20v-2z"/>
+</svg>
+Back
+</button>
+
+<span class="sub-title">My Rewards</span>
+
+</div>
+
+<div class="premium-card">
+
+<div class="section-title gold-title">
+Rewards Summary
+</div>
+
+<div style="font-size:28px;font-weight:900;margin-top:7px;">
+₹<span id="reward-total">0.00</span>
+</div>
+
+<p class="muted" style="margin-top:5px;">
+Your available reward amount
+</p>
+
+</div>
+
+<div class="sub-content-card">
+
+<div class="section-title">
+Reward Details
+</div>
+
+<div class="stat-grid">
+
+<div class="stat-box">
+<small>Total Rewards</small>
+<strong>₹<span id="reward-earned">0.00</span></strong>
+</div>
+
+<div class="stat-box">
+<small>Reward Status</small>
+<strong id="reward-status">Available</strong>
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+<!-- ===================================================== -->
+<!-- VIP VIEW -->
+<!-- ===================================================== -->
+
+<div id="sub-vip" class="sub-view">
+
+<div class="sub-inner">
+
+<div class="sub-header">
+
+<button class="back-btn" onclick="closeSubView()">
+<svg viewBox="0 0 24 24">
+<path d="M20 11H7.83l5.59-5.59L12 4l8 8-8 8-1.41-1.41L17.17 13H20v-2z"/>
+</svg>
+Back
+</button>
+
+<span class="sub-title">VIP Introduction</span>
+
+</div>
+
+<div class="premium-card" style="text-align:center;">
+
+<svg width="60" height="60" viewBox="0 0 24 24">
+<path d="M3 6l4 4 5-7 5 7 4-4-2 14H5L3 6z"
+fill="none"
+stroke="#b8860b"
+stroke-width="1.6"/>
+<path d="M7 20h10"
+stroke="#b8860b"
+stroke-width="1.6"
+stroke-linecap="round"/>
+</svg>
+
+<div class="section-title gold-title" style="margin-top:5px;">
+VIP LEVEL <span id="vip-current-level">0</span>
+</div>
+
+<p class="muted" style="margin-top:5px;">
+Current VIP membership
+</p>
+
+</div>
+
+<div class="sub-content-card">
+
+<div class="section-title">
+VIP Levels
+</div>
+
+<div class="setting-row">
+
+<div>
+<div class="setting-name">LV0</div>
+<div class="setting-value">Current basic level</div>
+</div>
+
+<span class="vip-badge">ACTIVE</span>
+
+</div>
+
+<div class="setting-row">
+
+<div>
+<div class="setting-name">LV1</div>
+<div class="setting-value">Account eligibility level</div>
+</div>
+
+<span class="vip-badge">VIP</span>
+
+</div>
+
+<div class="setting-row">
+
+<div>
+<div class="setting-name">LV2</div>
+<div class="setting-value">Higher membership level</div>
+</div>
+
+<span class="vip-badge">VIP</span>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+<!-- ===================================================== -->
+<!-- ABOUT VIEW -->
+<!-- ===================================================== -->
+
+<div id="sub-about" class="sub-view">
+
+<div class="sub-inner">
+
+<div class="sub-header">
+
+<button class="back-btn" onclick="closeSubView()">
+<svg viewBox="0 0 24 24">
+<path d="M20 11H7.83l5.59-5.59L12 4l8 8-8 8-1.41-1.41L17.17 13H20v-2z"/>
+</svg>
+Back
+</button>
+
+<span class="sub-title">About Us</span>
+
+</div>
+
+<div class="sub-content-card">
+
+<div style="text-align:center;margin-bottom:16px;">
+
+<div style="
+width:65px;
+height:65px;
+border-radius:50%;
+margin:auto;
+background:#d1fae5;
+display:flex;
+align-items:center;
+justify-content:center;">
+
+<svg width="35" height="35" viewBox="0 0 24 24" fill="#00a548">
+<path d="M12 2l3 7h7l-5.5 4.2L18.5 21 12 17l-6.5 4 2-7.8L2 9h7l3-7z"/>
+</svg>
+
+</div>
+
+<h3 style="margin-top:10px;">
+Bajaj Global Funds
+</h3>
+
+</div>
+
+<p style="
+font-size:13px;
+color:#4b5563;
+line-height:1.7;">
+यह section application की सामान्य जानकारी, account services और support सुविधाओं के लिए है।
+किसी भी financial decision से पहले संबंधित terms, conditions और applicable information को स्वयं verify करें।
+</p>
+
+</div>
+
+</div>
+</div>
+
+<!-- ===================================================== -->
+<!-- HELP CENTER -->
+<!-- ===================================================== -->
+
+<div id="sub-help" class="sub-view">
+
+<div class="sub-inner">
+
+<div class="sub-header">
+
+<button class="back-btn" onclick="closeSubView()">
+<svg viewBox="0 0 24 24">
+<path d="M20 11H7.83l5.59-5.59L12 4l8 8-8 8-1.41-1.41L17.17 13H20v-2z"/>
+</svg>
+Back
+</button>
+
+<span class="sub-title">Help Center</span>
+
+</div>
+
+<div class="sub-content-card">
+
+<div class="section-title">
+How can we help?
+</div>
+
+<p class="muted" style="margin-top:4px;margin-bottom:16px;">
+अपनी समस्या/details नीचे submit करें। आपका support request Firestore में save होगा।
+</p>
+
+<form id="help-form">
+
+<div class="form-group">
+
+<label class="form-label">
+Issue Type
+</label>
+
+<select id="help-type" class="form-control" required>
+
+<option value="">Select issue</option>
+<option value="Deposit">Deposit / Recharge</option>
+<option value="Withdraw">Withdraw</option>
+<option value="Balance">Balance</option>
+<option value="Transaction">Transaction</option>
+<option value="Profile">Profile</option>
+<option value="Technical">Technical Problem</option>
+<option value="Other">Other</option>
+
+</select>
+
+</div>
+
+<div class="form-group">
+
+<label class="form-label">
+Subject
+</label>
+
+<input
+id="help-subject"
+class="form-control"
+type="text"
+maxlength="100"
+placeholder="Problem का short title"
+required>
+
+</div>
+
+<div class="form-group">
+
+<label class="form-label">
+Details
+</label>
+
+<textarea
+id="help-details"
+class="form-control"
+maxlength="1000"
+placeholder="अपनी समस्या पूरी details में लिखें..."
+required></textarea>
+
+</div>
+
+<div class="form-group">
+
+<label class="form-label">
+Transaction / Reference ID (optional)
+</label>
+
+<input
+id="help-reference"
+class="form-control"
+type="text"
+maxlength="100"
+placeholder="अगर applicable हो">
+
+</div>
+
+<button
+id="help-submit-btn"
+class="submit-btn"
+type="submit">
+
+Submit Support Request
+
+</button>
+
+</form>
+
+</div>
+
+<div class="sub-content-card">
+
+<div class="section-title">
+My Support Requests
+</div>
+
+<div id="support-list" style="margin-top:10px;">
+
+<div class="empty-state">
+<p>Loading requests...</p>
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+<!-- ===================================================== -->
+<!-- SETTINGS -->
+<!-- ===================================================== -->
+
+<div id="sub-settings" class="sub-view">
+
+<div class="sub-inner">
+
+<div class="sub-header">
+
+<button class="back-btn" onclick="closeSubView()">
+<svg viewBox="0 0 24 24">
+<path d="M20 11H7.83l5.59-5.59L12 4l8 8-8 8-1.41-1.41L17.17 13H20v-2z"/>
+</svg>
+Back
+</button>
+
+<span class="sub-title">Settings</span>
+
+</div>
+
+<div class="sub-content-card">
+
+<div class="setting-row">
+
+<div class="setting-info">
+
+<div class="setting-icon">
+
+<svg viewBox="0 0 24 24">
+<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"/>
+</svg>
+
+</div>
+
+<div>
+<div class="setting-name">User ID</div>
+<div class="setting-value" id="setting-uid">--</div>
+</div>
+
+</div>
+
+</div>
+
+<div class="setting-row">
+
+<div class="setting-info">
+
+<div class="setting-icon">
+
+<svg viewBox="0 0 24 24">
+<path d="M12 2l8 4v6c0 5-3.5 9.7-8 11-4.5-1.3-8-6-8-11V6l8-4zm0 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+</svg>
+
+</div>
+
+<div>
+<div class="setting-name">Account Status</div>
+<div class="setting-value" id="account-status">Active</div>
+</div>
+
+</div>
+
+<span class="vip-badge">SECURE</span>
+
+</div>
+
+<div class="setting-row">
+
+<div class="setting-info">
+
+<div class="setting-icon">
+
+<svg viewBox="0 0 24 24">
+<path d="M17 8h-1V6a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v10h14V10a2 2 0 0 0-2-2zm-5 9a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm2-9h-4V6a2 2 0 0 1 4 0z"/>
+</svg>
+
+</div>
+
+<div>
+<div class="setting-name">Device Status</div>
+<div class="setting-value">Secure & Bound</div>
+</div>
+
+</div>
+
+<span class="vip-badge">SAFE</span>
+
+</div>
+
+</div>
+
+<div class="sub-content-card">
+
+<div class="section-title">
+Account Actions
+</div>
+
+<button
+onclick="logoutUser()"
+style="
+width:100%;
+margin-top:12px;
+padding:13px;
+border:1px solid #fecaca;
+border-radius:11px;
+background:#fff1f2;
+color:#dc2626;
+font-weight:800;
+cursor:pointer;
+display:flex;
+align-items:center;
+justify-content:center;
+gap:8px;">
+
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+<path d="M10 4H5v16h5M14 8l4 4-4 4M9 12h9"
+stroke="#dc2626"
+stroke-width="1.8"
+stroke-linecap="round"
+stroke-linejoin="round"/>
+</svg>
+
+Logout Account
+
+</button>
+
+</div>
+
+</div>
+</div>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- BOTTOM NAV -->
+<!-- ===================================================== -->
+
+<div class="bottom-nav">
+
+<a href="index.html" class="nav-item" id="navHome">
+
+<svg viewBox="0 0 24 24">
+<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h5z"/>
+</svg>
+
+<span>Home</span>
+
+</a>
+
+<a href="invest.html" class="nav-item" id="navInvest">
+
+<svg viewBox="0 0 24 24">
+<path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+</svg>
+
+<span>Invest</span>
+
+</a>
+
+<div class="notice-center-wrapper">
+
+<a href="notice.html"
+class="notice-center-btn"
+title="Notice Center">
+
+<svg viewBox="0 0 24 24" fill="none">
+
+<path d="M20 7.5L12 3 4 7.5v9L12 21l8-4.5v-9z"
+fill="#fff0c2"
+stroke="#c9971c"
+stroke-width="1.2"/>
+
+<path d="M4.5 7.8L12 12l7.5-4.2"
+stroke="#ef4666"
+stroke-width="1.3"/>
+
+<path d="M12 12v8.3"
+stroke="#c9971c"
+stroke-width="1.3"/>
+
+</svg>
+
+</a>
+
+<span class="notice-label">Notice</span>
+
+</div>
+
+<a href="blog.html"
+onclick="localStorage.setItem('activeTab','blog')"
+class="nav-item"
+id="navBlog">
+
+<svg viewBox="0 0 24 24">
+<path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+</svg>
+
+<span>Blog</span>
+
+</a>
+
+<a href="profile.html"
+class="nav-item active"
+id="navAccount">
+
+<svg viewBox="0 0 24 24">
+<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+</svg>
+
+<span>Account</span>
+
+</a>
+
+</div>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- LOGOUT POPUP -->
+<!-- ===================================================== -->
+
+<div id="logout-popup" class="popup-overlay">
+
+<div class="vip-popup">
+
+<div class="popup-icon gold">
+
+<svg viewBox="0 0 24 24" fill="none">
+
+<path d="M12 3l2.4 4.9L20 9l-4 3.9.9 5.6-4.9-2.6-4.9 2.6.9-5.6L4 9l5.6-1.1L12 3z"
+stroke="#8f6500"
+stroke-width="1.5"
+stroke-linejoin="round"/>
+
+</svg>
+
+</div>
+
+<div class="popup-title">
+Confirm Logout
+</div>
+
+<div class="popup-text">
+क्या आप अपने account से logout करना चाहते हैं?
+आपका current session समाप्त हो जाएगा।
+</div>
+
+<div class="popup-buttons">
+
+<button
+class="popup-btn cancel"
+onclick="closePopup('logout-popup')">
+Cancel
+</button>
+
+<button
+class="popup-btn danger"
+onclick="confirmLogout()">
+Logout
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- MESSAGE POPUP -->
+<!-- ===================================================== -->
+
+<div id="message-popup" class="popup-overlay">
+
+<div class="vip-popup">
+
+<div id="message-icon"
+class="popup-icon green">
+
+<svg id="message-svg"
+viewBox="0 0 24 24"
+fill="none">
+
+<path
+d="M20 6L9 17l-5-5"
+stroke="#15803d"
+stroke-width="2"
+stroke-linecap="round"
+stroke-linejoin="round"/>
+
+</svg>
+
+</div>
+
+<div id="message-title" class="popup-title">
+Success
+</div>
+
+<div id="message-text" class="popup-text">
+Done.
+</div>
+
+<div class="popup-buttons">
+
+<button
+class="popup-btn success"
+onclick="closePopup('message-popup')">
+OK
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+
+/* =========================================================
+   FIREBASE CONFIG
+========================================================= */
+
+const firebaseConfig = {
+
+    apiKey: "YOUR_API_KEY",
+
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+
+    projectId: "YOUR_PROJECT_ID",
+
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+
+    messagingSenderId: "YOUR_SENDER_ID",
+
+    appId: "YOUR_APP_ID"
+
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+
+const storage = firebase.storage();
+
+/* =========================================================
+   USER ID
+========================================================= */
+
+let userId = localStorage.getItem("bgf_uid");
+
+if(!userId){
+
+    userId = "117065";
+
+    localStorage.setItem("bgf_uid",userId);
+
+}
+
+let unsubscribeUser = null;
+let unsubscribeTransactions = null;
+let unsubscribeSupport = null;
+
+let currentUserData = {};
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function money(value){
+
+    const number = Number(value || 0);
+
+    return number.toLocaleString("en-IN",{
+        minimumFractionDigits:2,
+        maximumFractionDigits:2
+    });
+
+}
+
+function timestampToDate(value){
+
+    if(!value) return null;
+
+    try{
+
+        if(typeof value.toDate === "function"){
+            return value.toDate();
+        }
+
+        if(value.seconds){
+            return new Date(value.seconds * 1000);
+        }
+
+        const d = new Date(value);
+
+        if(!isNaN(d.getTime())){
+            return d;
+        }
+
+    }catch(e){}
+
+    return null;
+
+}
+
+function formatDate(value){
+
+    const d = timestampToDate(value);
+
+    if(!d) return "—";
+
+    return d.toLocaleDateString("en-IN",{
+        day:"2-digit",
+        month:"short",
+        year:"numeric"
+    });
+
+}
+
+function formatDateTime(value){
+
+    const d = timestampToDate(value);
+
+    if(!d) return "—";
+
+    return d.toLocaleString("en-IN",{
+        day:"2-digit",
+        month:"short",
+        year:"numeric",
+        hour:"2-digit",
+        minute:"2-digit"
+    });
+
+}
+
+/* =========================================================
+   INITIAL PAGE
+========================================================= */
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+    document.getElementById("user-id").innerText = userId;
+
+    document.getElementById("setting-uid").innerText = userId;
+
+    const savedName =
+        localStorage.getItem("bgf_uname") ||
+        ("User_" + String(userId).slice(-4));
+
+    document.getElementById("username").innerText = savedName;
+
+    loadUser();
+
+    loadTransactions();
+
+    loadSupportRequests();
+
+});
+
+/* =========================================================
+   SUB VIEW
+========================================================= */
+
+function openSubView(subViewId){
+
+    document.querySelectorAll(".sub-view").forEach(view=>{
+        view.classList.remove("active");
+    });
+
+    const target = document.getElementById(subViewId);
+
+    if(target){
+
+        target.classList.add("active");
+
+        window.scrollTo({
+            top:0,
+            behavior:"instant"
+        });
+
+    }
+
+    if(subViewId === "sub-transactions"){
+        loadTransactions();
+    }
+
+    if(subViewId === "sub-help"){
+        loadSupportRequests();
+    }
+
+}
+
+function closeSubView(){
+
+    document.querySelectorAll(".sub-view").forEach(view=>{
+        view.classList.remove("active");
+    });
+
+}
+
+/* =========================================================
+   LOAD USER
+========================================================= */
+
+function loadUser(){
+
+    if(unsubscribeUser){
+        unsubscribeUser();
+    }
+
+    unsubscribeUser =
+    db.collection("users")
+    .doc(userId)
+    .onSnapshot(
+
+        doc=>{
+
+            if(!doc.exists){
+
+                console.log("User document not found");
+
+                return;
+
+            }
+
+            const data = doc.data() || {};
+
+            currentUserData = data;
+
+            updateUserUI(data);
+
+        },
+
+        error=>{
+
+            console.error("User listener error:",error);
+
+            showToast("Firebase user data load नहीं हो सका");
+
+        }
+
+    );
+
+}
+
+/* =========================================================
+   UPDATE USER UI
+========================================================= */
+
+function updateUserUI(data){
+
+    const amountReceived =
+        Number(data.amountReceived || 0);
+
+    const rechargeBalance =
+        Number(data.rechargeBalance || 0);
+
+    const withdrawBalance =
+        Number(data.withdrawBalance || 0);
+
+    /*
+      Main displayed balance:
+      पहले availableBalance / balance check किया जाता है।
+      अगर दोनों absent हैं तो rechargeBalance fallback रहेगा।
+    */
+
+    const mainBalance =
+        Number(
+            data.balance ??
+            data.availableBalance ??
+            rechargeBalance ??
+            0
+        );
+
+    document.getElementById("amount-received").innerText =
+        money(amountReceived);
+
+    document.getElementById("recharge-balance").innerText =
+        money(rechargeBalance);
+
+    document.getElementById("withdraw-balance").innerText =
+        money(withdrawBalance);
+
+    document.getElementById("balance-main").innerText =
+        money(mainBalance);
+
+    document.getElementById("balance-received").innerText =
+        money(amountReceived);
+
+    document.getElementById("balance-recharge").innerText =
+        money(rechargeBalance);
+
+    document.getElementById("balance-withdraw").innerText =
+        money(withdrawBalance);
+
+    if(data.username){
+
+        document.getElementById("username").innerText =
+            data.username;
+
+        localStorage.setItem(
+            "bgf_uname",
+            data.username
+        );
+
+    }
+
+    if(data.vipLevel !== undefined){
+
+        document.getElementById("vip-current-level").innerText =
+            data.vipLevel;
+
+        document.getElementById("vip-level-title").innerText =
+            "VIP LEVEL " + data.vipLevel;
+
+    }
+
+    if(data.profilePicUrl){
+
+        const image =
+            document.getElementById("profile-img");
+
+        image.src = data.profilePicUrl;
+
+        image.style.display = "block";
+
+        document.getElementById(
+            "default-avatar-icon"
+        ).style.display = "none";
+
+    }
+
+    document.getElementById("setting-uid").innerText =
+        userId;
+
+}
+
+/* =========================================================
+   PROFILE IMAGE UPLOAD
+========================================================= */
+
+function uploadProfileImage(event){
+
+    const file = event.target.files[0];
+
+    if(!file) return;
+
+    if(file.size > 5 * 1024 * 1024){
+
+        showMessage(
+            "Image Too Large",
+            "कृपया 5MB से छोटी image select करें।",
+            "error"
+        );
+
+        return;
+
+    }
+
+    showToast("Profile image upload हो रही है...");
+
+    const storageRef =
+        storage.ref()
+        .child(
+            "profile_pics/" +
+            userId +
+            "_" +
+            Date.now()
+        );
+
+    const uploadTask =
+        storageRef.put(file);
+
+    uploadTask.on(
+
+        "state_changed",
+
+        snapshot=>{
+
+            const progress =
+                (snapshot.bytesTransferred /
+                snapshot.totalBytes) * 100;
+
+            showToast(
+                "Uploading " +
+                Math.round(progress) +
+                "%"
+            );
+
+        },
+
+        error=>{
+
+            console.error(error);
+
+            showMessage(
+                "Upload Failed",
+                error.message || "Image upload failed.",
+                "error"
+            );
+
+        },
+
+        ()=>{
+
+            uploadTask.snapshot.ref
+            .getDownloadURL()
+            .then(downloadURL=>{
+
+                return db
+                .collection("users")
+                .doc(userId)
+                .set(
+                    {
+                        profilePicUrl:downloadURL
+                    },
+                    {
+                        merge:true
+                    }
+                );
+
+            })
+            .then(()=>{
+
+                showMessage(
+                    "Profile Updated",
+                    "आपकी profile picture successfully update हो गई।",
+                    "success"
+                );
+
+            })
+            .catch(error=>{
+
+                console.error(error);
+
+                showMessage(
+                    "Update Failed",
+                    error.message || "Profile update failed.",
+                    "error"
+                );
+
+            });
+
+        }
+
+    );
+
+}
+
+/* =========================================================
+   TRANSACTIONS
+========================================================= */
+
+function loadTransactions(){
+
+    if(unsubscribeTransactions){
+
+        unsubscribeTransactions();
+
+    }
+
+    const list =
+        document.getElementById("transaction-list");
+
+    if(!list) return;
+
+    list.innerHTML = `
+        <div class="empty-state">
+            <p>Loading transactions...</p>
+        </div>
+    `;
+
+    unsubscribeTransactions =
+    db.collection("users")
+      .doc(userId)
+      .collection("transactions")
+      .orderBy("createdAt","desc")
+      .onSnapshot(
+
+        snapshot=>{
+
+            const transactions = [];
+
+            snapshot.forEach(doc=>{
+
+                transactions.push({
+                    id:doc.id,
+                    ...doc.data()
+                });
+
+            });
+
+            renderTransactions(transactions);
+
+        },
+
+        error=>{
+
+            console.error(
+                "Transaction listener error:",
+                error
+            );
+
+            /*
+              अगर createdAt/index की वजह से query error आये,
+              तो fallback collection load किया जाता है।
+            */
+
+            db.collection("users")
+              .doc(userId)
+              .collection("transactions")
+              .get()
+              .then(snapshot=>{
+
+                  const transactions = [];
+
+                  snapshot.forEach(doc=>{
+
+                      transactions.push({
+                          id:doc.id,
+                          ...doc.data()
+                      });
+
+                  });
+
+                  transactions.sort((a,b)=>{
+
+                      const ad =
+                          timestampToDate(a.createdAt)?.getTime() || 0;
+
+                      const bd =
+                          timestampToDate(b.createdAt)?.getTime() || 0;
+
+                      return bd-ad;
+
+                  });
+
+                  renderTransactions(transactions);
+
+              })
+              .catch(fallbackError=>{
+
+                  console.error(fallbackError);
+
+                  list.innerHTML = `
+                    <div class="empty-state">
+                        <p>Transactions load नहीं हो सके।</p>
                     </div>
+                  `;
+
+              });
+
+        }
+
+      );
+
+}
+
+function getTransactionDirection(tx){
+
+    const type =
+        String(
+            tx.direction ||
+            tx.entryType ||
+            tx.type ||
+            ""
+        ).toLowerCase();
+
+    if(
+        type.includes("withdraw") ||
+        type.includes("debit") ||
+        type.includes("minus") ||
+        type.includes("expense") ||
+        type.includes("deduct")
+    ){
+
+        return "minus";
+
+    }
+
+    if(
+        type.includes("deposit") ||
+        type.includes("recharge") ||
+        type.includes("credit") ||
+        type.includes("plus") ||
+        type.includes("reward")
+    ){
+
+        return "plus";
+
+    }
+
+    if(Number(tx.amount || 0) < 0){
+
+        return "minus";
+
+    }
+
+    return "plus";
+
+}
+
+function getTransactionAmount(tx){
+
+    let amount =
+        Number(
+            tx.amount ??
+            tx.value ??
+            tx.transactionAmount ??
+            0
+        );
+
+    amount = Math.abs(amount);
+
+    return amount;
+
+}
+
+function getStatusClass(status){
+
+    const s =
+        String(status || "completed")
+        .toLowerCase();
+
+    if(
+        s.includes("pending") ||
+        s.includes("processing")
+    ){
+
+        return "pending";
+
+    }
+
+    if(
+        s.includes("fail") ||
+        s.includes("reject")
+    ){
+
+        return "failed";
+
+    }
+
+    return "completed";
+
+}
+
+function renderTransactions(transactions){
+
+    const list =
+        document.getElementById("transaction-list");
+
+    const mini =
+        document.getElementById(
+            "balance-mini-transactions"
+        );
+
+    const count =
+        document.getElementById(
+            "balance-tx-count"
+        );
+
+    if(count){
+
+        count.innerText =
+            transactions.length;
+
+    }
+
+    if(!transactions.length){
+
+        list.innerHTML = `
+            <div class="sub-content-card">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M4 4h16v2H4V4zm0 4h16v2H4V8zm0 4h10v2H4v-2zm0 4h16v2H4v-2z"/>
+                    </svg>
+                    <p>No transactions found.</p>
+                </div>
+            </div>
+        `;
+
+        if(mini){
+
+            mini.innerHTML = `
+                <div class="empty-state">
+                    <p>No transaction activity yet.</p>
+                </div>
+            `;
+
+        }
+
+        return;
+
+    }
+
+    list.innerHTML =
+        transactions
+        .map(tx=>transactionHTML(tx))
+        .join("");
+
+    if(mini){
+
+        mini.innerHTML =
+            transactions
+            .slice(0,5)
+            .map(tx=>transactionMiniHTML(tx))
+            .join("");
+
+    }
+
+}
+
+function transactionHTML(tx){
+
+    const direction =
+        getTransactionDirection(tx);
+
+    const amount =
+        getTransactionAmount(tx);
+
+    const sign =
+        direction === "plus" ? "+" : "-";
+
+    const status =
+        tx.status || "Completed";
+
+    const statusClass =
+        getStatusClass(status);
+
+    const type =
+        tx.type ||
+        tx.transactionType ||
+        tx.category ||
+        "Account Transaction";
+
+    const title =
+        tx.title ||
+        tx.description ||
+        type;
+
+    const balanceBefore =
+        tx.balanceBefore ??
+        tx.previousBalance ??
+        "—";
+
+    const balanceAfter =
+        tx.balanceAfter ??
+        tx.newBalance ??
+        tx.resultingBalance ??
+        "—";
+
+    return `
+
+    <div class="transaction-card">
+
+        <div class="transaction-top">
+
+            <div class="transaction-left">
+
+                <div class="transaction-icon ${direction}">
+
+                    <svg viewBox="0 0 24 24">
+
+                        ${
+                            direction === "plus"
+                            ?
+                            `<path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5z"/>`
+                            :
+                            `<path d="M5 11h14v2H5z"/>`
+                        }
+
+                    </svg>
+
                 </div>
 
-                <div class="container">
-                    
-                    <!-- VIP Card -->
-                    <div class="vip-card">
-                        <div class="vip-left">
-                            <div class="vip-icon">👑</div>
-                            <div class="vip-info">
-                                <h4>VIP LEVEL 0</h4>
-                                <p>Upgrade to VIP1 needs ₹270.00 more</p>
-                            </div>
-                        </div>
-                        <button class="upgrade-btn" onclick="openSubView('sub-vip')">Upgrade ></button>
+                <div>
+
+                    <div class="transaction-name">
+                        ${escapeHTML(title)}
                     </div>
 
-                    <!-- Deposit और Withdraw (widraw.html) डायरेक्ट फाइलों से कनेक्टेड -->
-                    <div class="menu-grid">
-                        <a href="recharge.html" class="menu-item">
-                            <div class="menu-icon-box bg-yellow">
-                                <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-                            </div>
-                            <span>Deposit</span>
-                        </a>
-                        <a href="widraw.html" class="menu-item">
-                            <div class="menu-icon-box bg-green">
-                                <svg viewBox="0 0 24 24"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-2H2v2zm2-1h2v-1H4v1z"/></svg>
-                            </div>
-                            <span>Withdraw</span>
-                        </a>
-                    </div>
-
-                    <!-- Application Service List -->
-                    <div class="app-service-box">
-                        <div class="app-service-title">Application Service</div>
-                        
-                        <div class="service-item" onclick="openSubView('sub-balance')">
-                            <div class="service-left">
-                                <div class="service-icon-bg"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8z"/></svg></div>
-                                <span>My Balance</span>
-                            </div>
-                            <span class="arrow-icon">></span>
-                        </div>
-
-                        <div class="service-item" onclick="openSubView('sub-rewards')">
-                            <div class="service-left">
-                                <div class="service-icon-bg"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.02-.42 1.95-1.07 2.75z"/></svg></div>
-                                <span>My Rewards</span>
-                            </div>
-                            <span class="arrow-icon">></span>
-                        </div>
-
-                        <div class="service-item" onclick="openSubView('sub-vip')">
-                            <div class="service-left">
-                                <div class="service-icon-bg"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
-                                <span>Vip Level</span>
-                            </div>
-                            <span class="arrow-icon">></span>
-                        </div>
-
-                        <div class="service-item" onclick="openSubView('sub-about')">
-                            <div class="service-left">
-                                <div class="service-icon-bg"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></div>
-                                <span>About Us</span>
-                            </div>
-                            <span class="arrow-icon">></span>
-                        </div>
-
-                        <div class="service-item" onclick="openSubView('sub-help')">
-                            <div class="service-left">
-                                <div class="service-icon-bg"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm1.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.02-.42 1.95-1.07 2.75z"/></svg></div>
-                                <span>Help Center</span>
-                            </div>
-                            <span class="arrow-icon">></span>
-                        </div>
-
-                        <div class="service-item" onclick="openSubView('sub-settings')">
-                            <div class="service-left">
-                                <div class="service-icon-bg"><svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.03 2.18 13.82 2 13.58 2h-4.16c-.24 0-.45.18-.48.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.48.42h4.16c.24 0 .45-.18.48-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg></div>
-                                <span>Settings</span>
-                            </div>
-                            <span class="arrow-icon">></span>
-                        </div>
-                    </div>
-
-                    <div class="action-buttons">
-                        <button class="btn-action btn-settings" onclick="openSubView('sub-settings')">Settings</button>
-                        <button class="btn-action btn-logout" onclick="logoutUser()">Logout</button>
+                    <div class="transaction-type">
+                        ${escapeHTML(String(type))}
                     </div>
 
                 </div>
-            </div>
-        </div>
 
-        <!-- फुल-पेज सब-व्यूज़ -->
-        <div id="sub-balance" class="sub-view">
-            <div class="sub-header">
-                <button class="back-btn" onclick="closeSubView()">← Back</button>
-                <span class="sub-title">Balance Record</span>
-            </div>
-            <div class="sub-content-card">
-                <p style="color: #555;">Account Balance: <strong>₹0.00</strong></p>
-                <p style="margin-top: 10px; color: #9ca3af;">No more records found.</p>
-            </div>
-        </div>
-
-        <div id="sub-rewards" class="sub-view">
-            <div class="sub-header">
-                <button class="back-btn" onclick="closeSubView()">← Back</button>
-                <span class="sub-title">Rewards Record</span>
-            </div>
-            <div class="sub-content-card">
-                <p style="color: #555;">Account Rewards: <strong>₹0.00</strong></p>
-                <p style="margin-top: 10px; color: #9ca3af;">No rewards yet.</p>
-            </div>
-        </div>
-
-        <div id="sub-vip" class="sub-view">
-            <div class="sub-header">
-                <button class="back-btn" onclick="closeSubView()">← Back</button>
-                <span class="sub-title">Vip Introduction</span>
-            </div>
-            <div class="sub-content-card">
-                <div style="background: #d1fae5; padding: 12px; border-radius: 8px; color: #065f46;">
-                    <strong>LV0</strong>: Total Investment ₹0<br>
-                    <strong>LV1</strong>: Total Investment ₹270<br>
-                    <strong>LV2</strong>: Total Investment ₹4,270
-                </div>
-            </div>
-        </div>
-
-        <div id="sub-about" class="sub-view">
-            <div class="sub-header">
-                <button class="back-btn" onclick="closeSubView()">← Back</button>
-                <span class="sub-title">About Us</span>
-            </div>
-            <div class="sub-content-card">
-                <p style="font-size: 13px; color: #4b5563; line-height: 1.6;">
-                    Bajaj Global Funds provides secure asset management and verified consumer portfolios to ensure reliable daily returns.
-                </p>
-            </div>
-        </div>
-
-        <div id="sub-help" class="sub-view">
-            <div class="sub-header">
-                <button class="back-btn" onclick="closeSubView()">← Back</button>
-                <span class="sub-title">Help Center</span>
-            </div>
-            <div class="sub-content-card">
-                <p style="font-size: 13px; color: #4b5563;">
-                    For any support or query, contact our 24/7 official customer service at @BajajGlobalCS.
-                </p>
-            </div>
-        </div>
-
-        <div id="sub-settings" class="sub-view">
-            <div class="sub-header">
-                <button class="back-btn" onclick="closeSubView()">← Back</button>
-                <span class="sub-title">Setting Info</span>
-            </div>
-            <div class="sub-content-card">
-                <p style="font-size: 13px; color: #374151;">User ID: <strong id="setting-uid">--</strong></p>
-                <p style="font-size: 13px; color: #374151; margin-top: 8px;">Device Status: <strong>Secure & Bound</strong></p>
-            </div>
-        </div>
-
-        <!-- होम पेज जैसी सटीक फ्लोटिंग बॉटम नेविगेशन बार -->
-        <div class="bottom-nav">
-            <a href="index.html" class="nav-item" id="navHome">
-                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-                <span>Home</span>
-            </a>
-            <a href="invest.html" class="nav-item" id="navInvest">
-                <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
-                <span>Invest</span>
-            </a>
-            
-            <!-- बीच वाला गिफ्ट बॉक्स (Notice) बटन -->
-            <div class="notice-center-wrapper">
-                <a href="notice.html" class="notice-center-btn" title="Notice Center">🎁</a>
-                <span class="notice-label">Notice</span>
             </div>
 
-            <a href="blog.html" onclick="localStorage.setItem('activeTab', 'blog')" class="nav-item" id="navBlog">
-                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
-                <span>Blog</span>
-            </a>
-            <a href="profile.html" class="nav-item active" id="navAccount">
-                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                <span>Account</span>
-            </a>
+            <div class="transaction-amount ${direction}">
+                ${sign}₹${money(amount)}
+            </div>
+
         </div>
+
+        <div class="transaction-details">
+
+            <div class="tx-detail">
+                Amount
+                <strong>₹${money(amount)}</strong>
+            </div>
+
+            <div class="tx-detail">
+                Type
+                <strong>${escapeHTML(String(type))}</strong>
+            </div>
+
+            <div class="tx-detail">
+                Date / Time
+                <strong>${formatDateTime(tx.createdAt || tx.date)}</strong>
+            </div>
+
+            <div class="tx-detail">
+                Status
+                <strong>
+                    <span class="status ${statusClass}">
+                        ${escapeHTML(String(status))}
+                    </span>
+                </strong>
+            </div>
+
+            <div class="tx-detail">
+                Balance Before
+                <strong>
+                    ${
+                        balanceBefore === "—"
+                        ? "—"
+                        : "₹" + money(balanceBefore)
+                    }
+                </strong>
+            </div>
+
+            <div class="tx-detail">
+                Balance After
+                <strong>
+                    ${
+                        balanceAfter === "—"
+                        ? "—"
+                        : "₹" + money(balanceAfter)
+                    }
+                </strong>
+            </div>
+
+        </div>
+
     </div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+    `;
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const storage = firebase.storage();
-        
-        let userId = localStorage.getItem('bgf_uid');
-        if (!userId) {
-            userId = "117065";
-            localStorage.setItem('bgf_uid', userId);
-        }
+}
 
-        document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("user-id").innerText = userId;
-            document.getElementById("setting-uid").innerText = userId;
-            document.getElementById("username").innerText = localStorage.getItem('bgf_uname') || ("User_" + userId.slice(-4));
+function transactionMiniHTML(tx){
+
+    const direction =
+        getTransactionDirection(tx);
+
+    const amount =
+        getTransactionAmount(tx);
+
+    const sign =
+        direction === "plus" ? "+" : "-";
+
+    const title =
+        tx.title ||
+        tx.description ||
+        tx.type ||
+        "Transaction";
+
+    return `
+
+    <div style="
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:11px 0;
+        border-bottom:1px solid #f3f4f6;
+        gap:10px;
+    ">
+
+        <div style="display:flex;align-items:center;gap:9px;min-width:0;">
+
+            <div style="
+                width:32px;
+                height:32px;
+                border-radius:9px;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                background:${
+                    direction === "plus"
+                    ? "#dcfce7"
+                    : "#fee2e2"
+                };
+                color:${
+                    direction === "plus"
+                    ? "#16a34a"
+                    : "#dc2626"
+                };
+            ">
+
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+
+                    ${
+                        direction === "plus"
+                        ?
+                        `<path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5z"/>`
+                        :
+                        `<path d="M5 11h14v2H5z"/>`
+                    }
+
+                </svg>
+
+            </div>
+
+            <div style="min-width:0;">
+
+                <div style="
+                    font-size:12px;
+                    font-weight:700;
+                    white-space:nowrap;
+                    overflow:hidden;
+                    text-overflow:ellipsis;
+                ">
+                    ${escapeHTML(String(title))}
+                </div>
+
+                <div style="
+                    font-size:9px;
+                    color:#9ca3af;
+                    margin-top:2px;
+                ">
+                    ${formatDate(tx.createdAt || tx.date)}
+                </div>
+
+            </div>
+
+        </div>
+
+        <strong style="
+            font-size:12px;
+            color:${direction === "plus" ? "#16a34a" : "#dc2626"};
+            white-space:nowrap;
+        ">
+            ${sign}₹${money(amount)}
+        </strong>
+
+    </div>
+
+    `;
+
+}
+
+/* =========================================================
+   SUPPORT REQUESTS
+========================================================= */
+
+document.getElementById("help-form")
+.addEventListener("submit",async function(event){
+
+    event.preventDefault();
+
+    const button =
+        document.getElementById(
+            "help-submit-btn"
+        );
+
+    const type =
+        document.getElementById(
+            "help-type"
+        ).value.trim();
+
+    const subject =
+        document.getElementById(
+            "help-subject"
+        ).value.trim();
+
+    const details =
+        document.getElementById(
+            "help-details"
+        ).value.trim();
+
+    const reference =
+        document.getElementById(
+            "help-reference"
+        ).value.trim();
+
+    if(!type || !subject || !details){
+
+        showMessage(
+            "Missing Details",
+            "कृपया Issue Type, Subject और Details भरें।",
+            "error"
+        );
+
+        return;
+
+    }
+
+    button.disabled = true;
+
+    button.innerText =
+        "Submitting...";
+
+    try{
+
+        await db
+        .collection("users")
+        .doc(userId)
+        .collection("supportRequests")
+        .add({
+
+            userId:userId,
+
+            issueType:type,
+
+            subject:subject,
+
+            details:details,
+
+            referenceId:reference,
+
+            status:"Pending",
+
+            createdAt:
+                firebase.firestore.FieldValue.serverTimestamp()
+
         });
 
-        function openSubView(subViewId) {
-            document.querySelectorAll('.sub-view').forEach(v => v.classList.remove('active'));
-            document.getElementById(subViewId).classList.add('active');
-            window.scrollTo(0, 0);
-        }
+        this.reset();
 
-        function closeSubView() {
-            document.querySelectorAll('.sub-view').forEach(v => v.classList.remove('active'));
-        }
+        showMessage(
+            "Request Submitted",
+            "आपका support request successfully submit हो गया है।",
+            "success"
+        );
 
-        function logoutUser() {
-            if(confirm("Are you sure you want to logout?")) {
-                localStorage.removeItem('bgf_uid');
-                localStorage.removeItem('bgf_uname');
-                alert("Logged out successfully");
-                window.location.href = "register.html";
-            }
-        }
+    }catch(error){
 
-        db.collection("users").doc(userId).onSnapshot((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                document.getElementById("amount-received").innerText = (data.amountReceived || 0).toFixed(2);
-                document.getElementById("recharge-balance").innerText = (data.rechargeBalance || 0).toFixed(2);
-                document.getElementById("withdraw-balance").innerText = (data.withdrawBalance || 0).toFixed(2);
-                if(data.username) {
-                    document.getElementById("username").innerText = data.username;
-                }
-                
-                if (data.profilePicUrl) {
-                    const imgEl = document.getElementById("profile-img");
-                    imgEl.src = data.profilePicUrl;
-                    imgEl.style.display = "block";
-                    document.getElementById("default-avatar-icon").style.display = "none";
-                }
-            }
-        });
+        console.error(error);
 
-        function uploadProfileImage(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const storageRef = storage.ref().child(`profile_pics/${userId}_${Date.now()}`);
-            const uploadTask = storageRef.put(file);
+        showMessage(
+            "Submission Failed",
+            error.message || "Support request submit नहीं हो सका।",
+            "error"
+        );
 
-            uploadTask.on('state_changed', null, (error) => {
-                alert("Upload failed: " + error.message);
-            }, () => {
-                uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                    db.collection("users").doc(userId).set({ profilePicUrl: downloadURL }, { merge: true }).then(() => {
-                        alert("Profile picture updated!");
-                    });
+    }finally{
+
+        button.disabled = false;
+
+        button.innerText =
+            "Submit Support Request";
+
+    }
+
+});
+
+function loadSupportRequests(){
+
+    if(unsubscribeSupport){
+
+        unsubscribeSupport();
+
+    }
+
+    const list =
+        document.getElementById(
+            "support-list"
+        );
+
+    if(!list) return;
+
+    unsubscribeSupport =
+    db.collection("users")
+      .doc(userId)
+      .collection("supportRequests")
+      .orderBy("createdAt","desc")
+      .onSnapshot(
+
+        snapshot=>{
+
+            const requests = [];
+
+            snapshot.forEach(doc=>{
+
+                requests.push({
+                    id:doc.id,
+                    ...doc.data()
                 });
+
             });
+
+            renderSupportRequests(requests);
+
+        },
+
+        error=>{
+
+            console.error(error);
+
+            list.innerHTML = `
+                <div class="empty-state">
+                    <p>No support requests found.</p>
+                </div>
+            `;
+
         }
-    </script>
+
+      );
+
+}
+
+function renderSupportRequests(requests){
+
+    const list =
+        document.getElementById(
+            "support-list"
+        );
+
+    if(!requests.length){
+
+        list.innerHTML = `
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"/>
+                </svg>
+                <p>अभी कोई support request नहीं है।</p>
+            </div>
+        `;
+
+        return;
+
+    }
+
+    list.innerHTML =
+        requests
+        .map(request=>{
+
+            const status =
+                request.status || "Pending";
+
+            const statusClass =
+                getStatusClass(status);
+
+            return `
+
+            <div style="
+                padding:12px 0;
+                border-bottom:1px solid #f3f4f6;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    gap:10px;
+                ">
+
+                    <div style="min-width:0;">
+
+                        <div style="
+                            font-size:12px;
+                            font-weight:800;
+                        ">
+                            ${escapeHTML(
+                                String(
+                                    request.subject ||
+                                    "Support Request"
+                                )
+                            )}
+                        </div>
+
+                        <div style="
+                            font-size:10px;
+                            color:#9ca3af;
+                            margin-top:3px;
+                        ">
+                            ${escapeHTML(
+                                String(
+                                    request.issueType ||
+                                    "Other"
+                                )
+                            )}
+                            •
+                            ${formatDateTime(
+                                request.createdAt
+                            )}
+                        </div>
+
+                    </div>
+
+                    <span class="status ${statusClass}">
+                        ${escapeHTML(String(status))}
+                    </span>
+
+                </div>
+
+                <div style="
+                    margin-top:7px;
+                    color:#6b7280;
+                    font-size:11px;
+                    line-height:1.5;
+                ">
+                    ${escapeHTML(
+                        String(
+                            request.details || ""
+                        )
+                    )}
+                </div>
+
+            </div>
+
+            `;
+
+        })
+        .join("");
+
+}
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+function logoutUser(){
+
+    document
+    .getElementById("logout-popup")
+    .classList.add("show");
+
+}
+
+function confirmLogout(){
+
+    try{
+
+        if(unsubscribeUser){
+            unsubscribeUser();
+        }
+
+        if(unsubscribeTransactions){
+            unsubscribeTransactions();
+        }
+
+        if(unsubscribeSupport){
+            unsubscribeSupport();
+        }
+
+    }catch(e){
+
+        console.log(e);
+
+    }
+
+    localStorage.removeItem("bgf_uid");
+
+    localStorage.removeItem("bgf_uname");
+
+    closePopup("logout-popup");
+
+    showToast("Logout successful");
+
+    setTimeout(()=>{
+
+        window.location.href =
+            "register.html";
+
+    },600);
+
+}
+
+/* =========================================================
+   POPUPS
+========================================================= */
+
+function showMessage(title,text,type="success"){
+
+    const overlay =
+        document.getElementById(
+            "message-popup"
+        );
+
+    const icon =
+        document.getElementById(
+            "message-icon"
+        );
+
+    const svg =
+        document.getElementById(
+            "message-svg"
+        );
+
+    document.getElementById(
+        "message-title"
+    ).innerText = title;
+
+    document.getElementById(
+        "message-text"
+    ).innerText = text;
+
+    if(type === "error"){
+
+        icon.className =
+            "popup-icon red";
+
+        svg.innerHTML = `
+            <path
+                d="M6 6l12 12M18 6L6 18"
+                stroke="#dc2626"
+                stroke-width="2"
+                stroke-linecap="round"/>
+        `;
+
+    }else{
+
+        icon.className =
+            "popup-icon green";
+
+        svg.innerHTML = `
+            <path
+                d="M20 6L9 17l-5-5"
+                stroke="#15803d"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"/>
+        `;
+
+    }
+
+    overlay.classList.add("show");
+
+}
+
+function closePopup(id){
+
+    const popup =
+        document.getElementById(id);
+
+    if(popup){
+
+        popup.classList.remove("show");
+
+    }
+
+}
+
+document.querySelectorAll(".popup-overlay")
+.forEach(overlay=>{
+
+    overlay.addEventListener(
+        "click",
+        function(event){
+
+            if(event.target === overlay){
+
+                overlay.classList.remove(
+                    "show"
+                );
+
+            }
+
+        }
+    );
+
+});
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+let toastTimer = null;
+
+function showToast(message){
+
+    const toast =
+        document.getElementById("toast");
+
+    toast.innerText = message;
+
+    toast.classList.add("show");
+
+    clearTimeout(toastTimer);
+
+    toastTimer =
+        setTimeout(()=>{
+
+            toast.classList.remove(
+                "show"
+            );
+
+        },2200);
+
+}
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHTML(value){
+
+    return String(value)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+/* =========================================================
+   CLEANUP
+========================================================= */
+
+window.addEventListener(
+    "beforeunload",
+    ()=>{
+
+        try{
+
+            if(unsubscribeUser)
+                unsubscribeUser();
+
+            if(unsubscribeTransactions)
+                unsubscribeTransactions();
+
+            if(unsubscribeSupport)
+                unsubscribeSupport();
+
+        }catch(e){}
+
+    }
+);
+
+</script>
+
 </body>
 </html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Mines Card Game - Lucky Draw</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: radial-gradient(circle at center, #0f172a, #020617);
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+        .game-container {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 440px;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+        .game-header h2 {
+            color: #f59e0b;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .game-header p {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 25px;
+        }
+        .cards-area {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .card {
+            width: 105px;
+            height: 145px;
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+            transition: transform 0.2s ease, background 0.3s ease;
+            border: 2px solid #60a5fa;
+            user-select: none;
+        }
+        .card:hover {
+            transform: translateY(-6px);
+        }
+        .card.opened-win {
+            background: linear-gradient(135deg, #059669, #047857);
+            border-color: #34d399;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            cursor: default;
+            transform: none;
+        }
+        .card.opened-mine {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            border-color: #f87171;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            cursor: default;
+            transform: none;
+        }
+        .card.disabled {
+            opacity: 0.4;
+            cursor: default;
+            transform: none !important;
+        }
+        .status-msg {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            min-height: 25px;
+            color: #cbd5e1;
+        }
+        .action-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: none;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            width: 100%;
+        }
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+        .wallet-bar {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        .wallet-title {
+            color: #94a3b8;
+        }
+        .wallet-amount {
+            color: #34d399;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        /* Popup Toast Notification */
+        .popup-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #10b981;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+        .popup-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Deposit Restriction Modal Popup */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .modal-box {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 350px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+        .modal-box h3 {
+            color: #ef4444;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+        .modal-box p {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .deposit-redirect-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+            transition: 0.2s;
+        }
+        .deposit-redirect-btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Popup Toast for Claim Success -->
+    <div class="popup-toast" id="popupToast">+₹5 Added to Wallet!</div>
+
+    <!-- Deposit Required Modal Popup -->
+    <div class="modal-overlay" id="depositModal">
+        <div class="modal-box">
+            <h3>⚠️ Access Denied</h3>
+            <p>Please deposit first to play the VIP Lucky Draw game and unlock exciting cash rewards!</p>
+            <button class="deposit-redirect-btn" onclick="redirectToPayment()">Deposit Now</button>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="game-header">
+            <h2>💣 VIP Mines Card Game</h2>
+            <p>Pick 1 secure card. Win ₹2, ₹5, ₹10 or avoid the Mine!</p>
+        </div>
+
+        <div class="cards-area" id="cardsArea">
+            <div class="card" id="card0" onclick="pickCard(0)">🎴</div>
+            <div class="card" id="card1" onclick="pickCard(1)">🎴</div>
+            <div class="card" id="card2" onclick="pickCard(2)">🎴</div>
+        </div>
+
+        <div class="status-msg" id="statusMsg">Choose your lucky card carefully!</div>
+        
+        <button class="action-btn" id="actionBtn" onclick="handleActionButton()">Claim Prize</button>
+
+        <!-- Firebase Balance Section -->
+        <div class="wallet-bar">
+            <span class="wallet-title">Firebase Wallet Balance:</span>
+            <span class="wallet-amount" id="firebaseBalance"></span>
+        </div>
+    </div>
+
+    <script>
+        // यहाँ आप अपने Firebase डेटाबेस से चेक कर सकते हैं कि यूजर ने डिपॉजिट किया है या नहीं
+        // उदाहरण के लिए: true मतलब डिपॉजिट किया है, false मतलब डिपॉजिट नहीं किया है
+        let hasUserDeposited = false; // इसे टेस्ट करने के लिए false या true कर सकते हैं
+
+        let userBalance = .00; 
+        let gameActive = true;
+        let currentWonAmount = 0;
+        let gameStage = "playing";
+
+        // पेज लोड होते ही चेक करें कि यूजर ने डिपॉजिट किया है या नहीं
+        window.onload = function() {
+            if (!hasUserDeposited) {
+                // अगर डिपॉजिट नहीं किया तो पॉप-अप दिखाएं
+                document.getElementById('depositModal').style.display = 'flex';
+            }
+        };
+
+        // पेमेंट पेज पर रीडायरेक्ट करने का फंक्शन
+        function redirectToPayment() {
+            window.location.href = "recharge.html";
+        }
+
+        function pickCard(selectedIndex) {
+            if (!hasUserDeposited) {
+                document.getElementById('depositModal').style.display = 'flex';
+                return;
+            }
+
+            if (!gameActive || gameStage !== "playing") return;
+            gameActive = false;
+
+            let roll = Math.random();
+            let resultType;
+            let cashValues = [2, 5, 10];
+            let wonCash = 0;
+
+            if (roll < 0.35) {
+                resultType = "mine";
+            } else {
+                resultType = "cash";
+                wonCash = cashValues[Math.floor(Math.random() * cashValues.length)];
+                currentWonAmount = wonCash;
+            }
+
+            for (let i = 0; i < 3; i++) {
+                let cardEl = document.getElementById('card' + i);
+                if (i === selectedIndex) {
+                    if (resultType === "mine") {
+                        cardEl.innerHTML = "💣<br>BOOM!";
+                        cardEl.className = "card opened-mine";
+                    } else {
+                        cardEl.innerHTML = "🎉<br>+₹" + wonCash;
+                        cardEl.className = "card opened-win";
+                    }
+                } else {
+                    cardEl.className = "card disabled";
+                }
+            }
+
+            let statusMsg = document.getElementById('statusMsg');
+            let actionBtn = document.getElementById('actionBtn');
+
+            if (resultType === "mine") {
+                statusMsg.innerHTML = "💥 Ouch! You hit a Mine! Better luck next time.";
+                statusMsg.style.color = "#ef4444";
+                actionBtn.innerHTML = "Try Again";
+                actionBtn.style.display = "block";
+                gameStage = "readyToReset";
+            } else {
+                statusMsg.innerHTML = `🔥 Awesome! You unlocked <span style="color:#34d399;">₹${wonCash}</span>!`;
+                statusMsg.style.color = "#34d399";
+                actionBtn.innerHTML = "Claim ₹" + wonCash;
+                actionBtn.style.display = "block";
+                gameStage = "won";
+            }
+        }
+
+        function handleActionButton() {
+            if (gameStage === "won") {
+                userBalance += currentWonAmount;
+                document.getElementById('firebaseBalance').innerHTML = "₹" + userBalance.toFixed(2);
+                showToast(`+₹${currentWonAmount} Successfully Added!`);
+                resetGame();
+            } else if (gameStage === "readyToReset") {
+                resetGame();
+            }
+        }
+
+        function resetGame() {
+            gameActive = true;
+            gameStage = "playing";
+            currentWonAmount = 0;
+
+            for (let i = 0; i < 3; i++) {
+                let cardEl = document.getElementById('card' + i);
+                cardEl.innerHTML = "🎴";
+                cardEl.className = "card";
+            }
+
+            document.getElementById('statusMsg').innerHTML = "Choose your lucky card carefully!";
+            document.getElementById('statusMsg').style.color = "#cbd5e1";
+            document.getElementById('actionBtn').style.display = "none";
+        }
+
+        function showToast(message) {
+            let toast = document.getElementById('popupToast');
+            toast.innerHTML = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+
+</body>
+</html>

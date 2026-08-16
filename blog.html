@@ -1,310 +1,1265 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forum - Live Community</title>
-    
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forum - Live Community</title>
 
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+<script type="module">
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
-        // पॉप-अप खोलना और बंद करना
-        window.openPublishPopup = () => { document.getElementById('publishPopup').style.display = 'flex'; };
-        window.closePublishPopup = () => { document.getElementById('publishPopup').style.display = 'none'; };
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    onSnapshot,
+    query,
+    orderBy,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // इमेज प्रिव्यू दिखाना
-        window.previewImg = (event, previewId) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const box = document.getElementById(previewId);
-                    box.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">`;
-                }
-                reader.readAsDataURL(file);
+/* ================= FIREBASE ================= */
+
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ================= POPUP ================= */
+
+window.openPublishPopup = () => {
+    document.getElementById("publishPopup").style.display = "flex";
+};
+
+window.closePublishPopup = () => {
+    document.getElementById("publishPopup").style.display = "none";
+};
+
+/* ================= IMAGE PREVIEW ================= */
+
+window.previewImg = (event, previewId) => {
+
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = e => {
+
+        const box = document.getElementById(previewId);
+
+        box.innerHTML = `
+            <img
+                src="${e.target.result}"
+                style="
+                    width:100%;
+                    height:100%;
+                    object-fit:cover;
+                    border-radius:8px;
+                "
+            >
+        `;
+    };
+
+    reader.readAsDataURL(file);
+};
+
+/* ================= BASE64 ================= */
+
+const toBase64 = file => {
+
+    return new Promise(resolve => {
+
+        if (!file) {
+            resolve("");
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.readAsDataURL(file);
+
+        reader.onload = () => resolve(reader.result);
+
+        reader.onerror = () => resolve("");
+    });
+};
+
+/* ================= PUBLISH ================= */
+
+window.submitPost = async () => {
+
+    const content =
+        document.getElementById("postTextContent")
+        .value
+        .trim();
+
+    const img1 =
+        document.getElementById("imgInput1")
+        .files[0];
+
+    const img2 =
+        document.getElementById("imgInput2")
+        .files[0];
+
+    if (!content) {
+
+        alert("Please write something first!");
+
+        return;
+    }
+
+    const btn =
+        document.querySelector(".submit-post-btn");
+
+    btn.disabled = true;
+    btn.innerText = "Publishing...";
+
+    try {
+
+        const img1Base64 = await toBase64(img1);
+        const img2Base64 = await toBase64(img2);
+
+        const uid =
+            localStorage.getItem("bgf_uid") ||
+            "9762331956";
+
+        const maskedUser =
+            uid.length > 4
+                ? uid.slice(0,2) +
+                  "****" +
+                  uid.slice(-2)
+                : "User";
+
+        const avatar =
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=" +
+            encodeURIComponent(uid);
+
+        await addDoc(
+            collection(db, "posts"),
+            {
+                username: maskedUser,
+                content: content,
+                img1: img1Base64,
+                img2: img2Base64,
+                avatar: avatar,
+                timestamp: serverTimestamp()
             }
-        };
+        );
 
-        // असली यूजर द्वारा पोस्ट या समस्या पब्लिश करना
-        window.submitPost = async () => {
-            const content = document.getElementById('postTextContent').value.trim();
-            const img1Element = document.getElementById('imgInput1').files[0];
-            const img2Element = document.getElementById('imgInput2').files[0];
+        document.getElementById(
+            "postTextContent"
+        ).value = "";
 
-            if (!content) {
-                alert("कृपया कुछ लिखें या अपनी समस्या दर्ज करें!");
-                return;
-            }
+        document.getElementById(
+            "imgInput1"
+        ).value = "";
 
-            const toBase64 = file => new Promise((resolve) => {
-                if (!file) resolve("");
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-            });
+        document.getElementById(
+            "imgInput2"
+        ).value = "";
 
-            const img1Base64 = await toBase64(img1Element);
-            const img2Base64 = await toBase64(img2Element);
+        document.getElementById(
+            "previewBox1"
+        ).innerHTML = "📷";
 
-            let uid = localStorage.getItem('bgf_uid') || "9762331956";
-            let maskedUser = uid.slice(0, 2) + "****" + uid.slice(-2);
-            let randomAmounts = [300, 500, 1000, 1500, 2000, 3000];
-            let rAmt = randomAmounts[Math.floor(Math.random() * randomAmounts.length)];
+        document.getElementById(
+            "previewBox2"
+        ).innerHTML = "📷";
+
+        closePublishPopup();
+
+        alert("Successfully Published!");
+
+    } catch(error) {
+
+        console.error(error);
+
+        alert(
+            "Publish nahi ho paya.\n" +
+            error.message
+        );
+
+    } finally {
+
+        btn.disabled = false;
+        btn.innerText = "Publish Now";
+    }
+};
+
+/* ================= REAL POSTS & AUTO FAKE WITHDRAWALS ================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        const feed =
+            document.getElementById("forumFeed");
+
+        // Dynamic Automated Fake Withdrawal Generator
+        const fakeWithdrawalTexts = [
+            "Successfully withdrew earnings to bank account!",
+            "Instant withdrawal received within seconds.",
+            "Great platform, got my payout successfully.",
+            "Payout credited directly to my account.",
+            "Smooth and fast withdrawal process!"
+        ];
+
+        const generateRandomFakePost = () => {
+            const randomPrefix = Math.floor(10 + Math.random() * 89);
+            const randomSuffix = Math.floor(10 + Math.random() * 89);
+            const user = `${randomPrefix}****${randomSuffix}`;
             
-            let randomSeed = Math.floor(Math.random() * 1000);
-            let aiAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${randomSeed}`;
+            const amounts = ["₹500", "₹1,000", "₹1,500", "₹2,000", "₹5,000", "₹10,000"];
+            const amount = amounts[Math.floor(Math.random() * amounts.length)];
+            
+            const text = fakeWithdrawalTexts[Math.floor(Math.random() * fakeWithdrawalTexts.length)];
+            const time = "Just now";
+            const avatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + Math.random();
+            const referenceId = "TXN-" + Math.floor(100000 + Math.random() * 900000);
 
-            try {
-                await addDoc(collection(db, "posts"), {
-                    username: maskedUser,
-                    content: content,
-                    amount: rAmt.toFixed(2),
-                    img1: img1Base64,
-                    img2: img2Base64,
-                    avatar: aiAvatar,
-                    timestamp: serverTimestamp()
-                });
+            const card = document.createElement("div");
+            card.className = "post-card real-post-card";
+            card.innerHTML = `
+                <div class="real-badge">
+                    LIVE WITHDRAWAL
+                </div>
 
-                closePublishPopup();
-                document.getElementById('postTextContent').value = "";
-                alert("Successfully Published!");
-            } catch (error) {
-                console.error("Error adding document: ", error);
-                alert("Publish nahi ho paya, dobara try karein!");
-            }
-        };
-
-        // पेज लोड होने पर ढेर सारे पुराने पोस्ट्स दिखाना और लाइव एक्टिविटी चलाना
-        document.addEventListener("DOMContentLoaded", () => {
-            const feed = document.getElementById('forumFeed');
-            const amounts = [300, 500, 800, 1000, 1500, 2000, 2500, 3000];
-            const sampleTexts = [
-                "Successfully withdrawn to my bank account. Fast and secure!",
-                "Got my payment within 5 minutes. Thanks BGF!",
-                "Awesome platform, my withdrawal is done successfully.",
-                "Received money instantly! Best earning app."
-            ];
-
-            const genId = () => Math.floor(10000000 + Math.random() * 90000000);
-
-            // जैसे ही खुले, पहले से कुछ शानदार फेक/प्री-लोडेड पोस्ट्स दिखाएं ताकि पेज भरा हुआ दिखे
-            let initialHtml = "";
-            for(let i = 0; i < 5; i++) {
-                let rAmt = amounts[Math.floor(Math.random() * amounts.length)];
-                let rText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
-                let rUser = genId().toString().slice(0, 2) + "****" + genId().toString().slice(6, 8);
-                let autoAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.floor(Math.random() * 1000)}`;
-
-                initialHtml += `
-                    <div class="post-card">
-                        <div class="post-user-row">
-                            <div class="user-info-left">
-                                <img src="${autoAvatar}" class="ai-avatar-img">
-                                <span class="username-text">${rUser}</span>
-                            </div>
-                            <div class="amount-pill">₹ ${rAmt}.00 Success</div>
-                        </div>
-                        <p class="post-desc">${rText}</p>
-                        <div class="post-date-text">Time: A few minutes ago</div>
+                <div class="post-user-row">
+                    <div class="user-info-left">
+                        <img src="${avatar}" class="ai-avatar-img">
+                        <span class="username-text">${user}</span>
                     </div>
-                `;
-            }
-            feed.innerHTML = initialHtml;
-
-            // 1. रियल-टाइम डेटाबेस पोस्ट्स
-            const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
-            onSnapshot(q, (snapshot) => {
-                let realHtml = "";
-                snapshot.forEach((doc) => {
-                    const post = doc.data();
-                    let dateStr = "Just now";
-                    if(post.timestamp) {
-                        dateStr = new Date(post.timestamp.toDate()).toLocaleTimeString();
-                    }
-                    let postAvatar = post.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.username}`;
-
-                    let imagesHtml = "";
-                    if (post.img1 || post.img2) {
-                        imagesHtml = `
-                            <div class="post-images-grid">
-                                ${post.img1 ? `<img src="${post.img1}" class="uploaded-img-view">` : ''}
-                                ${post.img2 ? `<img src="${post.img2}" class="uploaded-img-view">` : ''}
-                            </div>
-                        `;
-                    }
-
-                    realHtml += `
-                        <div class="post-card real-post-card">
-                            <div class="post-user-row">
-                                <div class="user-info-left">
-                                    <img src="${postAvatar}" class="ai-avatar-img">
-                                    <span class="username-text">${post.username || "User"}</span>
-                                </div>
-                                <div class="amount-pill">₹ ${post.amount} Success</div>
-                            </div>
-                            <p class="post-desc">${post.content}</p>
-                            ${imagesHtml}
-                            <div class="post-date-text">Time: ${dateStr}</div>
-                        </div>
-                    `;
-                });
-                
-                if(realHtml) {
-                    feed.innerHTML = realHtml + feed.innerHTML;
-                }
-            });
-
-            // हर 4 सेकंड में आँखों के सामने नया विड्रॉ प्रूफ ऐड होना
-            setInterval(() => {
-                let rAmt = amounts[Math.floor(Math.random() * amounts.length)];
-                let rText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
-                let rUser = genId().toString().slice(0, 2) + "****" + genId().toString().slice(6, 8);
-                let autoAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.floor(Math.random() * 1000)}`;
-
-                const div = document.createElement('div');
-                div.className = 'post-card';
-                div.innerHTML = `
-                    <div class="post-user-row">
-                        <div class="user-info-left">
-                            <img src="${autoAvatar}" class="ai-avatar-img">
-                            <span class="username-text">${rUser}</span>
-                        </div>
-                        <div class="amount-pill">₹ ${rAmt}.00 Success</div>
-                    </div>
-                    <p class="post-desc">${rText}</p>
-                    <div class="post-date-text">Time: Just now</div>
-                `;
-                feed.prepend(div);
-            }, 4000);
-        });
-    </script>
-
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; display: flex; justify-content: center; min-height: 100vh; }
-        .app-container { width: 100%; max-width: 480px; background: #f4f6f9; display: flex; flex-direction: column; min-height: 100vh; box-shadow: 0 0 15px rgba(0,0,0,0.1); padding-bottom: 20px; }
-        
-        /* Top Hero Header */
-        .hero-header { background: #00b050; padding: 15px; color: white; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 10px rgba(0,176,80,0.2); }
-        .top-nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .back-circle { background: rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; text-decoration: none; color: white; }
-        .forum-title { font-size: 18px; font-weight: bold; }
-        .help-circle { background: rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; color: white; }
-
-        /* User Profile Card inside Header */
-        .user-profile-box { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.1); padding: 12px; border-radius: 14px; }
-        .user-profile-left { display: flex; align-items: center; gap: 12px; }
-        .ai-avatar-big { background: white; width: 45px; height: 45px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 2px solid white; }
-        .ai-avatar-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #e0e0e0; border: 1px solid #ccc; }
-        
-        .user-details h4 { font-size: 15px; font-weight: bold; }
-        .user-details p { font-size: 11px; opacity: 0.85; margin-top: 2px; }
-        .publish-btn-main { background: white; color: #00b050; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 5px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
-
-        /* Feed Content Area */
-        .feed-body { padding: 12px; flex: 1; overflow-y: auto; }
-        .post-card { background: white; border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .real-post-card { border: 1.5px solid #00b050; } 
-        .post-user-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .user-info-left { display: flex; align-items: center; gap: 8px; }
-        .username-text { font-weight: bold; font-size: 13px; color: #333; }
-        .amount-pill { background: #e8f5e9; color: #00b050; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: bold; }
-        .post-desc { font-size: 12px; color: #444; margin-bottom: 6px; line-height: 1.4; }
-        
-        .post-images-grid { display: flex; gap: 8px; margin-bottom: 8px; overflow-x: auto; }
-        .uploaded-img-view { flex: 1; height: 130px; object-fit: cover; border-radius: 8px; border: 1px solid #eee; }
-        .post-date-text { font-size: 10px; color: #888; }
-
-        /* Popup Modal */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: flex-end; }
-        .modal-content { background: white; width: 100%; max-width: 480px; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .modal-header h3 { font-size: 16px; color: #333; }
-        .close-modal-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: #888; }
-        
-        .modal-textarea { width: 100%; height: 110px; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 13px; outline: none; resize: none; margin-bottom: 15px; background: #fafafa; }
-        .modal-textarea:focus { border-color: #00b050; background: white; }
-        
-        .upload-row-label { font-size: 12px; font-weight: bold; color: #555; margin-bottom: 8px; }
-        .upload-boxes-container { display: flex; gap: 10px; margin-bottom: 20px; }
-        .picker-box { flex: 1; height: 90px; border: 2px dashed #ccc; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: #fafafa; font-size: 22px; color: #888; overflow: hidden; }
-        .picker-box:hover { border-color: #00b050; }
-
-        .submit-post-btn { width: 100%; background: #00b050; color: white; border: none; padding: 14px; border-radius: 25px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,176,80,0.3); }
-    </style>
-</head>
-<body>
-
-    <div class="app-container">
-        <!-- Hero Header -->
-        <div class="hero-header">
-            <div class="top-nav-bar">
-                <a href="home.html" class="back-circle">&larr;</a>
-                <span class="forum-title">Forum</span>
-                <div class="help-circle">?</div>
-            </div>
-
-            <!-- User Profile Card & Publish Button -->
-            <div class="user-profile-box">
-                <div class="user-profile-left">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=user_header" class="ai-avatar-big" id="headerUserAvatar">
-                    <div class="user-details">
-                        <h4 id="headerUserId">9762331956</h4>
-                        <p>ID <span id="headerIdMask">***</span></p>
+                    <div class="amount-pill">
+                        ${amount}
                     </div>
                 </div>
-                <button class="publish-btn-main" onclick="openPublishPopup()">
-                    ✏️ Publish
-                </button>
+
+                <p class="post-desc">
+                    ${text}
+                </p>
+
+                <div class="demo-statement">
+                    <div>
+                        <span>Status</span>
+                        <strong>Success</strong>
+                    </div>
+                    <div>
+                        <span>Reference</span>
+                        <strong>${referenceId}</strong>
+                    </div>
+                    <div>
+                        <span>Time</span>
+                        <strong>${time}</strong>
+                    </div>
+                </div>
+
+                <div class="post-date-text">
+                    Verified Payout Record
+                </div>
+            `;
+
+            // Prepend new auto-generated post to the top of the feed
+            if (feed.firstChild) {
+                feed.insertBefore(card, feed.firstChild);
+            } else {
+                feed.appendChild(card);
+            }
+
+            // Keep feed size manageable by removing excess older items
+            if (feed.children.length > 20) {
+                feed.removeChild(feed.lastChild);
+            }
+        };
+
+        // Trigger a new fake withdrawal post every 1 second (1000ms)
+        setInterval(generateRandomFakePost, 1000);
+
+        /* -------- REAL FIREBASE POSTS -------- */
+
+        try {
+
+            const q = query(
+                collection(db, "posts"),
+                orderBy("timestamp", "desc")
+            );
+
+            onSnapshot(
+                q,
+                snapshot => {
+
+                    snapshot.forEach(docSnap => {
+
+                        const post =
+                            docSnap.data();
+
+                        let dateStr =
+                            "Just now";
+
+                        if (
+                            post.timestamp &&
+                            post.timestamp.toDate
+                        ) {
+
+                            dateStr =
+                                post.timestamp
+                                .toDate()
+                                .toLocaleString();
+                        }
+
+                        const postAvatar =
+                            post.avatar ||
+                            "https://api.dicebear.com/7.x/avataaars/svg?seed=" +
+                            encodeURIComponent(
+                                post.username || "user"
+                            );
+
+                        let imagesHTML = "";
+
+                        if (
+                            post.img1 ||
+                            post.img2
+                        ) {
+
+                            imagesHTML = `
+
+                                <div class="post-images-grid">
+
+                                    ${
+                                        post.img1
+                                        ? `
+                                            <img
+                                                src="${post.img1}"
+                                                class="uploaded-img-view"
+                                            >
+                                        `
+                                        : ""
+                                    }
+
+                                    ${
+                                        post.img2
+                                        ? `
+                                            <img
+                                                src="${post.img2}"
+                                                class="uploaded-img-view"
+                                            >
+                                        `
+                                        : ""
+                                    }
+
+                                </div>
+                            `;
+                        }
+
+                        const realCard = document.createElement("div");
+                        realCard.className = "post-card real-post-card";
+                        realCard.innerHTML = `
+
+                            <div class="real-badge">
+                                REAL USER POST
+                            </div>
+
+                            <div class="post-user-row">
+
+                                <div class="user-info-left">
+
+                                    <img
+                                        src="${postAvatar}"
+                                        class="ai-avatar-img"
+                                    >
+
+                                    <span class="username-text">
+                                        ${
+                                            post.username ||
+                                            "User"
+                                        }
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <p class="post-desc">
+                                ${escapeHTML(
+                                    post.content || ""
+                                )}
+                            </p>
+
+                            ${imagesHTML}
+
+                            <div class="post-date-text">
+                                Time: ${dateStr}
+                            </div>
+
+                        `;
+
+                        feed.insertBefore(realCard, feed.firstChild);
+                    });
+
+                },
+
+                error => {
+
+                    console.error(
+                        "Firebase error:",
+                        error
+                    );
+                }
+            );
+
+        } catch(error) {
+
+            console.error(error);
+        }
+    }
+);
+
+/* ================= HTML SAFE TEXT ================= */
+
+function escapeHTML(text) {
+
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+</script>
+
+<style>
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+
+    font-family:
+        'Segoe UI',
+        Tahoma,
+        Geneva,
+        Verdana,
+        sans-serif;
+
+    background: #f4f6f9;
+
+    display: flex;
+
+    justify-content: center;
+
+    min-height: 100vh;
+}
+
+.app-container {
+
+    width: 100%;
+
+    max-width: 480px;
+
+    background: #f4f6f9;
+
+    display: flex;
+
+    flex-direction: column;
+
+    min-height: 100vh;
+
+    box-shadow:
+        0 0 15px
+        rgba(0,0,0,0.10);
+
+    padding-bottom: 20px;
+}
+
+/* ================= HEADER ================= */
+
+.hero-header {
+
+    background: #00b050;
+
+    padding: 15px;
+
+    color: white;
+
+    border-bottom-left-radius: 20px;
+
+    border-bottom-right-radius: 20px;
+
+    box-shadow:
+        0 4px 10px
+        rgba(0,176,80,0.20);
+}
+
+.top-nav-bar {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 15px;
+}
+
+.back-circle,
+.help-circle {
+
+    background:
+        rgba(255,255,255,0.20);
+
+    width: 34px;
+
+    height: 34px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    cursor: pointer;
+
+    color: white;
+
+    text-decoration: none;
+
+    font-size: 17px;
+
+    transition: .2s;
+}
+
+.back-circle:active,
+.help-circle:active {
+
+    transform: scale(.88);
+}
+
+.forum-title {
+
+    font-size: 18px;
+
+    font-weight: bold;
+}
+
+/* ================= USER ================= */
+
+.user-profile-box {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    background:
+        rgba(255,255,255,0.10);
+
+    padding: 12px;
+
+    border-radius: 14px;
+}
+
+.user-profile-left {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.ai-avatar-big {
+
+    background: white;
+
+    width: 45px;
+
+    height: 45px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    border: 2px solid white;
+
+    box-shadow:
+        0 2px 5px
+        rgba(0,0,0,0.15);
+}
+
+.user-details h4 {
+
+    font-size: 15px;
+}
+
+.user-details p {
+
+    font-size: 11px;
+
+    opacity: .85;
+
+    margin-top: 2px;
+}
+
+.publish-btn-main {
+
+    background: white;
+
+    color: #00b050;
+
+    border: none;
+
+    padding: 8px 16px;
+
+    border-radius: 20px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 2px 6px
+        rgba(0,0,0,.15);
+
+    transition: .2s;
+}
+
+.publish-btn-main:active {
+
+    transform: scale(.94);
+}
+
+/* ================= FEED ================= */
+
+.feed-body {
+
+    padding: 12px;
+
+    flex: 1;
+
+    overflow-y: auto;
+}
+
+.post-card {
+
+    background: white;
+
+    border-radius: 12px;
+
+    padding: 14px;
+
+    margin-bottom: 12px;
+
+    box-shadow:
+        0 2px 8px
+        rgba(0,0,0,.05);
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+.real-post-card {
+
+    border: 1.5px solid #00b050;
+}
+
+.post-user-row {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 8px;
+}
+
+.user-info-left {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+.ai-avatar-img {
+
+    width: 32px;
+
+    height: 32px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    background: #eee;
+
+    border: 1px solid #ccc;
+}
+
+.username-text {
+
+    font-weight: bold;
+
+    font-size: 13px;
+
+    color: #333;
+}
+
+.amount-pill {
+
+    background: #e8f5e9;
+
+    color: #00b050;
+
+    padding: 4px 10px;
+
+    border-radius: 12px;
+
+    font-size: 13px;
+
+    font-weight: bold;
+}
+
+.post-desc {
+
+    font-size: 12px;
+
+    color: #444;
+
+    margin-bottom: 7px;
+
+    line-height: 1.5;
+}
+
+.post-date-text {
+
+    font-size: 10px;
+
+    color: #888;
+}
+
+/* ================= LABELS ================= */
+
+.real-badge {
+
+    display: inline-block;
+
+    background: #e8f5e9;
+
+    color: #00b050;
+
+    padding: 3px 7px;
+
+    border-radius: 8px;
+
+    font-size: 8px;
+
+    font-weight: bold;
+
+    margin-bottom: 8px;
+}
+
+/* ================= SAMPLE STATEMENT ================= */
+
+.demo-statement {
+
+    background: #f5f5f5;
+
+    border-radius: 9px;
+
+    padding: 10px;
+
+    margin: 8px 0;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3,1fr);
+
+    gap: 7px;
+}
+
+.demo-statement div {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.demo-statement span {
+
+    font-size: 9px;
+
+    color: #888;
+}
+
+.demo-statement strong {
+
+    font-size: 10px;
+
+    color: #555;
+
+    word-break: break-word;
+}
+
+/* ================= IMAGES ================= */
+
+.post-images-grid {
+
+    display: flex;
+
+    gap: 8px;
+
+    margin-bottom: 8px;
+
+    overflow-x: auto;
+}
+
+.uploaded-img-view {
+
+    width: 48%;
+
+    min-width: 150px;
+
+    height: 130px;
+
+    object-fit: cover;
+
+    border-radius: 8px;
+
+    border: 1px solid #eee;
+}
+
+/* ================= POPUP ================= */
+
+.modal-overlay {
+
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    background:
+        rgba(0,0,0,.50);
+
+    z-index: 1000;
+
+    justify-content: center;
+
+    align-items: flex-end;
+}
+
+.modal-content {
+
+    background: white;
+
+    width: 100%;
+
+    max-width: 480px;
+
+    border-top-left-radius: 20px;
+
+    border-top-right-radius: 20px;
+
+    padding: 20px;
+
+    box-shadow:
+        0 -4px 20px
+        rgba(0,0,0,.15);
+
+    animation:
+        slideUp .3s ease;
+}
+
+@keyframes slideUp {
+
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 15px;
+}
+
+.modal-header h3 {
+
+    font-size: 16px;
+
+    color: #333;
+}
+
+.close-modal-btn {
+
+    background: none;
+
+    border: none;
+
+    font-size: 18px;
+
+    cursor: pointer;
+
+    color: #888;
+}
+
+.modal-textarea {
+
+    width: 100%;
+
+    height: 110px;
+
+    padding: 12px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 10px;
+
+    font-size: 13px;
+
+    outline: none;
+
+    resize: none;
+
+    margin-bottom: 15px;
+
+    background: #fafafa;
+}
+
+.modal-textarea:focus {
+
+    border-color: #00b050;
+
+    background: white;
+}
+
+.upload-row-label {
+
+    font-size: 12px;
+
+    font-weight: bold;
+
+    color: #555;
+
+    margin-bottom: 8px;
+}
+
+.upload-boxes-container {
+
+    display: flex;
+
+    gap: 10px;
+
+    margin-bottom: 20px;
+}
+
+.picker-box {
+
+    flex: 1;
+
+    height: 90px;
+
+    border: 2px dashed #ccc;
+
+    border-radius: 10px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    cursor: pointer;
+
+    background: #fafafa;
+
+    font-size: 22px;
+
+    color: #888;
+
+    overflow: hidden;
+}
+
+.picker-box:hover {
+
+    border-color: #00b050;
+}
+
+.submit-post-btn {
+
+    width: 100%;
+
+    background: #00b050;
+
+    color: white;
+
+    border: none;
+
+    padding: 14px;
+
+    border-radius: 25px;
+
+    font-size: 15px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 4px 10px
+        rgba(0,176,80,.30);
+
+    transition: .2s;
+}
+
+.submit-post-btn:active {
+
+    transform: scale(.98);
+}
+
+.submit-post-btn:disabled {
+
+    opacity: .7;
+
+    cursor: not-allowed;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app-container">
+
+    <!-- HEADER -->
+
+    <div class="hero-header">
+
+        <div class="top-nav-bar">
+
+            <a
+                href="index.html"
+                class="back-circle"
+            >
+                &larr;
+            </a>
+
+            <span class="forum-title">
+                Forum
+            </span>
+
+            <div class="help-circle">
+                ?
             </div>
+
         </div>
 
-        <!-- Feed List Container -->
-        <div class="feed-body" id="forumFeed"></div>
-    </div>
+        <div class="user-profile-box">
 
-    <!-- Popup Modal -->
-    <div class="modal-overlay" id="publishPopup">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Post Problem / Withdrawal Proof</h3>
-                <button class="close-modal-btn" onclick="closePublishPopup()">✕</button>
+            <div class="user-profile-left">
+
+                <img
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=user_header"
+                    class="ai-avatar-big"
+                    id="headerUserAvatar"
+                >
+
+                <div class="user-details">
+
+                    <h4 id="headerUserId">
+                        9762331956
+                    </h4>
+
+                    <p>
+                        ID
+                        <span id="headerIdMask">
+                            ***
+                        </span>
+                    </p>
+
+                </div>
+
             </div>
-            
-            <textarea id="postTextContent" class="modal-textarea" placeholder="Apni problem ya withdrawal ka message yahan likhein..."></textarea>
-            
-            <div class="upload-row-label">Upload 2 Photos (Screenshots)</div>
-            <div class="upload-boxes-container">
-                <label for="imgInput1" class="picker-box" id="previewBox1">📷</label>
-                <input type="file" id="imgInput1" accept="image/*" style="display: none;" onchange="previewImg(event, 'previewBox1')">
 
-                <label for="imgInput2" class="picker-box" id="previewBox2">📷</label>
-                <input type="file" id="imgInput2" accept="image/*" style="display: none;" onchange="previewImg(event, 'previewBox2')">
-            </div>
+            <button
+                class="publish-btn-main"
+                onclick="openPublishPopup()"
+            >
+                ✏️ Publish
+            </button>
 
-            <button class="submit-post-btn" onclick="submitPost()">Publish Now</button>
         </div>
+
     </div>
 
-    <script>
-        let savedId = localStorage.getItem('bgf_uid') || "9762331956";
-        document.getElementById('headerUserId').innerText = savedId;
-        document.getElementById('headerUserAvatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${savedId}`;
-    </script>
+    <!-- FEED -->
+
+    <div
+        class="feed-body"
+        id="forumFeed"
+    ></div>
+
+</div>
+
+<!-- ================= POPUP ================= -->
+
+<div
+    class="modal-overlay"
+    id="publishPopup"
+>
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h3>
+                Post Problem / Experience
+            </h3>
+
+            <button
+                class="close-modal-btn"
+                onclick="closePublishPopup()"
+            >
+                ✕
+            </button>
+
+        </div>
+
+        <textarea
+            id="postTextContent"
+            class="modal-textarea"
+            placeholder="Apna message yahan likhein..."
+        ></textarea>
+
+        <div class="upload-row-label">
+
+            Upload Photos
+
+        </div>
+
+        <div class="upload-boxes-container">
+
+            <label
+                for="imgInput1"
+                class="picker-box"
+                id="previewBox1"
+            >
+                📷
+            </label>
+
+            <input
+                type="file"
+                id="imgInput1"
+                accept="image/*"
+                style="display:none"
+                onchange="previewImg(event,'previewBox1')"
+            >
+
+            <label
+                for="imgInput2"
+                class="picker-box"
+                id="previewBox2"
+            >
+                📷
+            </label>
+
+            <input
+                type="file"
+                id="imgInput2"
+                accept="image/*"
+                style="display:none"
+                onchange="previewImg(event,'previewBox2')"
+            >
+
+        </div>
+
+        <button
+            class="submit-post-btn"
+            onclick="submitPost()"
+        >
+            Publish Now
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+/* ================= USER HEADER ================= */
+
+const savedId =
+    localStorage.getItem("bgf_uid") ||
+    "9762331956";
+
+const headerUserId =
+    document.getElementById(
+        "headerUserId"
+    );
+
+const headerAvatar =
+    document.getElementById(
+        "headerUserAvatar"
+    );
+
+const headerMask =
+    document.getElementById(
+        "headerIdMask"
+    );
+
+headerUserId.innerText =
+    savedId;
+
+headerAvatar.src =
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=" +
+    encodeURIComponent(savedId);
+
+if (savedId.length > 4) {
+
+    headerMask.innerText =
+        savedId.slice(0,2) +
+        "****" +
+        savedId.slice(-2);
+
+} else {
+
+    headerMask.innerText =
+        "***";
+}
+
+</script>
+
 </body>
 </html>
