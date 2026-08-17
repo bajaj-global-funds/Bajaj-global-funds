@@ -196,7 +196,7 @@ label{
     margin:11px 0 5px;
 }
 
-input,select{
+input,select,textarea{
     width:100%;
     padding:11px;
     border-radius:7px;
@@ -206,7 +206,7 @@ input,select{
     outline:none;
 }
 
-input:focus,select:focus{
+input:focus,select:focus,textarea:focus{
     border-color:#e52a2a;
     box-shadow:0 0 8px rgba(255,0,0,.15);
 }
@@ -316,6 +316,26 @@ input:focus,select:focus{
     color:#c5b2b2;
     font-size:12px;
     margin-bottom:12px;
+}
+
+/* Bot Box Styles */
+.bot-chat-box {
+    background: #0b0404;
+    border: 1px solid #7f1111;
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 13px;
+    color: #ffd2d2;
+}
+.bot-msg {
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #1d0909;
+    border-left: 3px solid #ff3b3b;
 }
 
 /* Popup */
@@ -435,7 +455,7 @@ input:focus,select:focus{
     </div>
 </div>
 
-<!-- 12 OPTIONS -->
+<!-- 13 OPTIONS NAVIGATION -->
 <div class="nav-bar">
 <button class="nav-btn active" onclick="showPage('dash',this)">1. Dashboard</button>
 <button class="nav-btn" onclick="showPage('users',this)">2. Users List</button>
@@ -449,6 +469,7 @@ input:focus,select:focus{
 <button class="nav-btn" onclick="showPage('ref',this)">10. Referrals</button>
 <button class="nav-btn" onclick="showPage('cs',this)">11. Support Link</button>
 <button class="nav-btn" onclick="showPage('userInvest',this)">12. VIP Purchases</button>
+<button class="nav-btn" onclick="showPage('botAnnounce',this)" style="border-color:#ff3b3b; color:#ff7070;">13. Devil Bot & Announce</button>
 </div>
 
 <!-- 1 DASHBOARD -->
@@ -568,13 +589,49 @@ input:focus,select:focus{
 <div id="investContainer"></div>
 </div>
 
+<!-- 13 DEVIL BOT & ANNOUNCEMENT PANEL -->
+<div id="botAnnounce" class="page">
+<h3>👹 Devil AI Bot & Announcement Center</h3>
+<div class="notice">यहाँ से आप अनाउंसमेंट भेज सकते हैं या नीचे Devil Bot से कुछ भी टाइप करके करवा सकते हैं!</div>
+
+<div style="background:#130505; border:1px solid #7f1111; padding:15px; border-radius:10px; margin-bottom:20px;">
+    <h4 style="color:#ff4a4a; margin-bottom:10px;">📢 Send Announcement</h4>
+    <label>Announcement Title</label>
+    <input id="annTitleInput" placeholder="जैसे: New Update / Bonus Alert">
+    <label>Message Content</label>
+    <textarea id="annMsgInput" rows="3" placeholder="अनाउंसमेंट का मैसेज यहाँ लिखें..."></textarea>
+    <label>Target Type</label>
+    <select id="annTargetType" onchange="toggleAnnUserField()">
+        <option value="public">Public (सभी यूजर्स को लॉगिन पर शो हो)</option>
+        <option value="single">Single User (किसी एक यूजर को)</option>
+    </select>
+    <div id="annSingleDiv" style="display:none; margin-top:5px;">
+        <label>Target User UID / Phone</label>
+        <input id="annTargetUid" placeholder="User ID">
+    </div>
+    <button class="action-btn" onclick="sendAdminAnnouncement()">Publish Announcement</button>
+</div>
+
+<div style="background:#130505; border:1px solid #7f1111; padding:15px; border-radius:10px;">
+    <h4 style="color:#ff4a4a; margin-bottom:10px;">🤖 Devil Admin Bot (Assistant)</h4>
+    <p style="font-size:12px; color:#a9a0a0; margin-bottom:10px;">कमांड टाइप करें जैसे: <br>• <code>pending deposits</code><br>• <code>accept deposit [UTR]</code><br>• <code>reject withdrawal [UID]</code></p>
+    <div class="search-row">
+        <input id="botCommandInput" placeholder="यहाँ कमांड लिखें या पूछें...">
+        <button class="action-btn" onclick="processBotCommand()">Send to Bot</button>
+    </div>
+    <div id="botChatBox" class="bot-chat-box">
+        <div class="bot-msg">👹 Devil Bot तैयार है बॉस! हुक्म दीजिए।</div>
+    </div>
+</div>
+</div>
+
 <!-- POPUP -->
 <div id="popupLayer" class="popup-layer">
 <div class="popup">
 <div class="popup-icon">👹</div>
 <h2 id="popupTitle">Action Complete</h2>
 <p id="popupText">Operation completed.</p>
-<button onclick="closePopupWithSound()">OK</button>
+<button onclick="closePopupWithSound()">OK (हो गया बॉस!)</button>
 </div>
 </div>
 
@@ -735,6 +792,113 @@ showPopup("ERROR",e.message);
 }
 };
 
+// Announcement Toggle & Send Function
+window.toggleAnnUserField=()=>{
+const type = document.getElementById("annTargetType").value;
+document.getElementById("annSingleDiv").style.display = (type === "single") ? "block" : "none";
+};
+
+window.sendAdminAnnouncement=async()=>{
+const title = document.getElementById("annTitleInput").value.trim();
+const message = document.getElementById("annMsgInput").value.trim();
+const type = document.getElementById("annTargetType").value;
+const targetUid = document.getElementById("annTargetUid").value.trim();
+
+if(!title || !message){
+showPopup("WARNING", "Title और Message दोनों भरें!");
+return;
+}
+
+try{
+await setDoc(doc(db, "system", "announcement"), {
+title: title,
+message: message,
+targetType: type,
+targetUid: targetUid,
+timestamp: Date.now(),
+active: true
+});
+showPopup("👹 HO GAYA BOSS", "अनाउंसमेंट सफलताપूर्वक पब्लिश कर दी गई है!");
+}catch(e){
+showPopup("ERROR", e.message);
+}
+};
+
+// Devil AI Assistant Bot Implementation
+window.processBotCommand=async()=>{
+const input = document.getElementById("botCommandInput").value.trim().toLowerCase();
+const chatBox = document.getElementById("botChatBox");
+if(!input) return;
+
+chatBox.innerHTML += `<div class="bot-msg" style="border-left-color:#35d675;"><b>Boss:</b> ${escapeHtml(input)}</div>`;
+document.getElementById("botCommandInput").value = "";
+
+let reply = "समझ नहीं आया बॉस! सही कमांड दें।";
+
+if(input.includes("pending deposit") || input.includes("deposit dikhao")){
+    let pendingDeps = allDepositsCache.filter(d => d.status === "pending");
+    if(pendingDeps.length === 0){
+        reply = "👹 कोई भी Pending Deposit नहीं है बॉस!";
+    } else {
+        reply = `👹 कुल ${pendingDeps.length} Pending Deposits हैं:<br>` + pendingDeps.map(d=> `• UTR: <b>${d.utrNumber||d.utr}</b> | ₹${d.amount} | UID: ${d.uid}`).join("<br>");
+    }
+}
+else if(input.includes("pending withdrawal") || input.includes("withdrawal dikhao")){
+    let pendingWith = allWithdrawalsCache.filter(w => w.status === "pending");
+    if(pendingWith.length === 0){
+        reply = "👹 कोई भी Pending Withdrawal नहीं है बॉस!";
+    } else {
+        reply = `👹 कुल ${pendingWith.length} Pending Withdrawals हैं:<br>` + pendingWith.map(w=> `• UID: <b>${w.uid}</b> | ₹${w.amount} | Acc: ${w.accNo}`).join("<br>");
+    }
+}
+else if(input.startsWith("accept deposit") || input.startsWith("approve deposit")){
+    let query = input.replace("accept deposit", "").replace("approve deposit", "").trim();
+    let dep = allDepositsCache.find(d => String(d.utrNumber||d.utr||d.id).toLowerCase().includes(query));
+    if(dep){
+        await window.updateDepositStatus(dep.id, "success");
+        reply = `👹 Boss! UTR ${dep.utrNumber||dep.utr} वाला डिपोजिट <b>Accept</b> कर दिया गया है और पैसे यूजर के खाते में जोड़ दिए गए हैं!`;
+    } else {
+        reply = `👹 इस UTR या ID का कोई डिपोजिट नहीं मिला बॉस!`;
+    }
+}
+else if(input.startsWith("reject deposit")){
+    let query = input.replace("reject deposit", "").trim();
+    let dep = allDepositsCache.find(d => String(d.utrNumber||d.utr||d.id).toLowerCase().includes(query));
+    if(dep){
+        await window.updateDepositStatus(dep.id, "rejected");
+        reply = `👹 Boss! डिपोजिट <b>Reject</b> कर दिया गया है।`;
+    } else {
+        reply = `👹 डिपोजिट नहीं मिला!`;
+    }
+}
+else if(input.startsWith("accept withdrawal") || input.startsWith("approve withdrawal")){
+    let query = input.replace("accept withdrawal", "").replace("approve withdrawal", "").trim();
+    let w = allWithdrawalsCache.find(item => String(item.uid||item.id).toLowerCase().includes(query));
+    if(w){
+        await window.updateWithdrawalStatus(w.id, "success");
+        reply = `👹 Boss! विथड्रॉल <b>Accept</b> कर दिया गया है।`;
+    } else {
+        reply = `👹 विथड्रॉल रिकॉर्ड नहीं मिला!`;
+    }
+}
+else if(input.startsWith("reject withdrawal")){
+    let query = input.replace("reject withdrawal", "").trim();
+    let w = allWithdrawalsCache.find(item => String(item.uid||item.id).toLowerCase().includes(query));
+    if(w){
+        await window.updateWithdrawalStatus(w.id, "rejected");
+        reply = `👹 Boss! विथड्रॉल <b>Reject</b> कर दिया गया है।`;
+    } else {
+        reply = `👹 रिकॉर्ड नहीं मिला!`;
+    }
+}
+else {
+    reply = `👹 हुक्म साफ़ नहीं है बॉस! 'pending deposits' या 'accept deposit [UTR]' लिखकर कमांड दें।`;
+}
+
+chatBox.innerHTML += `<div class="bot-msg">${reply}</div>`;
+chatBox.scrollTop = chatBox.scrollHeight;
+};
+
 // Manual Balance Edit (Add/Deduct)
 window.modifyUserBalance=async(uid)=>{
 let amountStr = prompt("Enter amount to add (e.g. 100) or deduct (e.g. -50):");
@@ -748,7 +912,7 @@ try{
 await updateDoc(doc(db,"users",uid),{
 balance: increment(amt)
 });
-showPopup("👹 SUCCESS","User balance updated successfully!");
+showPopup("👹 SUCCESS", "हो गया बॉस! User balance updated successfully!");
 }catch(e){
 showPopup("ERROR",e.message);
 }
@@ -770,16 +934,13 @@ const userId = depositData.uid;
 const amount = Number(depositData.amount || 0);
 const currentStatus = depositData.status;
 
-// If already success, don't add balance again
 if(currentStatus === "success" && status === "success"){
     showPopup("INFO", "Deposit is already approved.");
     return;
 }
 
-// Update recharge document status
 await updateDoc(depositDocRef, { status: status });
 
-// If status is success, add balance to user document automatically
 if(status === "success" && userId && amount > 0){
     const userDocRef = doc(db, "users", userId);
     const userSnap = await getDoc(userDocRef);
@@ -789,12 +950,11 @@ if(status === "success" && userId && amount > 0){
             balance: increment(amount)
         });
     } else {
-        // If user doc doesn't exist by uid, create/set balance
         await setDoc(userDocRef, { balance: amount }, { merge: true });
     }
-    showPopup("👹 SUCCESS", `Deposit approved! ₹${amount} added to user ${userId} account.`);
+    showPopup("👹 HO GAYA BOSS", `Deposit approved! ₹${amount} added to user ${userId} account.`);
 } else {
-    showPopup("👹 STATUS UPDATED", `Deposit has been marked as ${status}.`);
+    showPopup("👹 HO GAYA BOSS", `Deposit has been marked as ${status}.`);
 }
 
 }catch(e){
@@ -802,11 +962,11 @@ showPopup("ERROR", e.message);
 }
 };
 
-// Withdrawal Accept / Reject actions (Hides buttons once processed)
+// Withdrawal Accept / Reject actions
 window.updateWithdrawalStatus=async(id, status)=>{
 try{
 await updateDoc(doc(db,"withdrawals",id),{status: status});
-showPopup("👹 STATUS UPDATED", `Withdrawal has been marked as ${status}.`);
+showPopup("👹 HO GAYA BOSS", `Withdrawal has been marked as ${status}.`);
 }catch(e){
 showPopup("ERROR", e.message);
 }
@@ -857,7 +1017,7 @@ bankName:document.getElementById("editBankName").value.trim(),
 accNo:document.getElementById("editAccNo").value.trim(),
 ifsc:document.getElementById("editIfsc").value.trim()
 },{merge:true});
-showPopup("👹 BANK UPDATED","Bank details Firebase में update हो गईं।");
+showPopup("👹 HO GAYA BOSS","Bank details Firebase में update हो गईं।");
 }catch(e){
 showPopup("ERROR",e.message);
 }
@@ -867,7 +1027,7 @@ window.clearUserBank=async(uid)=>{
 if(!confirm("Bank details clear करना चाहते हैं?")) return;
 try{
 await setDoc(doc(db,"users",uid),{holderName:"",bankName:"",accNo:"",ifsc:""},{merge:true});
-showPopup("👹 BANK CLEARED","Bank details clear हो गईं।");
+showPopup("👹 HO GAYA BOSS","Bank details clear हो गईं।");
 document.getElementById("bankRes").innerHTML="";
 }catch(e){
 showPopup("ERROR",e.message);

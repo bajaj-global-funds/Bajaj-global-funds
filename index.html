@@ -17,7 +17,9 @@ import {
   serverTimestamp,
   doc,
   getDoc,
-  setDoc
+  setDoc,
+  where,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -77,6 +79,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   loadReferralData(uid);
   loadPosts();
   startAutoFakePosts();
+  checkAnnouncements(uid);
 });
 
 async function syncUserRealData(uid) {
@@ -133,6 +136,41 @@ function updateUIBalance(balanceVal) {
   const balEl = document.getElementById("realBalanceDisplay");
   if (balEl) {
     balEl.textContent = "₹ " + formatted;
+  }
+}
+
+/* ---------------- ANNOUNCEMENT SYSTEM (FIREBASE SYNC) ---------------- */
+
+async function checkAnnouncements(uid) {
+  try {
+    const annQuery = query(collection(db, "announcements"), orderBy("timestamp", "desc"));
+    const snapshot = await getDocs(annQuery);
+
+    let foundNotice = null;
+    let seenKey = "seen_announcement_" + uid;
+    let lastSeenId = localStorage.getItem(seenKey);
+
+    snapshot.forEach((docSnap) => {
+      const ann = docSnap.data();
+      const annId = docSnap.id;
+
+      // Target check: 'public', specific user id, or matching criteria
+      if (ann.target === "public" || ann.target === uid || ann.targetUserId === uid) {
+        if (!foundNotice && annId !== lastSeenId) {
+          foundNotice = { id: annId, ...ann };
+        }
+      }
+    });
+
+    if (foundNotice) {
+      document.getElementById("noticeTitleText").textContent = foundNotice.title || "Official Notice Board";
+      document.getElementById("noticeDescText").innerHTML = escapeHtml(foundNotice.message || foundNotice.content || "");
+      
+      // Save ID so it doesn't pop up infinitely on every refresh unless a new one comes
+      localStorage.setItem(seenKey, foundNotice.id);
+    }
+  } catch (e) {
+    console.error("Announcement load error:", e);
   }
 }
 
@@ -376,7 +414,7 @@ function startAutoFakePosts() {
     if (feed.children.length > 25) {
       feed.removeChild(feed.lastChild);
     }
-  }, 1000); // Har 1 second mein naya fake withdrawal post aayega
+  }, 1000);
 }
 
 /* ---------------- FIREBASE POSTS ---------------- */
@@ -778,9 +816,9 @@ svg {
         <svg viewBox="0 0 24 24">
           <path d="M12 2a7 7 0 0 0-7 7v4.6L3.3 17A1 1 0 0 0 4 18.7h16a1 1 0 0 0 .7-1.7L19 13.6V9a7 7 0 0 0-7-7zm0 20a3 3 0 0 0 2.8-2H9.2A3 3 0 0 0 12 22z"/>
         </svg>
-        <span>Official Notice Board</span>
+        <span id="noticeTitleText">Official Notice Board</span>
       </div>
-      <p>Welcome to <strong>Bajaj Global Funds</strong>. Please use the official support channel for assistance.</p>
+      <p id="noticeDescText">Welcome to <strong>Bajaj Global Funds</strong>. Please use the official support channel for assistance.</p>
     </div>
 
     <div class="invite-banner" onclick="openInvitePopup()">
