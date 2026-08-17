@@ -270,7 +270,8 @@
 
     const db = getFirestore(initializeApp(firebaseConfig));
     
-    let currentUserId = localStorage.getItem('bgf_uid');
+    // Support multiple local storage keys for UID sync with plans page
+    let currentUserId = localStorage.getItem('bgf_uid') || localStorage.getItem('userUID') || localStorage.getItem('uid') || localStorage.getItem('userId');
     if(!currentUserId) {
         currentUserId = "USER_" + Math.floor(100000 + Math.random() * 900000);
         localStorage.setItem('bgf_uid', currentUserId);
@@ -332,7 +333,7 @@
         selectedBankValue = bankName;
         const display = document.getElementById('bankNameText');
         display.innerText = bankName;
-        display.style.color = "#dc2626"; // Selected bank text in Red color
+        display.style.color = "#dc2626";
         closeBankModal();
     };
 
@@ -353,8 +354,9 @@
             const snap = await getDoc(doc(db, "users", currentUserId));
             if(snap.exists()) {
                 const data = snap.data();
-                userCurrentBalance = Number(data.balance || data.amount || data.wallet || 0);
-                document.getElementById('userBal').innerText = userCurrentBalance.toLocaleString('en-IN');
+                // Support multiple balance keys (balance, amount, wallet)
+                userCurrentBalance = Number(data.balance ?? data.amount ?? data.wallet ?? 0);
+                document.getElementById('userBal').innerText = userCurrentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 
                 if(!data.accNo) {
                     showPopup(
@@ -429,7 +431,6 @@
         document.getElementById('bankCardSection').classList.remove('hidden');
     };
 
-    // --- FULL PAGE HISTORY OPENER ---
     window.openHistoryPage = async () => {
         document.getElementById('systemPopup').style.display = 'none';
         document.getElementById('withdrawSection').classList.add('hidden');
@@ -588,8 +589,12 @@
                 timestamp: serverTimestamp()
             });
 
+            const newBalance = Number(uData.balance ?? uData.amount ?? uData.wallet ?? 0) - amount;
+
             await setDoc(userRef, {
-                balance: Number(uData.balance || 0) - amount
+                balance: newBalance,
+                amount: newBalance,
+                wallet: newBalance
             }, { merge: true });
 
             document.getElementById('wAmt').value = '';

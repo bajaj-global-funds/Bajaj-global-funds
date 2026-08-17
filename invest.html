@@ -183,7 +183,7 @@ Plan History
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, addDoc, query, where, getDocs, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAyFldowBw6ChbopLGCCQ8U7_RH4kmyFpM",
@@ -215,6 +215,7 @@ const plans = [
 let selectedPlan = null;
 let selectedQty = 1;
 let currentBalance = 0;
+let totalDailyIncome = 0;
 
 const plansBox = document.getElementById("plans");
 plans.forEach(plan => {
@@ -277,6 +278,7 @@ window.closePurchase = function(){
 window.savePurchase = async function(){
   if(!selectedPlan) return;
   const amount = selectedPlan.price * selectedQty;
+  const newPlanDaily = selectedPlan.daily * selectedQty;
 
   if(currentBalance < amount){
     closePurchase();
@@ -287,12 +289,15 @@ window.savePurchase = async function(){
   try {
     const userRef = doc(db, "users", uid);
     const newBalance = currentBalance - amount;
+    const updatedDailyIncome = totalDailyIncome + newPlanDaily;
     
-    // Update balance in Firestore
+    // Update balance and cumulative daily income in Firestore
     await updateDoc(userRef, {
       balance: newBalance,
       amount: newBalance,
-      wallet: newBalance
+      wallet: newBalance,
+      totalDailyIncome: updatedDailyIncome,
+      lastCredited: Timestamp.now()
     });
 
     // Save purchase history
@@ -303,14 +308,15 @@ window.savePurchase = async function(){
       price: selectedPlan.price,
       quantity: selectedQty,
       totalAmount: amount,
-      dailyCalculation: selectedPlan.daily * selectedQty,
-      thirtyDayCalculation: (selectedPlan.daily * selectedQty) * 30,
+      dailyCalculation: newPlanDaily,
+      thirtyDayCalculation: newPlanDaily * 30,
       image: selectedPlan.image,
       status: "Purchased",
       timestamp: serverTimestamp()
     });
 
     currentBalance = newBalance;
+    totalDailyIncome = updatedDailyIncome;
     document.getElementById("balance").innerText = currentBalance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     closePurchase();
@@ -330,11 +336,35 @@ window.loadBalance = async function(){
     const snap = await getDoc(ref);
     if(!snap.exists()){
       currentBalance = 0;
+      totalDailyIncome = 0;
       el.innerText = "0.00";
       return;
     }
     const data = snap.data();
-    currentBalance = Number(data.balance ?? data.amount ?? data.wallet ?? 0);
+    let balance = Number(data.balance ?? data.amount ?? data.wallet ?? 0);
+    totalDailyIncome = Number(data.totalDailyIncome || 0);
+
+    // Automatic Daily Income Accumulation Logic
+    if (totalDailyIncome > 0) {
+      const lastCredited = data.lastCredited?.toDate ? data.lastCredited.toDate() : new Date();
+      const now = new Date();
+      const diffTime = now - lastCredited;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays >= 1) {
+        let addedEarnings = diffDays * totalDailyIncome;
+        balance += addedEarnings;
+
+        await updateDoc(ref, {
+          balance: balance,
+          amount: balance,
+          wallet: balance,
+          lastCredited: Timestamp.now()
+        });
+      }
+    }
+
+    currentBalance = balance;
     el.innerText = currentBalance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   } catch(error) {
     console.error(error);
