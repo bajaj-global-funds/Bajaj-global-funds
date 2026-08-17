@@ -85,7 +85,6 @@
         }  
         .forgot-pass-link a:hover { text-decoration: underline; }  
 
-        /* --- FAKE SMS NOTIFICATION POPUP (Top Alert) --- */  
         #sms-banner {  
             position: fixed;  
             top: -100px;  
@@ -108,7 +107,6 @@
         .sms-title { font-size: 12px; font-weight: 700; color: #666; display: flex; justify-content: space-between; }  
         .sms-body { font-size: 14px; font-weight: 600; color: #111; }  
 
-        /* --- OTP Loader Popup Modal --- */  
         #otpLoaderModal {  
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;  
             background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);  
@@ -124,7 +122,6 @@
         }  
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }  
 
-        /* --- SUCCESS MODAL --- */  
         #success-modal {  
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;  
             background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);  
@@ -169,16 +166,14 @@
         }  
     </style>  
 
-    <!-- Firebase SDKs for Firestore Database Storage -->  
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>  
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>  
 <body>  
 
-<!-- Fake SMS Notification Banner at Top -->
 <div id="sms-banner">
     <div class="sms-title"><span>💬 Messages • Just now</span><span style="cursor: pointer;" onclick="document.getElementById('sms-banner').classList.remove('show')">✕</span></div>
-    <div class="sms-body" id="smsTextContent">Your Bajaj Finance OTP is 482910</div>
+    <div class="sms-body" id="smsTextContent">Your OTP is 000000</div>
 </div>
 
 <div class="main-wrapper">  
@@ -195,7 +190,6 @@
             <div class="tab active" id="signupTab" onclick="switchTab('signup')">Sign up</div>  
         </div>  
 
-        <!-- Sign Up Form -->  
         <div id="signupSection">  
             <div class="input-group">  
                 <label>Phone Number</label>  
@@ -239,7 +233,6 @@
             <button class="action-btn" id="registerBtn">Register Now</button>  
         </div>  
 
-        <!-- Login Form -->  
         <div id="loginSection" style="display: none;">  
             <div class="input-group">  
                 <label>Phone Number</label>  
@@ -256,7 +249,6 @@
                 </div>  
             </div>  
 
-            <!-- Forgot Password Toggle Link -->  
             <div class="forgot-pass-link">  
                 <a id="forgotToggleBtn" onclick="toggleForgotPassword()">Forgot Password?</a>  
             </div>  
@@ -265,7 +257,6 @@
         </div>  
     </div>  
 
-    <!-- OTP Loader Popup Modal -->  
     <div id="otpLoaderModal">  
         <div class="otp-loader-box">  
             <div class="spinner-circle"></div>  
@@ -274,7 +265,6 @@
         </div>  
     </div>  
 
-    <!-- Success Modal Popup -->  
     <div id="success-modal">  
         <div class="modal-content">  
             <div class="vip-icon-box">✓</div>  
@@ -303,8 +293,8 @@
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);  
     const db = firebase.firestore();  
 
-    let generatedOTP = ""; // Store mock generated OTP  
-    let isForgotPasswordMode = false; // Track forgot password state  
+    let generatedOTP = "";  
+    let isForgotPasswordMode = false;  
 
     window.addEventListener('DOMContentLoaded', () => {  
         const urlParams = new URLSearchParams(window.location.search);  
@@ -332,7 +322,7 @@
             signupTab.classList.remove('active');  
             loginSec.style.display = 'block';  
             signupSec.style.display = 'none';  
-            resetLoginFormState(); // Reset back to normal login view  
+            resetLoginFormState();  
         } else {  
             signupTab.classList.add('active');  
             loginTab.classList.remove('active');  
@@ -341,7 +331,6 @@
         }  
     };  
 
-    // Toggle between Normal Login and Forgot Password Mode
     window.toggleForgotPassword = function() {
         isForgotPasswordMode = !isForgotPasswordMode;
         const passLabel = document.getElementById('loginPassLabel');
@@ -350,7 +339,6 @@
         const toggleBtn = document.getElementById('forgotToggleBtn');
         const passGroup = document.getElementById('loginPassGroup');
 
-        // Remove existing OTP row if already present
         let existingOtpRow = document.getElementById('forgotOtpRow');
         if(existingOtpRow) existingOtpRow.remove();
 
@@ -360,7 +348,6 @@
             loginBtn.innerText = "Reset Password";
             toggleBtn.innerText = "← Back to Login";
 
-            // Add OTP input field dynamically for Forgot Password
             let otpHtml = `
                 <div class="input-group" id="forgotOtpRow">
                     <label>Verification code (OTP) <span style="font-weight: normal; color: #888;">(Optional)</span></label>
@@ -388,7 +375,6 @@
         if(existingOtpRow) existingOtpRow.remove();
     }
 
-    // Start 120 Seconds Countdown Timer
     function startOtpTimer(btnId = 'sendOtpBtn') {
         const sendBtn = document.getElementById(btnId);
         let timeLeft = 120;
@@ -406,11 +392,10 @@
         }, 1000);
     }
 
-    // Show Fake SMS Notification Banner at the Top
     function showSmsBanner(otp) {
         const banner = document.getElementById('sms-banner');
         const textContent = document.getElementById('smsTextContent');
-        textContent.innerText = `Your Bajaj Finance verification code is ${otp}`;
+        textContent.innerText = `Your verification code is ${otp}`;
         
         banner.classList.add('show');
         
@@ -419,7 +404,6 @@
         }, 7000);
     }
 
-    // Send Signup OTP
     window.sendOTP = function() {  
         const phone = document.getElementById('regPhone').value.trim();  
         if(!phone || phone.length < 10) {  
@@ -439,7 +423,6 @@
         }, 800);
     };  
 
-    // Send Forgot Password OTP
     window.sendLoginOTP = function() {
         const phone = document.getElementById('loginPhone').value.trim();
         if(!phone || phone.length < 10) {
@@ -459,7 +442,6 @@
         }, 800);
     };
 
-    // Register Button Click Handler (OTP is Optional)  
     document.getElementById('registerBtn').addEventListener('click', async () => {  
         const phone = document.getElementById('regPhone').value.trim();  
         const pass = document.getElementById('regPass').value.trim();  
@@ -472,7 +454,6 @@
             return;  
         }  
 
-        // OTP is Optional: If user enters an OTP, we validate it. If left blank, it skips validation.
         if(otp !== "" && generatedOTP && otp !== generatedOTP) {  
             showToast("Invalid Verification Code (OTP)!");  
             return;  
@@ -546,7 +527,6 @@
         }  
     });  
 
-    // Login & Forgot Password Handler
     document.getElementById('loginBtn').addEventListener('click', async () => {  
         const phone = document.getElementById('loginPhone').value.trim();  
         const pass = document.getElementById('loginPass').value.trim();  
@@ -556,7 +536,7 @@
             return;  
         }  
 
-        // --- ADMIN LOGIN CHECK ---  
+        // --- ADMIN LOGIN CHECK (Added Back) ---  
         if(!isForgotPasswordMode && phone === "9762331956" && pass === "minakshi@admin") {  
             localStorage.setItem('userUID', 'ADMIN');  
             localStorage.setItem('uid', 'ADMIN');  
@@ -566,7 +546,7 @@
             }, 1000);  
             return;  
         }  
-        // -------------------------  
+        // --------------------------------------  
 
         try {  
             const userRef = db.collection("users").doc(phone);  
@@ -577,25 +557,21 @@
                 return;  
             }  
 
-            // IF FORGOT PASSWORD MODE IS ACTIVE
             if(isForgotPasswordMode) {
                 const otpInput = document.getElementById('loginOtp');
                 const otpVal = otpInput ? otpInput.value.trim() : "";
 
-                // OTP is optional during reset, but if entered it must match
                 if(otpVal !== "" && generatedOTP && otpVal !== generatedOTP) {
                     showToast("Invalid Verification Code (OTP)!");
                     return;
                 }
 
-                // Update password in Firestore
                 await userRef.update({ password: pass });
                 showToast("Password reset successfully! Please login.");
                 resetLoginFormState();
                 return;
             }  
 
-            // NORMAL LOGIN MODE
             const data = userSnap.data();  
             if(data.password === pass) {  
                 localStorage.setItem('userUID', phone);  

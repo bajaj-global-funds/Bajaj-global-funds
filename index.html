@@ -6,7 +6,7 @@
 <title>Bajaj Global Funds - Home</title>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import {
   getFirestore,
   collection,
@@ -18,9 +18,8 @@ import {
   doc,
   getDoc,
   setDoc,
-  where,
   getDocs
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAyFldowBw6ChbopLGCCQ8U7_RH4kmyFpM",
@@ -36,7 +35,7 @@ const db = getFirestore(app);
 
 window.firebaseDB = db;
 
-/* ---------------- USER & REAL BALANCE ---------------- */
+/* ---------------- USER & REAL BALANCE FIX ---------------- */
 
 document.addEventListener("DOMContentLoaded", async () => {
 
@@ -108,6 +107,7 @@ async function syncUserRealData(uid) {
       updateUIBalance(realBal);
     }
 
+    // रियल-टाइम लाइव सिंक
     onSnapshot(userRef, (docSnap) => {
       if (docSnap.exists()) {
         const liveData = docSnap.data();
@@ -139,40 +139,37 @@ function updateUIBalance(balanceVal) {
   }
 }
 
-/* ---------------- ANNOUNCEMENT SYSTEM (FIREBASE SYNC) ---------------- */
+/* ---------------- ANNOUNCEMENT POPUP SYSTEM ---------------- */
 
 async function checkAnnouncements(uid) {
   try {
-    const annQuery = query(collection(db, "announcements"), orderBy("timestamp", "desc"));
-    const snapshot = await getDocs(annQuery);
+    const annDocRef = doc(db, "system", "announcement");
+    
+    onSnapshot(annDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const ann = docSnap.data();
+        const annUniqueId = ann.updatedAt ? ann.updatedAt.toMillis() : (ann.title || "default_ann");
+        let seenKey = "seen_announcement_id_" + uid;
+        let lastSeenId = localStorage.getItem(seenKey);
 
-    let foundNotice = null;
-    let seenKey = "seen_announcement_" + uid;
-    let lastSeenId = localStorage.getItem(seenKey);
-
-    snapshot.forEach((docSnap) => {
-      const ann = docSnap.data();
-      const annId = docSnap.id;
-
-      // Target check: 'public', specific user id, or matching criteria
-      if (ann.target === "public" || ann.target === uid || ann.targetUserId === uid) {
-        if (!foundNotice && annId !== lastSeenId) {
-          foundNotice = { id: annId, ...ann };
+        if (ann.active && (ann.targetType === "public" || ann.targetUid === uid)) {
+          if (String(annUniqueId) !== String(lastSeenId)) {
+            document.getElementById("popupNoticeTitle").textContent = ann.title || "Official Notice Board";
+            document.getElementById("popupNoticeDesc").innerHTML = escapeHtml(ann.message || "");
+            document.getElementById("announcementModal").style.display = "flex";
+            localStorage.setItem(seenKey, annUniqueId);
+          }
         }
       }
     });
-
-    if (foundNotice) {
-      document.getElementById("noticeTitleText").textContent = foundNotice.title || "Official Notice Board";
-      document.getElementById("noticeDescText").innerHTML = escapeHtml(foundNotice.message || foundNotice.content || "");
-      
-      // Save ID so it doesn't pop up infinitely on every refresh unless a new one comes
-      localStorage.setItem(seenKey, foundNotice.id);
-    }
   } catch (e) {
     console.error("Announcement load error:", e);
   }
 }
+
+window.closeAnnouncementPopup = function() {
+  document.getElementById("announcementModal").style.display = "none";
+};
 
 /* ---------------- REFERRAL ---------------- */
 
@@ -183,12 +180,8 @@ async function loadReferralData(uid) {
 
     if (snap.exists()) {
       const data = snap.data();
-
-      document.getElementById("popupTotalRefs").textContent =
-        data.count || 0;
-
-      document.getElementById("popupTotalEarnings").textContent =
-        "₹ " + Number(data.earnings || 0).toFixed(2);
+      document.getElementById("popupTotalRefs").textContent = data.count || 0;
+      document.getElementById("popupTotalEarnings").textContent = "₹ " + Number(data.earnings || 0).toFixed(2);
     }
   } catch (error) {
     console.error("Referral error:", error);
@@ -199,13 +192,7 @@ async function loadReferralData(uid) {
 
 window.openInvitePopup = async function () {
   document.getElementById("invitePopup").style.display = "flex";
-
-  const uid =
-    localStorage.getItem("bgf_uid") ||
-    localStorage.getItem("userUID") ||
-    localStorage.getItem("uid") ||
-    localStorage.getItem("userId");
-
+  const uid = localStorage.getItem("bgf_uid") || localStorage.getItem("userUID") || localStorage.getItem("uid") || localStorage.getItem("userId");
   if (uid) {
     await loadReferralData(uid);
   }
@@ -234,26 +221,20 @@ window.closeTermsPopup = function () {
 /* ---------------- COPY ---------------- */
 
 window.copyInviteLinkPopup = async function () {
-
   const input = document.getElementById("popupInviteLink");
-
   try {
     await navigator.clipboard.writeText(input.value);
   } catch {
     input.select();
     document.execCommand("copy");
   }
-
   showToast("Link copied successfully!");
 };
 
 window.showToast = function(message) {
-
   const toast = document.getElementById("toastPopup");
-
   toast.textContent = message;
   toast.classList.add("show");
-
   setTimeout(() => {
     toast.classList.remove("show");
   }, 2500);
@@ -262,101 +243,59 @@ window.showToast = function(message) {
 /* ---------------- IMAGE PREVIEW ---------------- */
 
 window.previewImg = function(event, id) {
-
   const file = event.target.files[0];
-
   if (!file) return;
-
   const reader = new FileReader();
-
   reader.onload = function(e) {
-
-    document.getElementById(id).innerHTML =
-      `<img src="${e.target.result}" class="preview-image">`;
+    document.getElementById(id).innerHTML = `<img src="${e.target.result}" class="preview-image">`;
   };
-
   reader.readAsDataURL(file);
 };
 
 /* ---------------- POSTS ---------------- */
 
 window.submitPost = async function () {
-
-  const text =
-    document.getElementById("postTextContent").value.trim();
-
+  const text = document.getElementById("postTextContent").value.trim();
   if (!text) {
     showToast("Please enter your message.");
     return;
   }
 
-  const uid =
-    localStorage.getItem("bgf_uid") ||
-    localStorage.getItem("userUID") ||
-    localStorage.getItem("uid") ||
-    localStorage.getItem("userId") ||
-    "User";
-
-  const username =
-    uid.slice(0,2) + "****" + uid.slice(-2);
-
-  const file1 =
-    document.getElementById("imgInput1").files[0];
-
-  const file2 =
-    document.getElementById("imgInput2").files[0];
+  const uid = localStorage.getItem("bgf_uid") || localStorage.getItem("userUID") || localStorage.getItem("uid") || localStorage.getItem("userId") || "User";
+  const username = uid.slice(0,2) + "****" + uid.slice(-2);
+  const file1 = document.getElementById("imgInput1").files[0];
+  const file2 = document.getElementById("imgInput2").files[0];
 
   async function fileToBase64(file) {
-
     if (!file) return "";
-
     return new Promise(resolve => {
-
       const reader = new FileReader();
-
       reader.onload = () => resolve(reader.result);
-
       reader.readAsDataURL(file);
     });
   }
 
   try {
-
     const img1 = await fileToBase64(file1);
     const img2 = await fileToBase64(file2);
 
     await addDoc(collection(firebaseDB, "posts"), {
-
       username,
       content: text,
       img1,
       img2,
       timestamp: serverTimestamp()
-
     });
 
     document.getElementById("postTextContent").value = "";
-
-    document.getElementById("previewBox1").innerHTML =
-      `<svg viewBox="0 0 24 24">
-        <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5L19 18H5z"/>
-      </svg>`;
-
-    document.getElementById("previewBox2").innerHTML =
-      `<svg viewBox="0 0 24 24">
-        <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5L19 18H5z"/>
-      </svg>`;
+    document.getElementById("previewBox1").innerHTML = `<svg viewBox="0 0 24 24"><path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5L19 18H5z"/></svg>`;
+    document.getElementById("previewBox2").innerHTML = `<svg viewBox="0 0 24 24"><path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5L19 18H5z"/></svg>`;
 
     closePublishPopup();
-
     showToast("Successfully published!");
-
   } catch(error) {
-
     console.error(error);
-
     showToast("Unable to publish. Please try again.");
-
   }
 };
 
@@ -372,15 +311,12 @@ const fakeWithdrawalTexts = [
 
 function startAutoFakePosts() {
   const feed = document.getElementById("forumFeed");
-
   setInterval(() => {
     const randomPrefix = Math.floor(10 + Math.random() * 89);
     const randomSuffix = Math.floor(10 + Math.random() * 89);
     const user = `${randomPrefix}****${randomSuffix}`;
-    
     const amounts = ["₹500", "₹1,000", "₹1,500", "₹2,000", "₹5,000", "₹10,000"];
     const amount = amounts[Math.floor(Math.random() * amounts.length)];
-    
     const text = fakeWithdrawalTexts[Math.floor(Math.random() * fakeWithdrawalTexts.length)];
     const time = "Just now";
     const avatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + Math.random();
@@ -390,27 +326,19 @@ function startAutoFakePosts() {
     card.innerHTML = `
       <div class="post-user-row">
         <div class="user-info-left">
-          <div class="small-avatar">
-            <img src="${avatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
-          </div>
+          <div class="small-avatar"><img src="${avatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;"></div>
           <span class="username-text">${user}</span>
         </div>
         <span class="status-pill" style="background:#e8f5e9; color:#00b050;">${amount}</span>
       </div>
-      <p class="post-desc">
-        ${text}
-      </p>
-      <div class="post-date-text">
-        ${time}
-      </div>
+      <p class="post-desc">${text}</p>
+      <div class="post-date-text">${time}</div>
     `;
-
     if (feed.firstChild) {
       feed.insertBefore(card, feed.firstChild);
     } else {
       feed.appendChild(card);
     }
-
     if (feed.children.length > 25) {
       feed.removeChild(feed.lastChild);
     }
@@ -420,266 +348,123 @@ function startAutoFakePosts() {
 /* ---------------- FIREBASE POSTS ---------------- */
 
 function loadPosts() {
-
-  const feed =
-    document.getElementById("forumFeed");
-
-  const q = query(
-    collection(firebaseDB, "posts"),
-    orderBy("timestamp", "desc")
-  );
+  const feed = document.getElementById("forumFeed");
+  const q = query(collection(firebaseDB, "posts"), orderBy("timestamp", "desc"));
 
   onSnapshot(q, snapshot => {
-
     snapshot.forEach(item => {
-
       const post = item.data();
-
       let time = "Just now";
-
       if (post.timestamp) {
-        time =
-          post.timestamp.toDate().toLocaleString();
+        time = post.timestamp.toDate().toLocaleString();
       }
 
       let images = "";
-
       if (post.img1 || post.img2) {
-
         images = `<div class="post-images">`;
-
-        if (post.img1) {
-          images +=
-            `<img src="${post.img1}" class="uploaded-img">`;
-        }
-
-        if (post.img2) {
-          images +=
-            `<img src="${post.img2}" class="uploaded-img">`;
-        }
-
+        if (post.img1) images += `<img src="${post.img1}" class="uploaded-img">`;
+        if (post.img2) images += `<img src="${post.img2}" class="uploaded-img">`;
         images += `</div>`;
       }
 
       const realCard = document.createElement("div");
       realCard.className = "post-card";
       realCard.innerHTML = `
-
         <div class="post-user-row">
-
           <div class="user-info-left">
-
             <div class="small-avatar">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
+              <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
             </div>
-
-            <span class="username-text">
-              ${post.username || "User"}
-            </span>
-
+            <span class="username-text">${post.username || "User"}</span>
           </div>
-
-          <span class="status-pill">
-            Published
-          </span>
-
+          <span class="status-pill">Published</span>
         </div>
-
-        <p class="post-desc">
-          ${escapeHtml(post.content || "")}
-        </p>
-
+        <p class="post-desc">${escapeHtml(post.content || "")}</p>
         ${images}
-
-        <div class="post-date-text">
-          ${time}
-        </div>
-
+        <div class="post-date-text">${time}</div>
       `;
-
       if (feed.firstChild) {
         feed.insertBefore(realCard, feed.firstChild);
       } else {
         feed.appendChild(realCard);
       }
     });
-
   });
 }
 
 function escapeHtml(text) {
-
   const div = document.createElement("div");
-
   div.textContent = text;
-
   return div.innerHTML;
 }
 
 /* ---------------- NAVIGATION ---------------- */
 
 window.switchTab = function(tab) {
+  const home = document.getElementById("homeSection");
+  const blog = document.getElementById("blogSection");
 
-  const home =
-    document.getElementById("homeSection");
-
-  const blog =
-    document.getElementById("blogSection");
-
-  document.querySelectorAll(".nav-item")
-    .forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
 
   if (tab === "home") {
-
     home.style.display = "block";
     blog.style.display = "none";
-
-    document.getElementById("navHome")
-      .classList.add("active");
-
+    document.getElementById("navHome").classList.add("active");
   }
 
   if (tab === "blog") {
-
     home.style.display = "none";
     blog.style.display = "block";
-
-    document.getElementById("navBlog")
-      .classList.add("active");
-
+    document.getElementById("navBlog").classList.add("active");
   }
 };
 </script>
 
 <style>
-/* Saari original CSS styles as it is hain */
-* {
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
-  -webkit-tap-highlight-color:transparent;
-}
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html, body { width:100%; min-height:100%; }
+body { font-family: "Segoe UI", Arial, sans-serif; background:#f4f6f9; display:flex; justify-content:center; overflow-x:hidden; }
+button, a { font-family:inherit; }
+button { cursor:pointer; }
+svg { width:24px; height:24px; fill:currentColor; }
 
-html, body {
-  width:100%;
-  min-height:100%;
-}
-
-body {
-  font-family: "Segoe UI", Arial, sans-serif;
-  background:#f4f6f9;
-  display:flex;
-  justify-content:center;
-  overflow-x:hidden;
-}
-
-button, a {
-  font-family:inherit;
-}
-
-button {
-  cursor:pointer;
-}
-
-svg {
-  width:24px;
-  height:24px;
-  fill:currentColor;
-}
-
-.app-container {
-  width:100%;
-  max-width:480px;
-  min-height:100vh;
-  background:#f4f6f9;
-  position:relative;
-  padding-bottom:78px;
-  box-shadow: 0 0 20px rgba(0,0,0,.12);
-}
-
-.header {
-  height:68px;
-  background:#00b050;
-  color:white;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px 18px;
-  position:sticky;
-  top:0;
-  z-index:50;
-}
-
+.app-container { width:100%; max-width:480px; min-height:100vh; background:#f4f6f9; position:relative; padding-bottom:78px; box-shadow: 0 0 20px rgba(0,0,0,.12); }
+.header { height:68px; background:#00b050; color:white; display:flex; justify-content:space-between; align-items:center; padding:12px 18px; position:sticky; top:0; z-index:50; }
 .user-info h3 { font-size:16px; font-weight:700; }
 .user-info p { font-size:11px; opacity:.9; margin-top:2px; }
 
-.support-icon {
-  width:38px; height:38px; border-radius:50%;
-  background: rgba(255,255,255,.18);
-  display:flex; justify-content:center; align-items:center; color:white; text-decoration:none;
-}
+.support-icon { width:38px; height:38px; border-radius:50%; background: rgba(255,255,255,.18); display:flex; justify-content:center; align-items:center; color:white; text-decoration:none; }
 .support-icon svg { width:21px; height:21px; }
-
 .content-body { padding:12px; min-height:calc(100vh - 68px); overflow-y:auto; }
 
-.balance-card {
-  background:linear-gradient(135deg, #00b050, #047835);
-  color: white; padding: 16px; border-radius: 12px; margin-bottom: 12px;
-  display: flex; justify-content: space-between; align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 176, 80, 0.2);
-}
+.balance-card { background:linear-gradient(135deg, #00b050, #047835); color: white; padding: 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0, 176, 80, 0.2); }
 .balance-card-left span { font-size: 11px; text-transform: uppercase; opacity: 0.9; font-weight: 600; }
 .balance-card-left h2 { font-size: 24px; font-weight: 800; margin-top: 4px; }
-.balance-card-right a {
-  background: white; color: #00b050; padding: 8px 14px; border-radius: 20px;
-  font-size: 11px; font-weight: 700; text-decoration: none; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
+.balance-card-right a { background: white; color: #00b050; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; text-decoration: none; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
 
-.notice-board-box {
-  background: linear-gradient(135deg, #111, #333);
-  color:white; padding:14px; border-radius:12px; margin-bottom:12px;
-  border:1px solid #ffcc00; box-shadow: 0 4px 12px rgba(0,0,0,.25);
-}
+.notice-board-box { background: linear-gradient(135deg, #111, #333); color:white; padding:14px; border-radius:12px; margin-bottom:12px; border:1px solid #ffcc00; box-shadow: 0 4px 12px rgba(0,0,0,.25); }
 .notice-title { display:flex; align-items:center; gap:8px; color:#ffcc00; font-size:14px; font-weight:700; margin-bottom:7px; }
 .notice-title svg { width:20px; height:20px; }
 .notice-board-box p { font-size:11px; line-height:1.5; opacity:.95; }
 
-.invite-banner {
-  background: linear-gradient(135deg, #00b050, #008f40);
-  padding:15px; border-radius:12px; color:white; text-align:center; margin-bottom:12px;
-}
+.invite-banner { background: linear-gradient(135deg, #00b050, #008f40); padding:15px; border-radius:12px; color:white; text-align:center; margin-bottom:12px; }
 .invite-banner h4 { font-size:15px; margin-bottom:9px; }
 .invite-btn { background:#ffcc00; color:#333; border:0; padding:8px 20px; border-radius:20px; font-weight:700; font-size:12px; }
 
-.quick-actions {
-  display:grid; grid-template-columns: repeat(4,1fr); background:white;
-  padding:15px 6px; border-radius:16px; margin-bottom:14px; box-shadow: 0 4px 12px rgba(0,0,0,.06);
-}
+.quick-actions { display:grid; grid-template-columns: repeat(4,1fr); background:white; padding:15px 6px; border-radius:16px; margin-bottom:14px; box-shadow: 0 4px 12px rgba(0,0,0,.06); }
 .action-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; text-decoration:none; color:#333; border:0; background:transparent; min-width:0; }
-.action-icon {
-  width:48px; height:48px; border-radius:14px;
-  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-  display:flex; justify-content:center; align-items:center; color:#00b050;
-}
+.action-icon { width:48px; height:48px; border-radius:14px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); display:flex; justify-content:center; align-items:center; color:#00b050; }
 .action-icon svg { width:25px; height:25px; }
 .action-item span { font-size:10px; font-weight:700; color:#333; }
 
 .section-card { background:white; padding:12px; border-radius:12px; margin-bottom:12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
 .section-card h4 { font-size:14px; color:#333; margin-bottom:8px; }
 
-.link-box {
-  display:flex; align-items:center; justify-content:space-between;
-  background:#f8f9fa; padding:8px 10px; border-radius:8px; border:1px solid #eee; gap:7px;
-}
+.link-box { display:flex; align-items:center; justify-content:space-between; background:#f8f9fa; padding:8px 10px; border-radius:8px; border:1px solid #eee; gap:7px; }
 .link-box span { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; color:#666; }
 .copy-btn { background:#ff7600; color:white; border:0; padding:7px 10px; border-radius:6px; font-size:10px; font-weight:700; white-space:nowrap; }
 
-.bajaj-notice-box {
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  color:white; padding:14px; border-radius:12px; margin-bottom:12px;
-}
+.bajaj-notice-box { background: linear-gradient(135deg, #1e3c72, #2a5298); color:white; padding:14px; border-radius:12px; margin-bottom:12px; }
 .bajaj-title { display:flex; align-items:center; gap:7px; color:#ffcc00; font-size:14px; font-weight:700; margin-bottom:7px; }
 .bajaj-title svg { width:21px; height:21px; }
 .bajaj-notice-box p { font-size:11px; line-height:1.5; }
@@ -691,22 +476,13 @@ svg {
 .user-details h4 { font-size:14px; }
 .user-details p { font-size:10px; opacity:.8; }
 
-.publish-btn-main {
-  background:white; color:#00b050; border:0; padding:7px 12px;
-  border-radius:18px; font-size:11px; font-weight:700; display:flex; align-items:center; gap:5px;
-}
+.publish-btn-main { background:white; color:#00b050; border:0; padding:7px 12px; border-radius:18px; font-size:11px; font-weight:700; display:flex; align-items:center; gap:5px; }
 .publish-btn-main svg { width:15px; height:15px; }
 
-.post-card {
-  background:white; border-radius:12px; padding:12px; margin-bottom:10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.05); border:1px solid #e8e8e8;
-}
+.post-card { background:white; border-radius:12px; padding:12px; margin-bottom:10px; box-shadow: 0 2px 8px rgba(0,0,0,.05); border:1px solid #e8e8e8; }
 .post-user-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; }
 .user-info-left { display:flex; align-items:center; gap:8px; }
-.small-avatar {
-  width:30px; height:30px; border-radius:50%; background:#e8f5e9;
-  color:#00b050; display:flex; align-items:center; justify-content:center; overflow:hidden;
-}
+.small-avatar { width:30px; height:30px; border-radius:50%; background:#e8f5e9; color:#00b050; display:flex; align-items:center; justify-content:center; overflow:hidden; }
 .small-avatar svg { width:18px; height:18px; }
 .username-text { font-size:12px; font-weight:700; color:#333; }
 .status-pill { background:#e8f5e9; color:#00b050; padding:4px 8px; border-radius:10px; font-size:9px; font-weight:700; }
@@ -717,38 +493,19 @@ svg {
 .post-date-text { font-size:9px; color:#888; }
 .empty-state { text-align:center; color:#888; padding:50px 20px; font-size:12px; }
 
-.bottom-nav {
-  position:fixed; bottom:0; left:50%; transform:translateX(-50%);
-  width:100%; max-width:480px; height:68px; background:white;
-  border-top:1px solid #eee; display:flex; align-items:center; justify-content:space-around;
-  z-index:100; box-shadow: 0 -4px 15px rgba(0,0,0,.07);
-}
+.bottom-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; height:68px; background:white; border-top:1px solid #eee; display:flex; align-items:center; justify-content:space-around; z-index:100; box-shadow: 0 -4px 15px rgba(0,0,0,.07); }
 .nav-item { flex:1; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:3px; color:#999; text-decoration:none; font-size:10px; font-weight:600; }
 .nav-item svg { width:23px; height:23px; }
 .nav-item.active { color:#00b050; }
 
 .notice-center-wrapper { flex:1; height:100%; position:relative; display:flex; justify-content:center; }
-.notice-center-btn {
-  position:absolute; top:-20px; width:58px; height:58px; border-radius:50%;
-  background: linear-gradient(135deg, #ff9900, #ff5500); border:4px solid #f4f6f9;
-  color:white; display:flex; align-items:center; justify-content:center;
-  box-shadow: 0 6px 15px rgba(255,119,0,.4); text-decoration:none;
-}
+.notice-center-btn { position:absolute; top:-20px; width:58px; height:58px; border-radius:50%; background: linear-gradient(135deg, #ff9900, #ff5500); border:4px solid #f4f6f9; color:white; display:flex; align-items:center; justify-content:center; box-shadow: 0 6px 15px rgba(255,119,0,.4); text-decoration:none; }
 .notice-center-btn svg { width:28px; height:28px; }
 .notice-label { position:absolute; bottom:6px; font-size:10px; color:#999; font-weight:600; }
 
-.modal-overlay {
-  display:none; position:fixed; inset:0; background: rgba(0,0,0,.5);
-  z-index:1000; justify-content:center; align-items:flex-end;
-}
-.modal-content {
-  width:100%; max-width:480px; max-height:88vh; overflow-y:auto;
-  background:white; padding:20px; border-radius: 20px 20px 0 0; animation: slideUp .2s ease;
-}
-@keyframes slideUp {
-  from { transform:translateY(100%); }
-  to { transform:translateY(0); }
-}
+.modal-overlay { display:none; position:fixed; inset:0; background: rgba(0,0,0,.6); z-index:1000; justify-content:center; align-items:center; padding: 20px; }
+.modal-content { width:100%; max-width:440px; max-height:85vh; overflow-y:auto; background:white; padding:20px; border-radius: 16px; animation: scaleUp .2s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+@keyframes scaleUp { from { transform:scale(0.9); opacity:0; } to { transform:scale(1); opacity:1; } }
 .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
 .modal-header h3 { font-size:16px; color:#333; }
 .close-modal-btn { width:32px; height:32px; border:0; border-radius:50%; background:#f4f4f4; color:#666; display:flex; align-items:center; justify-content:center; }
@@ -761,22 +518,14 @@ svg {
 .picker-box svg { width:28px; height:28px; }
 .preview-image { width:100%; height:100%; object-fit:cover; }
 
-.submit-post-btn {
-  width:100%; background:#00b050; color:white; border:0; padding:12px;
-  border-radius:25px; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:7px;
-}
-
+.submit-post-btn { width:100%; background:#00b050; color:white; border:0; padding:12px; border-radius:25px; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:7px; }
 .invite-rule-box { background:#e8f5e9; border:1px dashed #00b050; padding:11px; border-radius:8px; font-size:11px; color:#2e7d32; line-height:1.5; margin-bottom:13px; }
 .popup-stats-row { display:flex; gap:10px; margin-bottom:15px; }
 .popup-stat-card { flex:1; background:#f8f9fa; border:1px solid #eee; padding:11px; border-radius:8px; text-align:center; }
 .popup-stat-card h4 { font-size:17px; color:#00b050; margin-bottom:3px; }
 .popup-stat-card p { font-size:9px; color:#666; font-weight:600; }
 
-.toast-notification {
-  position:fixed; left:50%; bottom:90px; transform: translate(-50%,20px);
-  background:#222; color:white; padding:10px 18px; border-radius:8px;
-  font-size:11px; opacity:0; visibility:hidden; transition:.25s; z-index:2000; white-space:nowrap;
-}
+.toast-notification { position:fixed; left:50%; bottom:90px; transform: translate(-50%,20px); background:#222; color:white; padding:10px 18px; border-radius:8px; font-size:11px; opacity:0; visibility:hidden; transition:.25s; z-index:2000; white-space:nowrap; }
 .toast-notification.show { opacity:1; visibility:visible; transform: translate(-50%,0); }
 </style>
 </head>
@@ -792,10 +541,7 @@ svg {
       <p id="userIdDisplay">ID: Loading...</p>
     </div>
     <a href="https://t.me/BajajGlobalCS" target="_blank" class="support-icon" aria-label="Customer Support">
-      <svg viewBox="0 0 24 24">
-        <path d="M12 2a8 8 0 0 0-8 8v6a2 2 0 0 0 2 2h2v-7H6v-1a6 6 0 0 1 12 0v1h-2v7h2a2 2 0 0 0 2-2v-6a8 8 0 0 0-8-8z"/>
-        <path d="M8 20h4v2H8z"/>
-      </svg>
+      <svg viewBox="0 0 24 24"><path d="M12 2a8 8 0 0 0-8 8v6a2 2 0 0 0 2 2h2v-7H6v-1a6 6 0 0 1 12 0v1h-2v7h2a2 2 0 0 0 2-2v-6a8 8 0 0 0-8-8z"/><path d="M8 20h4v2H8z"/></svg>
     </a>
   </header>
 
@@ -813,9 +559,7 @@ svg {
 
     <div class="notice-board-box">
       <div class="notice-title">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 2a7 7 0 0 0-7 7v4.6L3.3 17A1 1 0 0 0 4 18.7h16a1 1 0 0 0 .7-1.7L19 13.6V9a7 7 0 0 0-7-7zm0 20a3 3 0 0 0 2.8-2H9.2A3 3 0 0 0 12 22z"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7v4.6L3.3 17A1 1 0 0 0 4 18.7h16a1 1 0 0 0 .7-1.7L19 13.6V9a7 7 0 0 0-7-7zm0 20a3 3 0 0 0 2.8-2H9.2A3 3 0 0 0 12 22z"/></svg>
         <span id="noticeTitleText">Official Notice Board</span>
       </div>
       <p id="noticeDescText">Welcome to <strong>Bajaj Global Funds</strong>. Please use the official support channel for assistance.</p>
@@ -828,27 +572,19 @@ svg {
 
     <div class="quick-actions">
       <a href="recharge.html" class="action-item">
-        <div class="action-icon">
-          <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4H4V6h16v2zm-8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4 z"/></svg>
-        </div>
+        <div class="action-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4H4V6h16v2zm-8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4 z"/></svg></div>
         <span>Recharge</span>
       </a>
       <a href="widraw.html" class="action-item">
-        <div class="action-icon">
-          <svg viewBox="0 0 24 24"><path d="M4 4h16v4h-2V6H6v12h12v-2h2v4H4V4zm11.5 3L14 8.5l2.5 2.5H9v2h7.5L14 15.5 15.5 17l5-5-5-5z"/></svg>
-        </div>
+        <div class="action-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16v4h-2V6H6v12h12v-2h2v4H4V4zm11.5 3L14 8.5l2.5 2.5H9v2h7.5L14 15.5 15.5 17l5-5-5-5z"/></svg></div>
         <span>Withdrawal</span>
       </a>
       <a href="lucky-draw.html" class="action-item">
-        <div class="action-icon">
-          <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 3 1.3 3.8H17l-3 2.2 1.1 3.5-3.1-2.1-3.1 2.1 1.1-3.5-3-2.2h3.7L12 6z"/></svg>
-        </div>
+        <div class="action-icon"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 3 1.3 3.8H17l-3 2.2 1.1 3.5-3.1-2.1-3.1 2.1 1.1-3.5-3-2.2h3.7L12 6z"/></svg></div>
         <span>Lucky Draw</span>
       </a>
       <a href="https://t.me/BajajGlobalCS" target="_blank" class="action-item">
-        <div class="action-icon">
-          <svg viewBox="0 0 24 24"><path d="M21.4 3.6 3.7 10.4c-1.2.5-1.2 1.2-.2 1.5l4.5 1.4 1.7 5.2c.2.6.1.8.7.8.5 0 .7-.2 1-.4l2.2-2.1 4.6 3.4c.8.5 1.4.3 1.6-.7l3-14.1c.3-1.3-.5-1.9-1.7-1.2z"/></svg>
-        </div>
+        <div class="action-icon"><svg viewBox="0 0 24 24"><path d="M21.4 3.6 3.7 10.4c-1.2.5-1.2 1.2-.2 1.5l4.5 1.4 1.7 5.2c.2.6.1.8.7.8.5 0 .7-.2 1-.4l2.2-2.1 4.6 3.4c.8.5 1.4.3 1.6-.7l3-14.1c.3-1.3-.5-1.9-1.7-1.2z"/></svg></div>
         <span>Telegram</span>
       </a>
     </div>
@@ -937,6 +673,22 @@ svg {
     </a>
   </nav>
 
+</div>
+
+<!-- ANNOUNCEMENT POPUP MODAL -->
+<div class="modal-overlay" id="announcementModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="popupNoticeTitle" style="color: #00b050; display: flex; align-items: center; gap: 6px;">Official Notice</h3>
+      <button class="close-modal-btn" onclick="closeAnnouncementPopup()">
+        <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      </button>
+    </div>
+    <div id="popupNoticeDesc" style="font-size: 12px; color: #444; line-height: 1.6; margin-bottom: 20px; max-height: 50vh; overflow-y: auto;">
+      Loading announcement...
+    </div>
+    <button class="submit-post-btn" onclick="closeAnnouncementPopup()">Understand & Close</button>
+  </div>
 </div>
 
 <!-- PUBLISH POPUP -->
