@@ -1,815 +1,1034 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recharge - Bajaj Global Funds</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Recharge</title>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background:
-                radial-gradient(circle at top right, rgba(0, 200, 120, 0.12), transparent 35%),
-                linear-gradient(180deg, #07131f 0%, #091824 45%, #050d15 100%);
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            color: #fff;
-        }
+:root{
+ --bg:#060910;
+ --card:#0d121b;
+ --card2:#111823;
+ --line:#202a38;
+ --green:#00e676;
+ --green2:#00bd62;
+ --red:#ff4567;
+ --gold:#ffc94d;
+ --muted:#7d899b;
+ --white:#f5f7fb;
+}
 
-        .app-container {
-            width: 100%;
-            max-width: 480px;
-            min-height: 100vh;
-            background: #08141f;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            padding-bottom: 82px;
-            overflow: hidden;
-        }
+body{
+ min-height:100vh;
+ background:
+ radial-gradient(circle at 50% -15%,rgba(0,230,118,.18),transparent 35%),
+ #050810;
+ color:var(--white);
+ font-family:Arial,Segoe UI,sans-serif;
+ display:flex;
+ justify-content:center;
+}
 
-        /* HEADER */
-        .header {
-            height: 62px;
-            background: linear-gradient(135deg, #0c1e2d, #08151f);
-            padding: 0 18px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.07);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-        }
+.app{
+ width:100%;
+ max-width:480px;
+ min-height:100vh;
+ background:
+ linear-gradient(180deg,#080d15,#060a11);
+ position:relative;
+ overflow:hidden;
+}
 
-        .header h3 {
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: .3px;
-        }
+/* HEADER */
 
-        .header svg {
-            width: 24px;
-            height: 24px;
-            fill: #fff;
-            cursor: pointer;
-            display: block;
-        }
+.top{
+ height:64px;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:0 17px;
+ border-bottom:1px solid var(--line);
+ background:rgba(8,13,21,.92);
+ backdrop-filter:blur(15px);
+}
 
-        /* CONTENT */
-        .content {
-            padding: 20px;
-            flex: 1;
-            overflow-y: auto;
-        }
+.top button{
+ width:38px;
+ height:38px;
+ border:1px solid #273241;
+ border-radius:10px;
+ background:#101722;
+ color:white;
+ font-size:19px;
+ cursor:pointer;
+}
 
-        .label {
-            font-size: 12px;
-            color: #8fa3b5;
-            margin-bottom: 9px;
-            display: block;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: .5px;
-        }
+.title{
+ text-align:center;
+}
 
-        /* INPUT */
-        .input-box {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #203444;
-            border-radius: 10px;
-            margin-bottom: 22px;
-            font-size: 17px;
-            outline: none;
-            background: #0d1d2a;
-            color: #fff;
-            font-weight: 700;
-            box-shadow: inset 0 0 15px rgba(0,0,0,.15);
-        }
+.title small{
+ display:block;
+ color:var(--green);
+ font-size:8px;
+ letter-spacing:1.7px;
+ font-weight:900;
+ margin-bottom:3px;
+}
 
-        .input-box:focus {
-            border-color: #00d084;
-            box-shadow: 0 0 0 2px rgba(0,208,132,.08);
-        }
+.title b{
+ font-size:16px;
+}
 
-        /* QUICK AMOUNT */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 11px;
-            margin-bottom: 28px;
-        }
+/* MAIN */
 
-        .amt-wrapper {
-            position: relative;
-            margin-top: 8px;
-        }
+.main{
+ padding:16px;
+ padding-bottom:110px;
+}
 
-        .bonus-tag {
-            position: absolute;
-            top: -10px;
-            right: 5px;
-            background: #ff4757;
-            color: #fff;
-            font-size: 8px;
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-            z-index: 2;
-            box-shadow: 0 3px 8px rgba(255,71,87,.25);
-        }
+/* ACCOUNT BAR */
 
-        .btn-amount {
-            padding: 14px 5px;
-            border: 1px solid #294151;
-            border-radius: 9px;
-            text-align: center;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 700;
-            color: #dce8ef;
-            background: #0e202e;
-            transition: all .2s ease;
-        }
+.account{
+ padding:13px;
+ border:1px solid #202b39;
+ border-radius:13px;
+ background:
+ linear-gradient(135deg,#111925,#0b111a);
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ margin-bottom:15px;
+ box-shadow:0 10px 25px rgba(0,0,0,.2);
+}
 
-        .btn-amount:hover {
-            border-color: #00d084;
-            transform: translateY(-1px);
-        }
+.account-left{
+ display:flex;
+ align-items:center;
+ gap:10px;
+}
 
-        .btn-amount.active {
-            border-color: #00d084;
-            background: linear-gradient(135deg, #00b86b, #00d084);
-            color: #06120d;
-            box-shadow: 0 5px 18px rgba(0,208,132,.18);
-        }
+.avatar{
+ width:38px;
+ height:38px;
+ border-radius:11px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ background:linear-gradient(135deg,#00b95c,#00e676);
+ color:#031008;
+ font-weight:900;
+}
 
-        /* CHANNEL */
-        .channel-card {
-            border: 1px solid #253c4c;
-            padding: 14px 15px;
-            border-radius: 10px;
-            margin-bottom: 11px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            background: #0d1d2a;
-            transition: all .2s ease;
-        }
+.account small{
+ display:block;
+ color:var(--muted);
+ font-size:8px;
+ margin-bottom:4px;
+}
 
-        .channel-card:hover {
-            border-color: #00d084;
-        }
+.account b{
+ font-size:12px;
+}
 
-        .channel-card.active {
-            border-color: #00d084;
-            background: linear-gradient(
-                90deg,
-                rgba(0,208,132,.12),
-                rgba(0,208,132,.03)
-            );
-            color: #00d084;
-        }
+.live{
+ color:var(--green);
+ font-size:8px;
+ font-weight:900;
+}
 
-        .channel-name {
-            font-weight: bold;
-            font-size: 15px;
-            text-transform: uppercase;
-        }
+/* BALANCE */
 
-        .radio-dot {
-            width: 19px;
-            height: 19px;
-            border: 2px solid #526675;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: transparent;
-        }
+.balance{
+ padding:18px;
+ border-radius:15px;
+ background:
+ radial-gradient(circle at 90% 10%,rgba(0,230,118,.14),transparent 30%),
+ linear-gradient(135deg,#101925,#0a1119);
+ border:1px solid #253142;
+ margin-bottom:18px;
+ position:relative;
+ overflow:hidden;
+}
 
-        .channel-card.active .radio-dot {
-            border-color: #00d084;
-            background: #00d084;
-            color: #06120d;
-            font-size: 11px;
-            font-weight: bold;
-        }
+.balance:after{
+ content:"";
+ position:absolute;
+ width:130px;
+ height:130px;
+ border:1px solid rgba(0,230,118,.08);
+ border-radius:50%;
+ right:-55px;
+ bottom:-75px;
+}
 
-        /* EXPLAIN BOX */
-        .explain-box {
-            background: linear-gradient(145deg, #0d1e2b, #091721);
-            border: 1px solid #203544;
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 25px rgba(0,0,0,.18);
-        }
+.balance-label{
+ color:#8491a3;
+ font-size:9px;
+ letter-spacing:1px;
+ font-weight:800;
+}
 
-        .explain-title {
-            font-size: 15px;
-            font-weight: bold;
-            color: #00d084;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+.balance-value{
+ font-size:27px;
+ font-weight:900;
+ margin-top:7px;
+}
 
-        .explain-title::before {
-            content: "▰";
-            font-size: 10px;
-        }
+.balance-sub{
+ margin-top:8px;
+ font-size:9px;
+ color:#748196;
+}
 
-        .explain-box ol {
-            padding-left: 18px;
-            font-size: 12px;
-            color: #91a5b4;
-            line-height: 1.7;
-        }
+.balance-sub span{
+ color:var(--green);
+ font-weight:800;
+}
 
-        .explain-box li {
-            margin-bottom: 8px;
-        }
+/* SECTION */
 
-        /* BOTTOM BUTTON */
-        .recharge-btn-container {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 480px;
-            background: rgba(7,18,28,.96);
-            padding: 12px 20px;
-            box-shadow: 0 -5px 25px rgba(0,0,0,.35);
-            border-top: 1px solid rgba(255,255,255,.06);
-            z-index: 99;
-        }
+.section-title{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ margin:20px 2px 9px;
+}
 
-        .recharge-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #00b86b, #00d084);
-            color: #04120c;
-            border: none;
-            border-radius: 9px;
-            font-weight: 800;
-            font-size: 16px;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(0,208,132,.18);
-            transition: .2s;
-        }
+.section-title b{
+ font-size:11px;
+}
 
-        .recharge-btn:active {
-            transform: scale(.98);
-        }
+.section-title span{
+ color:#667487;
+ font-size:8px;
+}
 
-        /* HISTORY */
-        .history-modal {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background:
-                radial-gradient(circle at top right, rgba(0,208,132,.08), transparent 35%),
-                #08141f;
-            z-index: 100;
-            flex-direction: column;
-        }
+/* AMOUNT */
 
-        .history-card {
-            background: linear-gradient(145deg, #0e202e, #0a1823);
-            border: 1px solid #213847;
-            border-left: 4px solid #00d084;
-            padding: 13px 15px;
-            border-radius: 9px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 5px 18px rgba(0,0,0,.18);
-        }
+.amount-box{
+ height:58px;
+ display:flex;
+ align-items:center;
+ padding:0 15px;
+ border:1px solid #293545;
+ border-radius:11px;
+ background:#0c131d;
+ margin-bottom:10px;
+}
 
-        .history-info h4 {
-            font-size: 14px;
-            color: #eaf3f7;
-            margin-bottom: 5px;
-        }
+.amount-box span{
+ color:var(--green);
+ font-size:18px;
+ font-weight:900;
+ margin-right:7px;
+}
 
-        .history-info p {
-            font-size: 10px;
-            color: #788f9f;
-            margin-bottom: 2px;
-        }
+.amount-box input{
+ width:100%;
+ border:0;
+ outline:0;
+ background:transparent;
+ color:white;
+ font-size:20px;
+ font-weight:900;
+}
 
-        .history-amount {
-            text-align: right;
-        }
+.amount-box:focus-within{
+ border-color:var(--green);
+ box-shadow:0 0 0 2px rgba(0,230,118,.07);
+}
 
-        .amount-val {
-            font-size: 15px;
-            font-weight: bold;
-            color: #00d084;
-        }
+/* AMOUNTS */
 
-        .status {
-            font-size: 9px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            display: inline-block;
-            margin-top: 5px;
-            font-weight: bold;
-        }
+.amount-grid{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:8px;
+}
 
-        .status.success {
-            background: rgba(0,208,132,.12);
-            color: #00d084;
-        }
+.amount{
+ height:47px;
+ border:1px solid #263242;
+ border-radius:9px;
+ background:#0d141e;
+ color:#cbd3dc;
+ font-size:12px;
+ font-weight:900;
+ cursor:pointer;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ position:relative;
+}
 
-        .status.pending {
-            background: rgba(255,193,7,.12);
-            color: #ffc107;
-        }
+.amount em{
+ position:absolute;
+ top:-7px;
+ right:5px;
+ background:var(--red);
+ color:white;
+ font-size:6px;
+ padding:3px 5px;
+ border-radius:4px;
+ font-style:normal;
+}
 
-        .status.processing {
-            background: rgba(33,150,243,.12);
-            color: #42a5f5;
-        }
+.amount.active{
+ background:linear-gradient(135deg,#00bb5e,#00e676);
+ border-color:#00e676;
+ color:#031008;
+}
 
-        /* TRADING MARKET LINE */
-        .market-line {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-            color: #00d084;
-            font-size: 11px;
-            font-weight: 700;
-        }
+/* CHANNEL */
 
-        .market-dot {
-            width: 7px;
-            height: 7px;
-            background: #00d084;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #00d084;
-        }
+.channels{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:9px;
+}
 
-        /* MOBILE */
-        @media (max-width: 360px) {
-            .content {
-                padding: 16px;
-            }
+.channel{
+ height:58px;
+ border:1px solid #263242;
+ border-radius:11px;
+ background:#0c131d;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:0 13px;
+ cursor:pointer;
+}
 
-            .grid {
-                gap: 8px;
-            }
+.channel.active{
+ border-color:var(--green);
+ background:rgba(0,230,118,.06);
+}
 
-            .btn-amount {
-                font-size: 13px;
-                padding: 13px 3px;
-            }
-        }
-    </style>
+.channel strong{
+ font-size:12px;
+ text-transform:uppercase;
+}
+
+.radio{
+ width:18px;
+ height:18px;
+ border:2px solid #465365;
+ border-radius:50%;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ font-size:9px;
+}
+
+.channel.active .radio{
+ background:var(--green);
+ border-color:var(--green);
+ color:#031008;
+}
+
+/* INFO */
+
+.info{
+ margin-top:19px;
+ border:1px solid #202b39;
+ border-radius:12px;
+ padding:14px;
+ background:#0c131d;
+}
+
+.info-head{
+ color:#dfe6ed;
+ font-size:11px;
+ font-weight:900;
+ margin-bottom:10px;
+}
+
+.info-row{
+ display:flex;
+ gap:9px;
+ color:#778598;
+ font-size:9px;
+ line-height:1.6;
+ margin-bottom:7px;
+}
+
+.info-row:last-child{
+ margin-bottom:0;
+}
+
+.num{
+ width:18px;
+ height:18px;
+ flex:none;
+ border-radius:6px;
+ background:#15202c;
+ color:var(--green);
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ font-size:8px;
+ font-weight:900;
+}
+
+/* BOTTOM */
+
+.bottom{
+ position:fixed;
+ bottom:0;
+ left:50%;
+ transform:translateX(-50%);
+ width:100%;
+ max-width:480px;
+ padding:10px 15px 13px;
+ background:rgba(5,8,14,.96);
+ border-top:1px solid #202a37;
+ backdrop-filter:blur(15px);
+ z-index:50;
+}
+
+.recharge{
+ width:100%;
+ height:51px;
+ border:0;
+ border-radius:10px;
+ background:linear-gradient(135deg,#00b85b,#00e676);
+ color:#021008;
+ font-weight:900;
+ font-size:14px;
+ cursor:pointer;
+ box-shadow:0 7px 25px rgba(0,230,118,.14);
+}
+
+/* HISTORY */
+
+.history{
+ position:absolute;
+ inset:0;
+ z-index:100;
+ display:none;
+ flex-direction:column;
+ background:
+ radial-gradient(circle at 50% 0,rgba(0,230,118,.12),transparent 30%),
+ #070b12;
+}
+
+.history-head{
+ height:64px;
+ flex:none;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:0 16px;
+ border-bottom:1px solid #202a37;
+ background:#090f17;
+}
+
+.history-head button{
+ width:38px;
+ height:38px;
+ border-radius:10px;
+ border:1px solid #273342;
+ background:#111822;
+ color:white;
+ font-size:18px;
+}
+
+.history-head b{
+ font-size:15px;
+}
+
+.history-body{
+ flex:1;
+ overflow-y:auto;
+ padding:15px;
+}
+
+/* HISTORY CARD */
+
+.history-card{
+ margin-bottom:11px;
+ padding:14px;
+ border:1px solid #202c3b;
+ border-radius:12px;
+ background:linear-gradient(145deg,#101824,#0a111a);
+ box-shadow:0 8px 22px rgba(0,0,0,.22);
+ position:relative;
+ overflow:hidden;
+}
+
+.history-card:before{
+ content:"";
+ position:absolute;
+ left:0;
+ top:0;
+ bottom:0;
+ width:3px;
+ background:var(--green);
+}
+
+.history-top{
+ display:flex;
+ justify-content:space-between;
+ gap:10px;
+ margin-bottom:12px;
+}
+
+.order{
+ font-size:10px;
+ font-weight:900;
+ word-break:break-all;
+}
+
+.date{
+ color:#718096;
+ font-size:8px;
+ margin-top:5px;
+}
+
+.history-bottom{
+ display:flex;
+ justify-content:space-between;
+ align-items:flex-end;
+ border-top:1px solid #1d2835;
+ padding-top:11px;
+}
+
+.utr{
+ color:#718096;
+ font-size:8px;
+}
+
+.utr b{
+ display:block;
+ color:#bfc8d2;
+ font-size:9px;
+ margin-top:4px;
+}
+
+.amount-history{
+ text-align:right;
+}
+
+.amount-history b{
+ display:block;
+ color:var(--green);
+ font-size:15px;
+ margin-bottom:5px;
+}
+
+.status{
+ display:inline-block;
+ padding:4px 7px;
+ border-radius:5px;
+ font-size:7px;
+ font-weight:900;
+}
+
+.status.complet{
+ color:#00e676;
+ background:rgba(0,230,118,.09);
+}
+
+.status.pending{
+ color:#ffc94d;
+ background:rgba(255,201,77,.09);
+}
+
+.status.processing{
+ color:#4da9ff;
+ background:rgba(77,169,255,.09);
+}
+
+.empty{
+ text-align:center;
+ margin-top:50px;
+ padding:25px;
+ border:1px solid #202b38;
+ border-radius:12px;
+ background:#0d141e;
+}
+
+.empty-icon{
+ font-size:25px;
+ color:var(--green);
+ margin-bottom:10px;
+}
+
+.empty b{
+ display:block;
+ font-size:11px;
+ margin-bottom:5px;
+}
+
+.empty span{
+ color:#718095;
+ font-size:9px;
+}
+
+/* MOBILE */
+
+@media(max-width:360px){
+ .main{padding-left:12px;padding-right:12px}
+ .amount-grid{gap:6px}
+ .amount{font-size:11px}
+}
+</style>
 </head>
 
 <body>
 
-<div class="app-container">
+<div class="app">
 
-    <div id="rechargeScreen" style="display:flex; flex-direction:column; height:100%;">
+<!-- MAIN -->
 
-        <div class="header">
-            <span onclick="history.back()" style="cursor:pointer;">
-                <svg viewBox="0 0 24 24">
-                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-                </svg>
-            </span>
+<div id="rechargeScreen">
 
-            <h3>Recharge</h3>
+    <header class="top">
 
-            <span onclick="toggleHistory(true)" style="cursor:pointer;">
-                <svg viewBox="0 0 24 24">
-                    <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
-                </svg>
-            </span>
+        <button onclick="window.location.href='index.html'">
+            ‹
+        </button>
+
+        <div class="title">
+            <small>FUNDS CENTER</small>
+            <b>Recharge</b>
         </div>
 
-        <div class="content">
+        <button onclick="toggleHistory(true)">
+            ↻
+        </button>
 
-            <div class="market-line">
-                <span class="market-dot"></span>
-                SECURE PAYMENT CHANNEL
+    </header>
+
+    <main class="main">
+
+        <div class="account">
+
+            <div class="account-left">
+
+                <div class="avatar">₹</div>
+
+                <div>
+                    <small>ACCOUNT</small>
+                    <b>Recharge Wallet</b>
+                </div>
+
             </div>
 
-            <label class="label">Recharge Amount</label>
+            <div class="live">
+                ● LIVE
+            </div>
+
+        </div>
+
+
+        <div class="balance">
+
+            <div class="balance-label">
+                AVAILABLE FOR RECHARGE
+            </div>
+
+            <div class="balance-value">
+                ₹0.00
+            </div>
+
+            <div class="balance-sub">
+                Secure payment channel
+                <span>● ACTIVE</span>
+            </div>
+
+        </div>
+
+
+        <div class="section-title">
+            <b>Recharge Amount</b>
+            <span>SELECT AMOUNT</span>
+        </div>
+
+
+        <div class="amount-box">
+            <span>₹</span>
 
             <input
                 type="number"
                 id="amount"
-                class="input-box"
-                value="290"
-            >
+                value="290">
+        </div>
 
-            <label class="label">Quick Amount</label>
 
-            <div class="grid">
+        <div class="amount-grid">
 
-                <div class="amt-wrapper">
-                    <span class="bonus-tag">+2%</span>
-                    <div class="btn-amount active"
-                         onclick="setAmt(290, this)">₹290</div>
-                </div>
-
-                <div class="amt-wrapper">
-                    <span class="bonus-tag">+2%</span>
-                    <div class="btn-amount"
-                         onclick="setAmt(380, this)">₹380</div>
-                </div>
-
-                <div class="amt-wrapper">
-                    <span class="bonus-tag">+2%</span>
-                    <div class="btn-amount"
-                         onclick="setAmt(560, this)">₹560</div>
-                </div>
-
-                <div class="amt-wrapper">
-                    <span class="bonus-tag">+2%</span>
-                    <div class="btn-amount"
-                         onclick="setAmt(1080, this)">₹1080</div>
-                </div>
-
-                <div class="amt-wrapper">
-                    <span class="bonus-tag">+2%</span>
-                    <div class="btn-amount"
-                         onclick="setAmt(2260, this)">₹2260</div>
-                </div>
-
-                <div class="amt-wrapper">
-                    <span class="bonus-tag">+2%</span>
-                    <div class="btn-amount"
-                         onclick="setAmt(3250, this)">₹3250</div>
-                </div>
-<div class="amt-wrapper">
-                    <span class="bonus-tag">+2%</span>
-                    <div class="btn-amount"
-                         onclick="setAmt(6500, this)">₹6500</div>
-</div>
+            <div class="amount active"
+                 onclick="setAmt(290,this)">
+                <em>+2%</em>₹290
             </div>
 
-            <label class="label">Payment Channel</label>
-
-            <div class="channel-card active"
-                 onclick="setChannel(this, 'ptm')">
-
-                <span class="channel-name">ptm</span>
-
-                <div class="radio-dot">✓</div>
-
+            <div class="amount"
+                 onclick="setAmt(380,this)">
+                <em>+2%</em>₹380
             </div>
 
-            <div class="channel-card"
-                 onclick="setChannel(this, 'xd')">
+            <div class="amount"
+                 onclick="setAmt(560,this)">
+                <em>+2%</em>₹560
+            </div>
 
-                <span class="channel-name">xd</span>
+            <div class="amount"
+                 onclick="setAmt(1080,this)">
+                <em>+2%</em>₹1080
+            </div>
 
-                <div class="radio-dot"></div>
+            <div class="amount"
+                 onclick="setAmt(2260,this)">
+                <em>+2%</em>₹2260
+            </div>
+
+            <div class="amount"
+                 onclick="setAmt(3250,this)">
+                <em>+2%</em>₹3250
+            </div>
+
+            <div class="amount"
+                 onclick="setAmt(6500,this)">
+                <em>+2%</em>₹6500
+            </div>
+
+        </div>
+
+
+        <div class="section-title">
+            <b>Payment Channel</b>
+            <span>AVAILABLE</span>
+        </div>
+
+
+        <div class="channels">
+
+            <div class="channel active"
+                 onclick="setChannel(this,'ptm')">
+
+                <strong>PTM</strong>
+
+                <div class="radio">✓</div>
 
             </div>
 
-            <div class="explain-box">
 
-                <div class="explain-title">
-                    Payment Information
-                </div>
+            <div class="channel"
+                 onclick="setChannel(this,'xd')">
 
-                <ol>
-                    <li>
-                        Please do not modify the deposit amount.
-                        Unauthorized modification may result in the deposit not being credited.
-                    </li>
+                <strong>XD</strong>
 
-                    <li>
-                        Each deposit requires payment to be initiated through this page.
-                    </li>
-
-                    <li>
-                        Deposit received within 5 minutes.
-                        If not received, please contact customer service.
-                    </li>
-                </ol>
+                <div class="radio"></div>
 
             </div>
 
         </div>
 
-        <div class="recharge-btn-container">
-            <button
-                class="recharge-btn"
+
+        <div class="info">
+
+            <div class="info-head">
+                PAYMENT INFORMATION
+            </div>
+
+            <div class="info-row">
+                <div class="num">1</div>
+                <div>
+                    Please do not modify the deposit amount.
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="num">2</div>
+                <div>
+                    Each deposit must be initiated through this page.
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="num">3</div>
+                <div>
+                    If your deposit is not received, contact customer service.
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <div class="bottom">
+
+        <button class="recharge"
                 onclick="proceedToDeposit()">
-                Recharge Now
-            </button>
-        </div>
+            RECHARGE NOW
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- HISTORY -->
+
+<div id="historyScreen"
+     class="history">
+
+    <div class="history-head">
+
+        <button onclick="toggleHistory(false)">
+            ‹
+        </button>
+
+        <b>Recharge History</b>
+
+        <div style="width:38px"></div>
 
     </div>
 
 
-    <!-- HISTORY SCREEN -->
+    <div id="historyListContainer"
+         class="history-body">
 
-    <div id="historyScreen" class="history-modal">
-
-        <div class="header">
-
-            <span onclick="toggleHistory(false)" style="cursor:pointer;">
-                <svg viewBox="0 0 24 24">
-                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-                </svg>
-            </span>
-
-            <h3>Recharge History</h3>
-
-            <span></span>
-
-        </div>
-
-        <div class="content" id="historyListContainer">
-
-            <p style="
-                text-align:center;
-                color:#78909c;
-                margin-top:30px;
-            ">
-                Loading live data...
-            </p>
-
+        <div class="empty">
+            <div class="empty-icon">↻</div>
+            <b>LOADING HISTORY</b>
+            <span>Please wait...</span>
         </div>
 
     </div>
+
+</div>
 
 </div>
 
 
 <script>
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyAyFldowBw6ChbopLGCCQ8U7_RH4kmyFpM",
-        authDomain: "creditinvestapp.firebaseapp.com",
-        projectId: "creditinvestapp",
-        storageBucket: "creditinvestapp.firebasestorage.app",
-        messagingSenderId: "299058832737",
-        appId: "1:299058832737:web:fe1c1df553e209715c1120"
-    };
+const firebaseConfig={
+ apiKey:"AIzaSyAyFldowBw6ChbopLGCCQ8U7_RH4kmyFpM",
+ authDomain:"creditinvestapp.firebaseapp.com",
+ projectId:"creditinvestapp",
+ storageBucket:"creditinvestapp.firebasestorage.app",
+ messagingSenderId:"299058832737",
+ appId:"1:299058832737:web:fe1c1df553e209715c1120"
+};
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+if(!firebase.apps.length){
+ firebase.initializeApp(firebaseConfig);
+}
 
-    const db = firebase.firestore();
+const db=firebase.firestore();
 
-    let selectedAmount = 290;
-    let selectedChannel = 'ptm';
+let selectedAmount=290;
+let selectedChannel="ptm";
 
 
-    function setAmt(val, el) {
+function setAmt(value,el){
 
-        selectedAmount = val;
+ selectedAmount=value;
 
-        document.getElementById('amount').value = val;
+ document.getElementById("amount").value=value;
 
-        document.querySelectorAll('.btn-amount')
-            .forEach(b => b.classList.remove('active'));
+ document.querySelectorAll(".amount")
+ .forEach(x=>x.classList.remove("active"));
 
-        el.classList.add('active');
-    }
+ el.classList.add("active");
+}
 
 
-    function setChannel(el, channelName) {
+function setChannel(el,name){
 
-        selectedChannel = channelName;
+ selectedChannel=name;
 
-        document.querySelectorAll('.channel-card')
-            .forEach(c => {
+ document.querySelectorAll(".channel")
+ .forEach(x=>{
+   x.classList.remove("active");
+   x.querySelector(".radio").innerHTML="";
+ });
 
-                c.classList.remove('active');
+ el.classList.add("active");
+ el.querySelector(".radio").innerHTML="✓";
+}
 
-                c.querySelector('.radio-dot').innerHTML = '';
 
-            });
+function toggleHistory(show){
 
-        el.classList.add('active');
+ const screen=document.getElementById("historyScreen");
 
-        el.querySelector('.radio-dot').innerHTML = '✓';
-    }
+ if(show){
+   screen.style.display="flex";
+   fetchFirebaseHistory();
+ }else{
+   screen.style.display="none";
+ }
 
+}
 
-    function toggleHistory(show) {
 
-        const historyScreen =
-            document.getElementById('historyScreen');
+function proceedToDeposit(){
 
-        if (show) {
+ const amount=document.getElementById("amount").value;
 
-            historyScreen.style.display = 'flex';
+ if(!amount || Number(amount)<=0){
+   alert("Please enter valid amount");
+   return;
+ }
 
-            fetchFirebaseHistory();
+ window.location.href=
+ `deposit.html?amount=${amount}&channel=${selectedChannel}`;
+}
 
-        } else {
 
-            historyScreen.style.display = 'none';
+function fetchFirebaseHistory(){
 
-        }
-    }
+ const box=document.getElementById("historyListContainer");
 
+ box.innerHTML=`
+ <div class="empty">
+   <div class="empty-icon">↻</div>
+   <b>LOADING HISTORY</b>
+   <span>Please wait...</span>
+ </div>`;
 
-    function proceedToDeposit() {
+ const uid=
+ localStorage.getItem("userUID") ||
+ localStorage.getItem("uid") ||
+ localStorage.getItem("userId") ||
+ "GUEST";
 
-        const customAmount =
-            document.getElementById('amount').value;
 
-        if (!customAmount || customAmount <= 0) {
+ db.collection("recharges")
+ .where("uid","==",uid)
+ .get()
 
-            alert('Please enter valid amount');
+ .then(snapshot=>{
 
-            return;
-        }
+   if(snapshot.empty){
 
-        window.location.href =
-            `deposit.html?amount=${customAmount}&channel=${selectedChannel}`;
-    }
+     box.innerHTML=`
+     <div class="empty">
+       <div class="empty-icon">⌁</div>
+       <b>NO RECHARGE HISTORY</b>
+       <span>Your transactions will appear here.</span>
+     </div>`;
 
+     return;
+   }
 
-    function fetchFirebaseHistory() {
 
-        const container =
-            document.getElementById('historyListContainer');
+   box.innerHTML="";
 
-        container.innerHTML = `
-            <p style="
-                text-align:center;
-                color:#78909c;
-                margin-top:30px;
-            ">
-                Loading history...
-            </p>
-        `;
 
-        const currentUserId =
-            localStorage.getItem('userUID') ||
-            localStorage.getItem('uid') ||
-            localStorage.getItem('userId') ||
-            'GUEST';
+   snapshot.forEach(doc=>{
 
+     const data=doc.data();
 
-        db.collection("recharges")
-            .where("uid", "==", currentUserId)
-            .get()
+     let date="Just now";
 
-            .then((querySnapshot) => {
+     if(data.timestamp){
 
-                if (querySnapshot.empty) {
+       try{
+         date=data.timestamp
+         .toDate()
+         .toLocaleString();
+       }catch(e){}
+     }
 
-                    container.innerHTML = `
-                        <p style="
-                            text-align:center;
-                            color:#78909c;
-                            margin-top:30px;
-                        ">
-                            No recharge history found for this account.
-                        </p>
-                    `;
 
-                    return;
-                }
+     let status=data.status || "processing";
 
+     let statusClass="processing";
 
-                container.innerHTML = "";
+     if(status.toLowerCase()==="complet"){
+       statusClass="complet";
+     }
 
+     if(status.toLowerCase()==="pending"){
+       statusClass="pending";
+     }
 
-                querySnapshot.forEach((doc) => {
+     if(status.toLowerCase()==="processing"){
+       statusClass="processing";
+     }
 
-                    const data = doc.data();
 
-                    let dateStr = "Just now";
+     box.innerHTML+=`
 
-                    if (data.timestamp) {
+     <div class="history-card">
 
-                        dateStr =
-                            data.timestamp.toDate().toLocaleString();
+       <div class="history-top">
 
-                    }
+         <div>
+           <div class="order">
+             ORDER #${data.orderId || doc.id}
+           </div>
 
+           <div class="date">
+             ${date}
+           </div>
+         </div>
 
-                    let statusClass = 'pending';
+       </div>
 
-                    let statusText =
-                        data.status || 'Pending';
 
+       <div class="history-bottom">
 
-                    if (
-                        statusText.toLowerCase() === 'success'
-                    ) {
+         <div class="utr">
+           TRANSACTION / UTR
+           <b>${data.utrNumber || "N/A"}</b>
+         </div>
 
-                        statusClass = 'success';
 
-                    }
+         <div class="amount-history">
 
-                    else if (
-                        statusText.toLowerCase() === 'processing'
-                    ) {
+           <b>₹${data.amount || 0}</b>
 
-                        statusClass = 'processing';
+           <span class="status ${statusClass}">
+             ${status.toUpperCase()}
+           </span>
 
-                    }
+         </div>
 
-                    else if (
-                        statusText.toLowerCase() === 'pending'
-                    ) {
+       </div>
 
-                        statusClass = 'pending';
+     </div>`;
 
-                    }
+   });
 
+ })
 
-                    const cardHTML = `
+ .catch(error=>{
 
-                        <div class="history-card">
+   console.error(error);
 
-                            <div class="history-info">
+   box.innerHTML=`
+   <div class="empty">
 
-                                <h4>
-                                    Order ID:
-                                    ${data.orderId || 'N/A'}
-                                </h4>
+     <div class="empty-icon"
+          style="color:#ff4567">
+       !
+     </div>
 
-                                <p>
-                                    UTR:
-                                    ${data.utrNumber || 'N/A'}
-                                </p>
+     <b>FAILED TO LOAD</b>
 
-                                <p>
-                                    ${dateStr}
-                                </p>
+     <span>
+       Unable to load recharge history.
+     </span>
 
-                            </div>
+   </div>`;
 
+ });
 
-                            <div class="history-amount">
-
-                                <div class="amount-val">
-                                    + ₹${data.amount}
-                                </div>
-
-                                <span class="status ${statusClass}">
-                                    ${statusText.toUpperCase()}
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    `;
-
-                    container.innerHTML += cardHTML;
-
-                });
-
-            })
-
-            .catch((error) => {
-
-                console.error(
-                    "Error getting documents: ",
-                    error
-                );
-
-                container.innerHTML = `
-                    <p style="
-                        text-align:center;
-                        color:#ff5b6e;
-                        margin-top:30px;
-                    ">
-                        Failed to load data from Firebase.
-                    </p>
-                `;
-
-            });
-
-    }
+}
 
 </script>
 
